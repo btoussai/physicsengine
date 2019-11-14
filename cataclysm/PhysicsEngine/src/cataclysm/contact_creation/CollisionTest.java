@@ -1,18 +1,10 @@
 package cataclysm.contact_creation;
 
-import java.util.HashSet;
 import java.util.List;
 
 import cataclysm.CataclysmCallbacks;
-import cataclysm.PhysicsStats;
-import cataclysm.broadphase.Pair;
-import cataclysm.broadphase.PairManager;
-import cataclysm.broadphase.staticmeshes.StaticMeshManager;
-import cataclysm.broadphase.staticmeshes.Triangle;
 import cataclysm.wrappers.CapsuleWrapper;
 import cataclysm.wrappers.ConvexHullWrapper;
-import cataclysm.wrappers.RigidBody;
-import cataclysm.wrappers.RigidBodyManager;
 import cataclysm.wrappers.SphereWrapper;
 import cataclysm.wrappers.Wrapper;
 
@@ -25,6 +17,8 @@ import cataclysm.wrappers.Wrapper;
  */
 public class CollisionTest {
 
+	private final CollideWrapperTriangle wrapperCollider = new CollideWrapperTriangle();
+
 	/**
 	 * Instancie un nouveau testeur de collision. Il permet de construire une zone
 	 * de contact entre deux solides ou entre un solide et un maillage statique.
@@ -34,83 +28,41 @@ public class CollisionTest {
 	}
 
 	/**
-	 * Teste les collisions entre les rigidbody et les staticmesh.
+	 * Teste la collision entre une enveloppe convexe et un ensemble de triangles.
 	 * 
-	 * @param bodies
-	 * @param meshes
+	 * @param wrapper
 	 * @param callbacks
-	 * @param stats
-	 * @param meshContactsDest 
+	 * @param meshContacts
 	 */
-	public void meshContacts(RigidBodyManager bodies, StaticMeshManager meshes, CataclysmCallbacks callbacks,
-			PhysicsStats stats, List<SingleBodyContact> meshContactsDest) {
-		meshContactsDest.clear();
-		
-		HashSet<Triangle> triangles = new HashSet<Triangle>();
-
-		for (RigidBody body : bodies) {
-			if (body.isSleeping() || body.getInvMass() == 0) {
-				continue;
-			}
-			for (Wrapper wrapper : body) {
-				triangles.clear();
-				meshes.boxTest(wrapper.getNode().getBox(), triangles);
-
-				// System.out.println("Triangles touch�s: " + triangles.size());
-
-				CollideWrapperTriangle.test(wrapper, triangles, callbacks, stats, meshContactsDest);
-				
-			}
-		}
-		
-		stats.bodyToMeshActiveContacts = meshContactsDest.size();
+	public void meshContacts(Wrapper wrapper, CataclysmCallbacks callbacks,
+			List<SingleBodyContact> meshContacts) {
+		wrapperCollider.test(wrapper, callbacks, meshContacts);
 	}
 
 	/**
 	 * Teste les collisions entre les paires d'objets et construit des zones de
-	 * contact le cas �ch�ant.
+	 * contact le cas échéant.
 	 * 
-	 * @param pairs
+	 * @param contact 
 	 * @param callbacks
-	 * @param stats
-	 * @param bodyContacts 
+	 * @param bodyContacts
 	 */
-	public void convexContacts(PairManager pairs, CataclysmCallbacks callbacks, PhysicsStats stats, List<DoubleBodyContact> bodyContacts) {
-		
-		bodyContacts.clear();
+	public void bodyContacts(DoubleBodyContact contact, CataclysmCallbacks callbacks,
+			List<DoubleBodyContact> bodyContacts) {
 
-		if (callbacks.getOnCollision() != null) {
-			for (Pair pair : pairs) {
-				if (pair.isSleeping())
-					continue;
-				ContactArea area = pair.getContact().area;
-				convexContact(pair.getWrapperA(), pair.getWrapperB(), area);
-				if (area.isCollisionOccuring()) {
-					bodyContacts.add(pair.getContact());
-					callbacks.getOnCollision().accept(pair.getWrapperA(), pair.getWrapperB());
-				}
-			}
-		} else {
-			
-			for (Pair pair : pairs) {
-				if (pair.isSleeping())
-					continue;
-				ContactArea area = pair.getContact().area;
-				convexContact(pair.getWrapperA(), pair.getWrapperB(), area);
-				if (area.isCollisionOccuring()) {
-					bodyContacts.add(pair.getContact());
-				}
-			}
-			
+		ContactArea area = contact.area;
+		convexContact(contact.getWrapperA(), contact.getWrapperB(), area);
+		if (area.isCollisionOccuring()) {
+			bodyContacts.add(contact);
+			if (callbacks.getOnCollision() != null)
+				callbacks.getOnCollision().accept(contact.getWrapperA(), contact.getWrapperB());
 		}
-		
-		stats.bodyToBodyContacts = pairs.size();
-		stats.bodyToBodyActiveContacts = bodyContacts.size();
+
 	}
 
 	/**
 	 * Teste si deux solides convexes sont en contact et construit une zone de
-	 * contact le cas �ch�ant.
+	 * contact le cas échéant.
 	 * 
 	 * @param A Le premier solide.
 	 * @param B Le second solide.

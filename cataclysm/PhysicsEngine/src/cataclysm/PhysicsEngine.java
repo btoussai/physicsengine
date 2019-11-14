@@ -1,18 +1,13 @@
 package cataclysm;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.lwjgl.util.vector.Matrix3f;
 import org.lwjgl.util.vector.Vector3f;
 
-import cataclysm.broadphase.PairManager;
 import cataclysm.broadphase.staticmeshes.StaticMeshManager;
 import cataclysm.constraints.AbstractConstraint;
 import cataclysm.constraints.SequentialImpulseSolver;
-import cataclysm.contact_creation.CollisionTest;
-import cataclysm.contact_creation.DoubleBodyContact;
-import cataclysm.contact_creation.SingleBodyContact;
 import cataclysm.integrators.ExternalForceIntegrator;
 import cataclysm.integrators.GyroscopicIntegrator;
 import cataclysm.wrappers.RigidBody;
@@ -21,7 +16,7 @@ import cataclysm.wrappers.Transform;
 import math.MatrixOps;
 
 /**
- * Permet de simuler les int�ractions entre les objets.
+ * Permet de simuler les intéractions entre les objets.
  * 
  * @author Briac
  *
@@ -29,7 +24,7 @@ import math.MatrixOps;
 final class PhysicsEngine {
 
 	/**
-	 * Les param�tres globaux pour la simulation.
+	 * Les paramètres globaux pour la simulation.
 	 */
 	private final DefaultParameters params;
 
@@ -39,32 +34,15 @@ final class PhysicsEngine {
 	private final ExternalForceIntegrator forceInegrator;
 
 	/**
-	 * Permet de tester finement la collision de deux objets.
-	 */
-	private final CollisionTest collisionTest = new CollisionTest();
-
-	/**
-	 * R�sout le syst�me de contraintes entre les objets.
+	 * Résout le système de contraintes entre les objets.
 	 */
 	private final SequentialImpulseSolver solver = new SequentialImpulseSolver();
 
 	/**
-	 * Permet d'int�grer le terme gyroscopique dans l'�quation diff�rentielle sur la
+	 * Permet d'intégrer le terme gyroscopique dans l'équation différentielle sur la
 	 * vitesse angulaire.
 	 */
 	private final GyroscopicIntegrator gyroscopicIntegrator = new GyroscopicIntegrator();
-
-	/**
-	 * La liste des contacts Wrapper vs Triangle donnant lieu � une p�n�tration des
-	 * solides.
-	 */
-	private final List<SingleBodyContact> meshContacts = new ArrayList<SingleBodyContact>();
-
-	/**
-	 * La liste des contacts Wrapper vs Wrapper donnant lieu � une p�n�tration des
-	 * solides.
-	 */
-	private final List<DoubleBodyContact> bodyContacts = new ArrayList<DoubleBodyContact>();
 
 	// quelques variables de travail
 	private final Matrix3f rotation = new Matrix3f();
@@ -81,7 +59,7 @@ final class PhysicsEngine {
 	}
 
 	/**
-	 * Met � jour l'ensemble de la simulation.
+	 * Met à jour l'ensemble de la simulation.
 	 * 
 	 * @param bodies
 	 * @param meshes
@@ -101,20 +79,11 @@ final class PhysicsEngine {
 		bodies.update();
 		stats.broadphase.stop();
 		
-		PairManager pairs = bodies.getPairs();
 
 		stats.reset(bodies.size(), meshes.size(), constraints.size());
 		
-		stats.midphaseBody2Body.start();
-		collisionTest.convexContacts(pairs, params.getCallbacks(), stats, bodyContacts);
-		stats.midphaseBody2Body.stop();
-		
-		stats.midphaseBody2Triangle.start();
-		collisionTest.meshContacts(bodies, meshes, params.getCallbacks(), stats, meshContacts);
-		stats.midphaseBody2Triangle.stop();
-		
 		stats.constraintSolver.start();
-		solver.solve(meshContacts, bodyContacts, constraints, timeStep, params.getMaxIterationsPosition(),
+		solver.solve(bodies.getMeshContacts(), bodies.getBodyContacts(), constraints, timeStep, params.getMaxIterationsPosition(),
 				params.getMaxIterationVelocity());
 		stats.constraintSolver.stop();
 

@@ -32,19 +32,19 @@ public class BroadPhaseNode<T> {
 	}
 
 	/**
-	 * R�cup�re l'ensemble des feuilles de l'arbre en intersection avec l'AABB.
+	 * Récupère l'ensemble des feuilles de l'arbre en intersection avec l'AABB.
 	 * 
 	 * @param box
 	 * @param dest
 	 */
-	void boxTest(AABB box, HashSet<BroadPhaseNode<T>> dest) {
+	void boxTest(AABB box, HashSet<T> dest) {
 
 		if (!AABB.intersect(this.box, box)) {
 			return;
 		}
 
 		if (isLeaf) {
-			dest.add(this);
+			dest.add(this.handle);
 		} else {
 			this.child1.boxTest(box, dest);
 			this.child2.boxTest(box, dest);

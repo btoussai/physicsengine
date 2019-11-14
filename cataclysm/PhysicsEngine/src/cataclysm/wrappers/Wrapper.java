@@ -1,7 +1,6 @@
 package cataclysm.wrappers;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.lwjgl.util.vector.Matrix3f;
 import org.lwjgl.util.vector.Vector3f;
@@ -9,6 +8,7 @@ import org.lwjgl.util.vector.Vector3f;
 import cataclysm.Epsilons;
 import cataclysm.broadphase.AABB;
 import cataclysm.broadphase.BroadPhaseNode;
+import cataclysm.contact_creation.DoubleBodyContact;
 import cataclysm.contact_creation.SingleBodyContact;
 import cataclysm.datastructures.Identifier;
 
@@ -60,11 +60,6 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	 * collision.
 	 */
 	private final BroadPhaseNode<Wrapper> node;
-	
-	/**
-	 * Le nombre de collisions auxquelles participe ce wrapper.
-	 */
-	private int collisions;
 
 	/**
 	 * Le rayon maximal de l'enveloppe, i.e. la taille de la {@link WrapperBox}.
@@ -80,7 +75,12 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	 * La liste des contacts entre ce wrapper et des triangles appartenant à des
 	 * staticmesh.
 	 */
-	protected final List<SingleBodyContact> meshContacts = new ArrayList<SingleBodyContact>(1);
+	protected final ArrayList<SingleBodyContact> meshContacts = new ArrayList<SingleBodyContact>(1);
+	
+	/**
+	 * La liste des contacts entre ce wrapper et d'autres wrappers à proximité.
+	 */
+	protected final ArrayList<DoubleBodyContact> bodyContacts = new ArrayList<DoubleBodyContact>(1);
 
 	/**
 	 * Construit une nouvelle enveloppe de collision.
@@ -152,18 +152,6 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	public BroadPhaseNode<Wrapper> getNode() {
 		return node;
 	}
-	
-	public void addCollision() {
-		this.collisions++;
-	}
-
-	public void removeCollision() {
-		this.collisions--;
-	}
-	
-	public boolean isColliding() {
-		return collisions > 0;
-	}
 
 	/**
 	 * @return Le centre de masse de l'enveloppe en world-space
@@ -189,8 +177,15 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	/**
 	 * @return La liste des contacts entre cette enveloppe et des triangles.
 	 */
-	public List<SingleBodyContact> getMeshContacts() {
+	public ArrayList<SingleBodyContact> getMeshContacts() {
 		return meshContacts;
+	}
+	
+	/**
+	 * @return La liste des contacts entre ce wrapper et d'autres wrappers à proximité.
+	 */
+	public ArrayList<DoubleBodyContact> getBodyContacts(){
+		return bodyContacts;
 	}
 
 	@Override

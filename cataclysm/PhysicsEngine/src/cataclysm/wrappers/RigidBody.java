@@ -23,7 +23,7 @@ import math.MatrixOps;
  * @author Briac
  *
  */
-public class RigidBody extends Identifier implements Iterable<Wrapper> {
+public class RigidBody extends Identifier {
 
 	/**
 	 * La position et la rotation de l'objet en world-space
@@ -78,12 +78,12 @@ public class RigidBody extends Identifier implements Iterable<Wrapper> {
 	/**
 	 * Les enveloppes utilisées pour les collisions.
 	 */
-	private final List<Wrapper> wrappers;
+	private final ArrayList<Wrapper> wrappers;
 
 	/**
 	 * Les points d'ancrage des contraintes attachées à ce rigidbody.
 	 */
-	private final List<AnchorPoint> anchorPoints;
+	private final ArrayList<AnchorPoint> anchorPoints;
 
 	/**
 	 * Un vecteur vitesse ne persistant pas d'une frame à l'autre. Il permet de
@@ -677,17 +677,12 @@ public class RigidBody extends Identifier implements Iterable<Wrapper> {
 	public void normalToBodySpace(Vector3f wsNormal, Vector3f msNormal) {
 		bodyToWorld.invertTransformVector(wsNormal, msNormal);
 	}
-
-	@Override
-	public Iterator<Wrapper> iterator() {
-		return wrappers.iterator();
-	}
-
+	
 	/**
 	 * @return La liste des wrappers de ce rigidbody. Cette liste ne doit pas être
-	 *         modifiée manuellement !
+	 *         modifiée manuellement.
 	 */
-	public List<Wrapper> getWrappers() {
+	public ArrayList<Wrapper> getWrappers() {
 		return wrappers;
 	}
 
@@ -730,7 +725,7 @@ public class RigidBody extends Identifier implements Iterable<Wrapper> {
 	 * @return La liste des points d'ancrage sur ce rigidbody. Cette liste ne doit
 	 *         pas être modifiée manuellement.
 	 */
-	public List<AnchorPoint> getAnchorPoints() {
+	public ArrayList<AnchorPoint> getAnchorPoints() {
 		return anchorPoints;
 	}
 

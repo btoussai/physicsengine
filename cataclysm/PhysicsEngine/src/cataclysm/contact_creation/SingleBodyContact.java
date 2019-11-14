@@ -6,6 +6,7 @@ import org.lwjgl.util.vector.Vector3f;
 import cataclysm.Epsilons;
 import cataclysm.broadphase.staticmeshes.Triangle;
 import cataclysm.wrappers.RigidBody;
+import cataclysm.wrappers.Wrapper;
 import math.Clamp;
 
 /**
@@ -17,7 +18,7 @@ import math.Clamp;
  */
 public class SingleBodyContact extends AbstractContact {
 
-	private final RigidBody body;
+	private Wrapper wrapper;
 	private Triangle triangle;
 
 	private final Vector3f N = new Vector3f();
@@ -42,9 +43,10 @@ public class SingleBodyContact extends AbstractContact {
 	private final float[] impulses_T;
 	private final float[] pseudo_impulses;
 
-	public SingleBodyContact(int maxContacts, RigidBody body) {
+	public SingleBodyContact(int maxContacts, Wrapper wrapper, Triangle triangle) {
 		super(maxContacts);
-		this.body = body;
+		this.wrapper = wrapper;
+		this.triangle = triangle;
 
 		R = super.initArray(maxContacts);
 		RxN = super.initArray(maxContacts);
@@ -66,12 +68,23 @@ public class SingleBodyContact extends AbstractContact {
 		impulses_T = new float[maxContacts];
 		pseudo_impulses = new float[maxContacts];
 	}
+	
+	/**
+	 * Cette fonction est utilisée pour réassigner ce contact à un nouveau wrapper en collision avec un triangle.
+	 * @param wrapper
+	 * @param triangle 
+	 */
+	public void refresh(Wrapper wrapper, Triangle triangle) {
+		this.wrapper = wrapper;
+		this.triangle = triangle;
+		super.getContactArea().resetState();
+	}
 
 	@Override
 	public void solveVelocity(boolean firstIteration, float timeStep, Vector3f temp) {
 		if (firstIteration) {
 			area.getNormal().negate(N);
-			super.mixContactProperties(body.getContactProperties(), triangle.mesh.getContactProperties());
+			super.mixContactProperties(wrapper.getBody().getContactProperties(), triangle.mesh.getContactProperties());
 		}
 
 		for (int i = 0; i < super.area.getContactCount(); i++) {
@@ -138,6 +151,7 @@ public class SingleBodyContact extends AbstractContact {
 
 	@Override
 	protected void buildVelocityJacobian(int i, Vector3f temp) {
+		RigidBody body = wrapper.getBody();
 
 		Vector3f[] contacts = area.getContactPoints();
 		Vector3f.sub(contacts[i], body.getPosition(), R[i]);
@@ -171,6 +185,8 @@ public class SingleBodyContact extends AbstractContact {
 
 	@Override
 	protected void computeVelocityInvMass(int i, Vector3f temp) {
+		RigidBody body = wrapper.getBody();
+		
 		Matrix3f.transform(body.getInvIws(), RxN[i], temp);
 		inv_mass_N[i] = body.getInvMass() * (1.0f + Vector3f.dot(RxN[i], temp));
 
@@ -180,6 +196,8 @@ public class SingleBodyContact extends AbstractContact {
 
 	@Override
 	protected void computeVelocityError(int i, Vector3f temp) {
+		RigidBody body = wrapper.getBody();
+		
 		Vector3f dv = deltaV[i];
 		dv.set(body.getVelocity());
 		Vector3f.cross(body.getAngularVelocity(), R[i], temp);
@@ -191,11 +209,13 @@ public class SingleBodyContact extends AbstractContact {
 
 	@Override
 	protected void applyImpulse(int i, Vector3f temp, Vector3f finalImpulse) {
-		body.applyImpulse(finalImpulse, R[i], temp);
+		wrapper.getBody().applyImpulse(finalImpulse, R[i], temp);
 	}
 
 	@Override
 	protected void computePositionError(int i, Vector3f temp) {
+		RigidBody body = wrapper.getBody();
+		
 		float deltaV = 0;
 		deltaV += Vector3f.dot(body.getPseudoVelocity(), N);
 		deltaV += Vector3f.dot(body.getPseudoAngularVelocity(), RxN[i]);
@@ -204,15 +224,16 @@ public class SingleBodyContact extends AbstractContact {
 
 	@Override
 	protected void applyPseudoImpulse(int i, Vector3f temp, float applied_impulse) {
-		body.applyPseudoImpulse(N, RxN[i], applied_impulse, temp);
+		wrapper.getBody().applyPseudoImpulse(N, RxN[i], applied_impulse, temp);
 	}
 
 	public Triangle getTriangle() {
 		return triangle;
 	}
-
-	public void setTriangle(Triangle triangle) {
-		this.triangle = triangle;
+	
+	public Wrapper getWrapper() {
+		return wrapper;
 	}
+	
 
 }

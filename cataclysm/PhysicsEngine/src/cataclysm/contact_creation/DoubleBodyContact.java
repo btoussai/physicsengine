@@ -5,10 +5,11 @@ import org.lwjgl.util.vector.Vector3f;
 
 import cataclysm.Epsilons;
 import cataclysm.wrappers.RigidBody;
+import cataclysm.wrappers.Wrapper;
 import math.Clamp;
 
 /**
- * Représente un contact entre deux solides. Les solides ne se touchent pas
+ * Représente un contact entre deux wrappers. Les wrappers ne se touchent pas
  * forcément, le contact n'est alors pas actif.
  * 
  * @author Briac
@@ -16,8 +17,8 @@ import math.Clamp;
  */
 public class DoubleBodyContact extends AbstractContact {
 
-	private RigidBody bodyA;
-	private RigidBody bodyB;
+	private Wrapper wrapperA;
+	private Wrapper wrapperB;
 
 	private final Vector3f N = new Vector3f();
 	private final Vector3f finalImpulse = new Vector3f();
@@ -44,10 +45,10 @@ public class DoubleBodyContact extends AbstractContact {
 	private final float[] impulses_T;
 	private final float[] pseudo_impulses;
 
-	public DoubleBodyContact(int maxContacts, RigidBody bodyA, RigidBody bodyB) {
+	public DoubleBodyContact(int maxContacts, Wrapper wrapperA, Wrapper wrapperB) {
 		super(maxContacts);
-		this.bodyA = bodyA;
-		this.bodyB = bodyB;
+		this.wrapperA = wrapperA;
+		this.wrapperB = wrapperB;
 
 		Ra = super.initArray(maxContacts);
 		Rb = super.initArray(maxContacts);
@@ -73,9 +74,14 @@ public class DoubleBodyContact extends AbstractContact {
 		pseudo_impulses = new float[maxContacts];
 	}
 	
-	public void refresh(RigidBody A, RigidBody B) {
-		this.bodyA = A;
-		this.bodyB = B;
+	/**
+	 * Cette fonction est utilisée pour réassigner ce contact à un nouveau couple de wrappers en collision.
+	 * @param wrapperA 
+	 * @param wrapperB 
+	 */
+	public void refresh(Wrapper wrapperA, Wrapper wrapperB) {
+		this.wrapperA = wrapperA;
+		this.wrapperB = wrapperB;
 		
 		super.getContactArea().resetState();
 	}
@@ -84,7 +90,7 @@ public class DoubleBodyContact extends AbstractContact {
 	public void solveVelocity(boolean firstIteration, float timeStep, Vector3f temp) {
 		if (firstIteration) {
 			area.getNormal().negate(N);
-			super.mixContactProperties(bodyA.getContactProperties(), bodyB.getContactProperties());
+			super.mixContactProperties(wrapperA.getBody().getContactProperties(), wrapperB.getBody().getContactProperties());
 		}
 		
 		if(firstIteration && Epsilons.WARM_START) {
@@ -170,6 +176,9 @@ public class DoubleBodyContact extends AbstractContact {
 
 	@Override
 	protected void buildVelocityJacobian(int i, Vector3f temp) {
+		RigidBody bodyA = wrapperA.getBody();
+		RigidBody bodyB = wrapperB.getBody();
+		
 		area.getNormal().negate(N);
 
 		Vector3f[] contacts = area.getContactPoints();
@@ -210,6 +219,9 @@ public class DoubleBodyContact extends AbstractContact {
 
 	@Override
 	protected void computeVelocityInvMass(int i, Vector3f temp) {
+		RigidBody bodyA = wrapperA.getBody();
+		RigidBody bodyB = wrapperB.getBody();
+		
 		Matrix3f.transform(bodyA.getInvIws(), RaxN[i], temp);
 		inv_mass_N[i] = bodyA.getInvMass() * (1.0f + Vector3f.dot(RaxN[i], temp));
 		Matrix3f.transform(bodyB.getInvIws(), RbxN[i], temp);
@@ -223,6 +235,9 @@ public class DoubleBodyContact extends AbstractContact {
 
 	@Override
 	protected void computeVelocityError(int i, Vector3f temp) {
+		RigidBody bodyA = wrapperA.getBody();
+		RigidBody bodyB = wrapperB.getBody();
+		
 		Vector3f dv = deltaV[i];
 
 		dv.set(bodyA.getVelocity());
@@ -239,13 +254,16 @@ public class DoubleBodyContact extends AbstractContact {
 
 	@Override
 	protected void applyImpulse(int i, Vector3f temp, Vector3f finalImpulse) {
-		bodyA.applyImpulse(finalImpulse, Ra[i], temp);
+		wrapperA.getBody().applyImpulse(finalImpulse, Ra[i], temp);
 		finalImpulse.negate();
-		bodyB.applyImpulse(finalImpulse, Rb[i], temp);
+		wrapperB.getBody().applyImpulse(finalImpulse, Rb[i], temp);
 	}
 
 	@Override
 	protected void computePositionError(int i, Vector3f temp) {
+		RigidBody bodyA = wrapperA.getBody();
+		RigidBody bodyB = wrapperB.getBody();
+		
 		float deltaV = 0;
 		deltaV += Vector3f.dot(bodyA.getPseudoVelocity(), N);
 		deltaV += Vector3f.dot(bodyA.getPseudoAngularVelocity(), RaxN[i]);
@@ -256,16 +274,16 @@ public class DoubleBodyContact extends AbstractContact {
 
 	@Override
 	protected void applyPseudoImpulse(int i, Vector3f temp, float applied_impulse) {
-		bodyA.applyPseudoImpulse(N, RaxN[i], applied_impulse, temp);
-		bodyB.applyPseudoImpulse(N, RbxN[i], -applied_impulse, temp);
+		wrapperA.getBody().applyPseudoImpulse(N, RaxN[i], applied_impulse, temp);
+		wrapperB.getBody().applyPseudoImpulse(N, RbxN[i], -applied_impulse, temp);
 	}
 
-	public RigidBody getBodyA() {
-		return bodyA;
+	public Wrapper getWrapperA() {
+		return wrapperA;
 	}
 
-	public RigidBody getBodyB() {
-		return bodyB;
+	public Wrapper getWrapperB() {
+		return wrapperB;
 	}
 
 }

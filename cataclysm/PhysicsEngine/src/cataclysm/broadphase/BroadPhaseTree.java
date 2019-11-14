@@ -6,8 +6,8 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 
 /**
- * Représente un arbre dont les noeuds sont des {@link BroadPhaseNode}. L'arbre
- * représente une BVH (Bounding Volume Hierarchy). Il s'agit d'un arbre binaire
+ * Reprï¿½sente un arbre dont les noeuds sont des {@link BroadPhaseNode}. L'arbre
+ * reprï¿½sente une BVH (Bounding Volume Hierarchy). Il s'agit d'un arbre binaire
  * dans lequel chaque noeud est une AABB englobant tous ses noeuds fils.
  * 
  * @author Briac
@@ -107,12 +107,12 @@ public class BroadPhaseTree<T> {
 	}
 
 	/**
-	 * Récupère l'ensemble des feuilles de l'arbre en intersection avec l'AABB.
+	 * RÃ©cupÃ¨re l'ensemble des feuilles de l'arbre en intersection avec l'AABB.
 	 * 
 	 * @param box
 	 * @param dest
 	 */
-	public void boxTest(AABB box, HashSet<BroadPhaseNode<T>> dest) {
+	public void boxTest(AABB box, HashSet<T> dest) {
 		if (root != null) {
 			root.boxTest(box, dest);
 		}

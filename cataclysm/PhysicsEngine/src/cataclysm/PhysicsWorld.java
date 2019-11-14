@@ -66,8 +66,8 @@ public class PhysicsWorld {
 	 */
 	public PhysicsWorld(DefaultParameters params) {
 		this.params = params;
-		bodies = new RigidBodyManager(this);
 		meshes = new StaticMeshManager(params);
+		bodies = new RigidBodyManager(this, meshes, stats);
 		engine = new PhysicsEngine(params);
 	}
 
