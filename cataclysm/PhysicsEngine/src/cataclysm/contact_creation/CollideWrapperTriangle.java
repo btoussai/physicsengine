@@ -164,7 +164,10 @@ class CollideWrapperTriangle {
 			break;
 		}
 		
-		wrapper.getMeshContacts().forEach(contact -> collisionTest.accept(contact.area));
+		for(SingleBodyContact contact : wrapper.getMeshContacts()) {
+			triangleHull.setFrom(contact.getTriangle());
+			collisionTest.accept(contact.area);
+		}
 	}
 
 	private boolean isVertexProcessed(Vector3f v) {

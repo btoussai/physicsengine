@@ -66,7 +66,9 @@ public class BroadPhaseTree<T> {
 	public void remove(BroadPhaseNode<T> node) {
 		assert node.isLeaf;
 		if (node.parent == null) {
-			root = null;
+			if(node == root) {
+				root = null;
+			}
 			return;
 		}
 

@@ -5,9 +5,9 @@ import org.lwjgl.util.vector.Vector3f;
 import cataclysm.wrappers.Wrapper;
 
 /**
- * Cette classe contient une implémentation de l'algorithme GJK permettant de
- * calculer la distance entre deux convexes. D'après la présentation "Erin Catto
- * – Computing Distance using GJK" disponible ici <a
+ * Cette classe contient une implï¿½mentation de l'algorithme GJK permettant de
+ * calculer la distance entre deux convexes. D'aprï¿½s la prï¿½sentation "Erin Catto
+ * ï¿½ Computing Distance using GJK" disponible ici <a
  * href=https://box2d.org/downloads/>https://box2d.org/downloads/</a>.
  * 
  * @author Briac
@@ -37,7 +37,7 @@ class GJK {
 	private static final boolean DEBUG = false;
 
 	/**
-	 * Représente un sommet du simplex.
+	 * Reprï¿½sente un sommet du simplex.
 	 * 
 	 * @author Briac
 	 *
@@ -94,8 +94,8 @@ class GJK {
 	}
 
 	/**
-	 * Représente le simplex utilisé dans l'algorithme: un point, un segment, un
-	 * triangle ou un tétrahèdre.
+	 * Reprï¿½sente le simplex utilisï¿½ dans l'algorithme: un point, un segment, un
+	 * triangle ou un tï¿½trahï¿½dre.
 	 * 
 	 * @author Briac
 	 *
@@ -103,7 +103,7 @@ class GJK {
 	private static class Simplex {
 
 		/**
-		 * Représente le type du simplexe.
+		 * Reprï¿½sente le type du simplexe.
 		 * 
 		 * @author Briac
 		 *
@@ -173,7 +173,7 @@ class GJK {
 		}
 
 		/**
-		 * Recopie le simplexe précédent en ajoutant un sommet pour construire le
+		 * Recopie le simplexe prï¿½cï¿½dent en ajoutant un sommet pour construire le
 		 * nouveau simplexe.
 		 * 
 		 * @param previous
@@ -229,15 +229,15 @@ class GJK {
 	}
 
 	/**
-	 * Calcule la distance de séparation entre deux solides convexes.
+	 * Calcule la distance de sÃ©paration entre deux solides convexes.
 	 * 
 	 * @param bodyA      Le solide A
 	 * @param bodyB      Le solide B
 	 * @param closestOnA Un vecteur dans lequel stocker la position du point le plus
-	 *                   proche de B appartenant à A. Null est valide.
+	 *                   proche de B appartenant ï¿½ A. Null est valide.
 	 * @param closestOnB Un vecteur dans lequel stocker la position du point le plus
-	 *                   proche de A appartenant à B. Null est valide.
-	 * @return La distance de séparation (positive) ou -Float.MAX_VALUE si les
+	 *                   proche de A appartenant ï¿½ B. Null est valide.
+	 * @return La distance de sï¿½paration (positive) ou -Float.MAX_VALUE si les
 	 *         solides se touchent.
 	 */
 	static float distance(Wrapper bodyA, Wrapper bodyB, Vector3f closestOnA, Vector3f closestOnB) {
@@ -279,9 +279,9 @@ class GJK {
 	}
 
 	/**
-	 * Permet de récupérer la partie du simplexe la plus proche de l'origine après
-	 * un appel à {@link GJK#distance(Wrapper, Wrapper, Vector3f, Vector3f)} ayant
-	 * aboutit à une séparation entre les deux convexes.
+	 * Permet de rï¿½cupï¿½rer la partie du simplexe la plus proche de l'origine aprï¿½s
+	 * un appel ï¿½ {@link GJK#distance(Wrapper, Wrapper, Vector3f, Vector3f)} ayant
+	 * aboutit ï¿½ une sï¿½paration entre les deux convexes.
 	 * 
 	 * @param dest
 	 */
@@ -327,15 +327,15 @@ class GJK {
 		case Tetrahedron:
 		default:
 			throw new ArithmeticException(
-					"Erreur dans GJK, les objets sont en contact, impossible de récupérer la feature la plus proche de l'origine");
+					"Erreur dans GJK, les objets sont en contact, impossible de rï¿½cupï¿½rer la feature la plus proche de l'origine");
 		}
 
 	}
 
 	/**
-	 * Permet de récupérer la partie du simplexe la plus proche de l'origine après
-	 * un appel à {@link GJK#distance(Wrapper, Wrapper, Vector3f, Vector3f)} ayant
-	 * aboutit à une séparation entre les deux convexes.
+	 * Permet de rï¿½cupï¿½rer la partie du simplexe la plus proche de l'origine aprï¿½s
+	 * un appel ï¿½ {@link GJK#distance(Wrapper, Wrapper, Vector3f, Vector3f)} ayant
+	 * aboutit ï¿½ une sï¿½paration entre les deux convexes.
 	 * 
 	 * @param dest
 	 */
@@ -381,7 +381,7 @@ class GJK {
 		case Tetrahedron:
 		default:
 			throw new ArithmeticException(
-					"Erreur dans GJK, les objets sont en contact, impossible de récupérer la feature la plus proche de l'origine");
+					"Erreur dans GJK, les objets sont en contact, impossible de rï¿½cupï¿½rer la feature la plus proche de l'origine");
 		}
 
 	}
@@ -410,25 +410,25 @@ class GJK {
 
 			if (repeatedVertex) {
 				if (DEBUG) {
-					System.out.println("\n## STOP: Répétition d'un sommet !");
+					System.out.println("\n## STOP: Rï¿½pï¿½tition d'un sommet !");
 				}
 				swapSimplex();
 				return;
 			}
 
 			if (DEBUG) {
-				System.out.println("\nAprès ajout: " + simplex);
+				System.out.println("\nAprï¿½s ajout: " + simplex);
 			}
 
 			getClosestPoint();
 
 			if (DEBUG) {
-				System.out.println("\nFin itération: " + simplex);
+				System.out.println("\nFin itï¿½ration: " + simplex);
 			}
 
 			if (intersectionFound) {
 				if (DEBUG) {
-					System.out.println("\n## STOP: intersection trouvée !");
+					System.out.println("\n## STOP: intersection trouvï¿½e !");
 				}
 				return;
 			}
@@ -438,14 +438,14 @@ class GJK {
 			if (distance < 1E-6f) {
 				intersectionFound = true;
 				if (DEBUG) {
-					System.out.println("\n## STOP: intersection trouvée !");
+					System.out.println("\n## STOP: intersection trouvï¿½e !");
 				}
 				return;
 			} else if (distance < simplex.closestDistance) {
 				simplex.closestDistance = distance;
 			} else {
-				// La distance ne progresse pas, on rétablit le simplexe de l'itération
-				// précédente.
+				// La distance ne progresse pas, on rï¿½tablit le simplexe de l'itï¿½ration
+				// prï¿½cï¿½dente.
 				swapSimplex();
 				if (DEBUG) {
 					System.out.println("\n## STOP: la distance ne progresse pas.");
@@ -461,7 +461,7 @@ class GJK {
 
 	/**
 	 * Cherche le point appartenant au simplex se situant le plus proche de
-	 * l'origine. Place le résultat dans simplex.closest
+	 * l'origine. Place le rï¿½sultat dans simplex.closest
 	 */
 	private static void getClosestPoint() {
 
@@ -579,7 +579,7 @@ class GJK {
 		float uAD = Vector3f.dot(OD, AD) / AD2;
 		if (uAC >= 1.0f && uAB >= 1.0f && uAD >= 1.0f) {
 			if (DEBUG)
-				System.out.println("Tetraèdre --> A");
+				System.out.println("Tetraï¿½dre --> A");
 			simplex.closest.set(simplex.A);
 			simplex.type = Simplex.SimplexType.Vertex;
 			return;
@@ -600,7 +600,7 @@ class GJK {
 
 		if (wABC <= 0.0f && vADB <= 0.0f) {
 			if (DEBUG)
-				System.out.println("Tetraèdre --> AB");
+				System.out.println("Tetraï¿½dre --> AB");
 			if (uAB < 0.0f)
 				uAB = 0.0f;
 			simplex.closest.blend2(simplex.A, uAB, simplex.B, 1.0f - uAB);
@@ -614,7 +614,7 @@ class GJK {
 
 		if (wACD <= 0.0f && vABC <= 0.0f) {
 			if (DEBUG)
-				System.out.println("Tetraèdre --> AC");
+				System.out.println("Tetraï¿½dre --> AC");
 			if (uAC < 0.0f)
 				uAC = 0.0f;
 			simplex.closest.blend2(simplex.A, uAC, simplex.C, 1.0f - uAC);
@@ -628,7 +628,7 @@ class GJK {
 
 		if (wADB <= 0.0f && vACD <= 0.0f) {
 			if (DEBUG)
-				System.out.println("Tetraèdre --> AD");
+				System.out.println("Tetraï¿½dre --> AD");
 			if (uAD < 0.0f)
 				uAD = 0.0f;
 			simplex.closest.blend2(simplex.A, uAD, simplex.D, 1.0f - uAD);
@@ -638,7 +638,7 @@ class GJK {
 
 		if (vABC >= 0.0f && wABC >= 0.0f && Vector3f.dot(ABC_normal, OA) < 0.0f) {// origin above ABC
 			if (DEBUG)
-				System.out.println("Tetraèdre --> ABC");
+				System.out.println("Tetraï¿½dre --> ABC");
 			simplex.closest.blend3(simplex.A, 1.0f - vABC - wABC, simplex.B, vABC, simplex.C, wABC);
 			simplex.type = Simplex.SimplexType.Triangle;
 			return;
@@ -646,7 +646,7 @@ class GJK {
 
 		if (vACD >= 0.0f && wACD >= 0.0f && Vector3f.dot(ACD_normal, OA) < 0.0f) {// origin above ACD
 			if (DEBUG)
-				System.out.println("Tetraèdre --> ACD");
+				System.out.println("Tetraï¿½dre --> ACD");
 			simplex.closest.blend3(simplex.A, 1.0f - vACD - wACD, simplex.C, vACD, simplex.D, wACD);
 			simplex.permutation(simplex.A, simplex.C, simplex.D, simplex.B, Simplex.SimplexType.Triangle);
 			return;
@@ -654,7 +654,7 @@ class GJK {
 
 		if (vADB >= 0.0f && wADB >= 0.0f && Vector3f.dot(ADB_normal, OA) < 0.0f) {// origin above ADB
 			if (DEBUG)
-				System.out.println("Tetraèdre --> ADB");
+				System.out.println("Tetraï¿½dre --> ADB");
 			simplex.closest.blend3(simplex.A, 1.0f - vADB - wADB, simplex.D, vADB, simplex.B, wADB);
 			simplex.permutation(simplex.A, simplex.D, simplex.B, simplex.C, Simplex.SimplexType.Triangle);
 			return;
@@ -664,8 +664,8 @@ class GJK {
 	}
 
 	/**
-	 * Cherche le point de support, c'est le point le plus éloigné dans la direction
-	 * searchDir de l'ensemble (bodyA-bodyB). Stocke le résultat dans support.
+	 * Cherche le point de support, c'est le point le plus ï¿½loignï¿½ dans la direction
+	 * searchDir de l'ensemble (bodyA-bodyB). Stocke le rï¿½sultat dans support.
 	 * 
 	 * @param bodyA
 	 * @param bodyB
@@ -679,7 +679,7 @@ class GJK {
 	}
 
 	/**
-	 * Echange les rôles de simplex et previousSimplex.
+	 * Echange les rï¿½les de simplex et previousSimplex.
 	 */
 	private static void swapSimplex() {
 		Simplex temp = previousSimplex;

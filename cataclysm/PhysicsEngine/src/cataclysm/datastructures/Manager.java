@@ -58,7 +58,8 @@ public abstract class Manager<T extends Identifier> implements Iterable<T> {
 
 	/**
 	 * Ajoute un élément à la liste des objets gérés par le manager. L'id de cet
-	 * élément doit avoir été réservé impérativement par un appel à {@link #nextID()}
+	 * élément doit avoir été réservé impérativement par un appel à
+	 * {@link #nextID()}
 	 * 
 	 * @param element L'élément à ajouter.
 	 */
@@ -67,37 +68,28 @@ public abstract class Manager<T extends Identifier> implements Iterable<T> {
 	}
 
 	/**
-	 * Essaie de supprimer l'élément ayant l'ID indiqué en paramètre.
+	 * Essaie de supprimer l'élément.
 	 * 
-	 * @param ID L'identifiant de l'objet à supprimer.
+	 * @param element L'objet à supprimer.
 	 * @return true si l'élément a bien été supprimé.
 	 */
-	public boolean removeElement(long ID) {
-		if (elements.remove(ID) != null) {
-			generator.freeID(ID);
+	public boolean removeElement(T element) {
+		if (elements.remove(element.getID()) != null) {
+			generator.freeID(element.getID());
 			return true;
 		}
 		return false;
 	}
-	
-	/**
-	 * Essaie de supprimer l'élément ayant l'ID indiqué en paramètre. 
-	 * @param ID L'identifiant de l'objet à supprimer.
-	 * @return L'élément supprimé ou null.
-	 */
-	public T removeAndGet(long ID) {
-		return elements.remove(ID);
-	}
 
 	/**
-	 * Teste la présence d'un élément comportant l'ID indiquée.
+	 * Teste la présence d'un élément.
 	 * 
-	 * @param ID
+	 * @param element
 	 * @return true s'il existe un element e tel que <br>
-	 *         {@code e.getID()==ID}
+	 *         {@code e.getID()==element.getID()}
 	 */
-	public boolean contains(long ID) {
-		return elements.containsKey(ID);
+	public boolean contains(T element) {
+		return elements.containsKey(element.getID());
 	}
 
 	/**

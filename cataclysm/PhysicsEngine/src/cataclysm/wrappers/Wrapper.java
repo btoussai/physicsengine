@@ -254,5 +254,13 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	public MassProperties getMassProperties() {
 		return massProperties;
 	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("Wrapper " + getType() + " : \n");
+		sb.append("\nMeshContacts:" + meshContacts.size());
+		sb.append("\nBodyContacts:" + bodyContacts.size());
+		return sb.toString();
+	}
 
 }

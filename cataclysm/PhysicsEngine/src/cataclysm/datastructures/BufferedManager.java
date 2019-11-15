@@ -32,33 +32,34 @@ public abstract class BufferedManager<T extends Identifier> extends Manager<T> {
 
 	/**
 	 * Applique un traitement particulier aux éléments devant être ajoutés et aux
-	 * éléments devant être retirés.
+	 * éléments devant être retirés. La fonction {@link #internalUpdate()} est
+	 * appelée immédiatement après.
 	 * 
-	 * @param removed La liste des objets qui doivent être supprimés. La liste est vidée
-	 *                automatiquement au retour de la fonction. Les IDs des objets
-	 *                supprimés redeviennent disponibles au retour de la fonction.
-	 * @param added   La liste des objets qui doivent être ajoutés. La liste est vidée
-	 *                automatiquement au retour de la fonction. Les objets ne sont
-	 *                ajoutés dans le manager qu'au retour de la fonction.
+	 * @param added   La liste des objets qui doivent être ajoutés. La liste est
+	 *                vidée automatiquement au retour de la fonction. Les objets ne
+	 *                sont ajoutés dans le manager qu'au retour de la fonction,
+	 *                avant l'appel à {@link #internalUpdate()}
+	 * 
+	 * @param removed La liste des objets qui doivent être supprimés. La liste est
+	 *                vidée automatiquement au retour de la fonction. Les IDs des
+	 *                objets supprimés redeviennent disponibles au retour de la
+	 *                fonction.
 	 */
 	protected abstract void processAddedAndRemovedElements(List<T> added, List<T> removed);
 
 	@Override
 	public void update() {
 		processAddedAndRemovedElements(added, removed);
-		super.update();
-		cleanAddedAndRemovedElements(added, removed);
-	}
-
-	/**
-	 * Ajoute les éléments dans le manager et vide la liste des éléments à ajouter.
-	 * Vide la liste des éléments supprimés et libère leurs identifiants.
-	 */
-	protected void cleanAddedAndRemovedElements(List<T> added, List<T> removed) {
+		removed.forEach(e -> {
+			generator.freeID(e.getID());
+			super.removeElement(e);
+		});
 		added.forEach(e -> super.addElement(e));
+		
 		added.clear();
-		removed.forEach(e -> generator.freeID(e.getID()));
 		removed.clear();
+		
+		super.update();
 	}
 
 	@Override
@@ -67,22 +68,17 @@ public abstract class BufferedManager<T extends Identifier> extends Manager<T> {
 	}
 
 	@Override
-	public boolean removeElement(long ID) {
-		T element = elements.remove(ID);
-		if (element != null) {
+	public boolean removeElement(T element) {
+		if (element != null && contains(element)) {
 			removed.add(element);
 			return true;
 		}
 		return false;
 	}
-
+	
 	@Override
-	public T removeAndGet(long ID) {
-		T element = elements.remove(ID);
-		if (element != null) {
-			removed.add(element);
-		}
-		return element;
+	public boolean contains(T element) {
+		return super.contains(element) &&  !removed.contains(element);
 	}
 
 	@Override

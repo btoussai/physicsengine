@@ -68,16 +68,8 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 
 	@Override
 	protected void processAddedAndRemovedElements(List<RigidBody> added, List<RigidBody> removed) {
-		updator.processAddedAndRemovedElements(added, removed);
-	}
-
-	@Override
-	protected void internalUpdate() {
-		updator.updateBodies(this, meshes, world.getParameters().getCallbacks(), stats, meshContacts, bodyContacts);
-	}
-	
-	@Override
-	protected void cleanAddedAndRemovedElements(List<RigidBody> added, List<RigidBody> removed) {
+		updator.processAddedAndRemovedElements(added, removed, meshes);
+		
 		List<AbstractConstraint> contraintsToDelete = new ArrayList<AbstractConstraint>();
 		for (RigidBody body : removed) {
 			for (Wrapper w : body.getWrappers())
@@ -86,15 +78,17 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 				contraintsToDelete.add(point.getConstraint());
 			}
 		}
-		super.cleanAddedAndRemovedElements(added, removed);
-
 		contraintsToDelete.forEach(constraint -> world.deleteConstraint(constraint));
 	}
 
-
+	@Override
+	protected void internalUpdate() {
+		updator.updateBodies(this, meshes, world.getParameters().getCallbacks(), stats, meshContacts, bodyContacts);
+	}
+	
 
 	/**
-	 * Ajoute les points d'ancrage de la contrainte aux rigidbody reli�s par la
+	 * Ajoute les points d'ancrage de la contrainte aux rigidbody reliés par la
 	 * constrainte.
 	 * 
 	 * @param constraint
@@ -111,7 +105,7 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 	}
 
 	/**
-	 * Retire les points d'ancrage de la contrainte des rigidbody reli�s par la
+	 * Retire les points d'ancrage de la contrainte des rigidbody reliés par la
 	 * constrainte.
 	 * 
 	 * @param constraint

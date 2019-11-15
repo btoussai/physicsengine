@@ -108,9 +108,7 @@ public class PhysicsStats {
 	public int bodyToMeshActiveContacts;
 
 	public final TimeAverage globalUpdate = new TimeAverage(TimeUnit.MILLISEC, "Global update", 50);
-	public final TimeAverage broadphase = new TimeAverage(TimeUnit.MILLISEC, "Broad phase", 50);
-	public final TimeAverage midphaseBody2Body = new TimeAverage(TimeUnit.MILLISEC, "Mid phase body vs body", 50);
-	public final TimeAverage midphaseBody2Triangle = new TimeAverage(TimeUnit.MILLISEC, "Mid phase body vs triangle", 50);
+	public final TimeAverage broadAndNarrowphase = new TimeAverage(TimeUnit.MILLISEC, "Broad & Narrow phase", 50);
 	public final TimeAverage constraintSolver = new TimeAverage(TimeUnit.MILLISEC, "Constraint Solver", 50);
 	public final TimeAverage velocityIntegration = new TimeAverage(TimeUnit.MILLISEC, "Velocity integration", 50);
 
@@ -120,20 +118,12 @@ public class PhysicsStats {
 		this.rigidBodies = rigidBodies;
 		this.staticMeshes = staticMeshes;
 		this.constraints = constraints;
-
-		bodyToBodyContacts = 0;
-		bodyToBodyActiveContacts = 0;
-
-		bodyToMeshContacts = 0;
-		bodyToMeshActiveContacts = 0;
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("\nPhysicsWorld " + globalUpdate + " [\n");
-		sb.append("\t" + broadphase.asPercentage(globalUpdate.average) + "\n");
-		sb.append("\t" + midphaseBody2Body.asPercentage(globalUpdate.average) + "\n");
-		sb.append("\t" + midphaseBody2Triangle.asPercentage(globalUpdate.average) + "\n");
+		sb.append("\t" + broadAndNarrowphase.asPercentage(globalUpdate.average) + "\n");
 		sb.append("\t" + constraintSolver.asPercentage(globalUpdate.average) + "\n");
 		sb.append("\t" + velocityIntegration.asPercentage(globalUpdate.average) + "\n");
 		sb.append("\tTotal frames simulated: " + frame_count);

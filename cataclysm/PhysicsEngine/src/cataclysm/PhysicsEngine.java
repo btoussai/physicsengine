@@ -75,9 +75,9 @@ final class PhysicsEngine {
 
 		applyForces(bodies, timeStep);
 
-		stats.broadphase.start();
+		stats.broadAndNarrowphase.start();
 		bodies.update();
-		stats.broadphase.stop();
+		stats.broadAndNarrowphase.stop();
 		
 
 		stats.reset(bodies.size(), meshes.size(), constraints.size());

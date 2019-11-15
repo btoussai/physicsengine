@@ -60,9 +60,7 @@ class RigidBodyManagerUpdate {
 		}
 	}
 
-	void processAddedAndRemovedElements(List<RigidBody> added, List<RigidBody> removed) {
-
-		HashSet<Wrapper> set = new HashSet<Wrapper>();
+	void processAddedAndRemovedElements(List<RigidBody> added, List<RigidBody> removed, StaticMeshManager meshes) {
 
 		for (RigidBody body : removed) {
 			for (Wrapper wrapper : body.getWrappers()) {
@@ -72,14 +70,13 @@ class RigidBodyManagerUpdate {
 			}
 		}
 
+		HashSet<Wrapper> intersectedWrappers = new HashSet<Wrapper>();
+		HashSet<Triangle> intersectedTriangles = new HashSet<Triangle>();
+		
 		for (RigidBody body : added) {
 			for (Wrapper wrapper : body.getWrappers()) {
-				BroadPhaseNode<Wrapper> newNode = wrapper.getNode();
-				bvh.add(newNode);
-				set.clear();
-				bvh.boxTest(newNode.getBox(), set);
-				set.remove(wrapper);
-				set.forEach(other -> createBodyContact(wrapper, other));
+				recomputeDoubleBodyContactList(wrapper, intersectedWrappers);
+				recomputeSingleBodyContactList(wrapper, meshes, intersectedTriangles);
 			}
 		}
 
@@ -152,11 +149,11 @@ class RigidBodyManagerUpdate {
 		ArrayList<DoubleBodyContact> contacts = wrapper.getBodyContacts();
 
 		contacts.removeIf(contact -> {
-			Wrapper other = wrapper == contact.getWrapperA() ? contact.getWrapperB() : contact.getWrapperA();
+			Wrapper other = wrapper.getID() == contact.getWrapperA().getID() ? contact.getWrapperB() : contact.getWrapperA();
 			if (!intersectedWrappers.remove(other)) {
 				other.getBodyContacts().remove(contact);
 				contact.refresh(null, null);
-				bodyContactPool[wrapper.getType().maxContacts].add(contact);
+				bodyContactPool[contact.getMaxContacts()].add(contact);
 				return true;
 			}
 			return false;
@@ -170,6 +167,7 @@ class RigidBodyManagerUpdate {
 		if (wrapper.getBody().getInvMass() == 0) {
 			return;
 		}
+		
 		intersectedTriangles.clear();
 		meshes.boxTest(wrapper.getNode().getBox(), intersectedTriangles);
 
@@ -178,7 +176,7 @@ class RigidBodyManagerUpdate {
 		contacts.removeIf(contact -> {
 			if (!intersectedTriangles.remove(contact.getTriangle())) {
 				contact.refresh(null, null);
-				meshContactPool[wrapper.getType().maxContacts].add(contact);
+				meshContactPool[contact.getMaxContacts()].add(contact);
 				return true;
 			}
 			return false;
@@ -189,16 +187,9 @@ class RigidBodyManagerUpdate {
 	private void deleteMeshContacts(Wrapper wrapper) {
 		for (SingleBodyContact contact : wrapper.getMeshContacts()) {
 			contact.refresh(null, null);
-			meshContactPool[wrapper.getType().maxContacts].add(contact);
+			meshContactPool[contact.getMaxContacts()].add(contact);
 		}
 		wrapper.getMeshContacts().clear();
-	}
-
-	private void deleteMeshContact(SingleBodyContact contact) {
-		Wrapper wrapper = contact.getWrapper();
-		wrapper.getMeshContacts().remove(contact);
-		contact.refresh(null, null);
-		meshContactPool[wrapper.getType().maxContacts].add(contact);
 	}
 
 	private void deleteBodyContacts(Wrapper wrapper) {
@@ -207,37 +198,9 @@ class RigidBodyManagerUpdate {
 					: contact.getWrapperA();
 			other.getBodyContacts().remove(contact);
 			contact.refresh(null, null);
-			bodyContactPool[wrapper.getType().maxContacts].add(contact);
+			bodyContactPool[contact.getMaxContacts()].add(contact);
 		}
 		wrapper.getBodyContacts().clear();
-	}
-
-	private void deleteBodyContact(DoubleBodyContact contact) {
-		Wrapper wrapperA = contact.getWrapperA();
-		Wrapper wrapperB = contact.getWrapperB();
-		wrapperA.getBodyContacts().remove(contact);
-		wrapperB.getBodyContacts().remove(contact);
-		contact.refresh(null, null);
-		bodyContactPool[wrapperA.getType().maxContacts].add(contact);
-	}
-
-	private void deleteBodyContact(Wrapper wrapperA, Wrapper wrapperB) {
-		if (wrapperA.getType().maxContacts > wrapperB.getType().maxContacts) {
-			Wrapper temp = wrapperA;
-			wrapperA = wrapperB;
-			wrapperB = temp;
-		}
-
-		for (DoubleBodyContact contact : wrapperA.getBodyContacts()) {
-			if (contact.getWrapperA().getID() == wrapperA.getID()) {
-				wrapperA.getBodyContacts().remove(contact);
-				wrapperB.getBodyContacts().remove(contact);
-				contact.refresh(null, null);
-				bodyContactPool[wrapperA.getType().maxContacts].add(contact);
-				return;
-			}
-		}
-
 	}
 
 	private void createBodyContact(Wrapper wrapperA, Wrapper wrapperB) {

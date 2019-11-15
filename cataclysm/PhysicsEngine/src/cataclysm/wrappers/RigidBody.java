@@ -1,8 +1,6 @@
 package cataclysm.wrappers;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import org.lwjgl.util.vector.Matrix3f;
 import org.lwjgl.util.vector.Matrix4f;

@@ -150,31 +150,31 @@ public class PhysicsWorld {
 	 * 
 	 * @param transform La position et la rotation de l'objet.
 	 * @param builders  Les enveloppes de cet objet.
-	 * @return L'objet nouvellement cr��.
+	 * @return L'objet nouvellement créé.
 	 */
 	public RigidBody newBody(Matrix4f transform, WrapperBuilder... builders) {
 		return bodies.newBody(transform, params, builders);
 	}
 
 	/**
-	 * Supprime le corps poss�dant l'ID pass� en param�tre. Toutes les contraintes
-	 * ayant un point d'ancrage sur ce corps sont �galement supprim�es.
+	 * Supprime un rigidbody. Toutes les contraintes ayant un point d'ancrage sur ce
+	 * corps seront également supprimées à la prochaine update.
 	 * 
-	 * @param ID
-	 * @return true si le corps a effectivement �t� supprim�.
+	 * @param body
+	 * @return true si le corps a effectivement été supprimé.
 	 */
-	public boolean deleteBody(long ID) {
-		return bodies.removeElement(ID);
+	public boolean deleteBody(RigidBody body) {
+		return bodies.removeElement(body);
 	}
 
 	/**
-	 * Teste s'il existe un corps avec l'ID pass� en param�tre.
+	 * Teste la présence d'un rigidbody dans la simulation.
 	 * 
-	 * @param ID
+	 * @param body
 	 * @return
 	 */
-	public boolean containsBody(long ID) {
-		return bodies.contains(ID);
+	public boolean containsBody(RigidBody body) {
+		return bodies.contains(body);
 	}
 
 	/**
@@ -210,25 +210,25 @@ public class PhysicsWorld {
 	public StaticMesh copyMesh(Matrix4f transform, StaticMesh other, boolean keepData) {
 		return meshes.copyMesh(transform, other, keepData);
 	}
-
+	
 	/**
-	 * Supprime le maillage statique poss�dant l'ID pass� en param�tre.
+	 * Supprime un staticmesh.
 	 * 
-	 * @param ID
-	 * @return true si le mesh a bien �t� supprim�.
+	 * @param mesh
+	 * @return true si le mesh a effectivement été supprimé.
 	 */
-	public boolean deleteMesh(int ID) {
-		return meshes.deleteMesh(ID);
+	public boolean deleteMesh(StaticMesh mesh) {
+		return meshes.removeElement(mesh);
 	}
 
 	/**
-	 * Teste s'il existe un maillage statique avec l'ID pass� en param�tre.
+	 * Teste la présence d'un staticmesh dans la simulation.
 	 * 
-	 * @param ID
+	 * @param mesh
 	 * @return
 	 */
-	public boolean containsMesh(int ID) {
-		return meshes.contains(ID);
+	public boolean containsMesh(StaticMesh mesh) {
+		return meshes.contains(mesh);
 	}
 
 	/**
@@ -241,6 +241,10 @@ public class PhysicsWorld {
 		bodies.addConstraint(constraint);
 	}
 
+	/**
+	 * Supprime une contrainte
+	 * @param constraint
+	 */
 	public void deleteConstraint(AbstractConstraint constraint) {
 		if (constraints.remove(constraint)) {
 			bodies.removeConstraint(constraint);
@@ -248,7 +252,7 @@ public class PhysicsWorld {
 	}
 
 	/**
-	 * Ajoute une fonction appell�e � chaque update de la simulation.
+	 * Ajoute une fonction appellée à chaque update de la simulation.
 	 * 
 	 * @param actor
 	 */
