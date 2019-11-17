@@ -11,7 +11,7 @@ import cataclysm.broadphase.AABB;
 import cataclysm.datastructures.BufferedManager;
 
 /**
- * Représente une structure de données contenant tous les StaticMesh.
+ * Reprï¿½sente une structure de donnï¿½es contenant tous les StaticMesh.
  * @author Briac
  *
  */
@@ -28,12 +28,12 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh>{
 	/**
 	 * Construit un nouveau maillage de collision statique.
 	 * 
-	 * @param data      Les données géométriques du maillage.
-	 * @param transform Une transformation à appliquer aux données géométriques pour
+	 * @param data      Les donnï¿½es gï¿½omï¿½triques du maillage.
+	 * @param transform Une transformation ï¿½ appliquer aux donnï¿½es gï¿½omï¿½triques pour
 	 *                  construire les triangles du maillage.
-	 * @param keepData  Indique s'il faut conserver les données géométriques. Ceci
-	 *                  permet de dupliquer le maillage par la suite. Laisser à
-	 *                  false si le maillage statique ne sera jamais dupliqué.
+	 * @param keepData  Indique s'il faut conserver les donnï¿½es gï¿½omï¿½triques. Ceci
+	 *                  permet de dupliquer le maillage par la suite. Laisser ï¿½
+	 *                  false si le maillage statique ne sera jamais dupliquï¿½.
 	 * @return 
 	 */
 	public StaticMesh newMesh(StaticMeshData data, Matrix4f transform, boolean keepData) {
@@ -43,16 +43,16 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh>{
 	}
 	
 	/**
-	 * Construit un nouveau maillage de collision statique à partir des données
-	 * géométriques initiales d'un maillage existant.
+	 * Construit un nouveau maillage de collision statique ï¿½ partir des donnï¿½es
+	 * gï¿½omï¿½triques initiales d'un maillage existant.
 	 * 
-	 * @param transform Une transformation à appliquer aux données géométriques pour
+	 * @param transform Une transformation ï¿½ appliquer aux donnï¿½es gï¿½omï¿½triques pour
 	 *                  construire les triangles du maillage.
-	 * @param other     Un maillage existant ayant conservé ses données
-	 *                  géométriques.
-	 * @param keepData  Indique s'il faut conserver les données géométriques. Ceci
-	 *                  permet de dupliquer le maillage par la suite. Laisser à
-	 *                  false si le maillage statique ne sera jamais dupliqué.
+	 * @param other     Un maillage existant ayant conservï¿½ ses donnï¿½es
+	 *                  gï¿½omï¿½triques.
+	 * @param keepData  Indique s'il faut conserver les donnï¿½es gï¿½omï¿½triques. Ceci
+	 *                  permet de dupliquer le maillage par la suite. Laisser ï¿½
+	 *                  false si le maillage statique ne sera jamais dupliquï¿½.
 	 * @return 
 	 */
 	public StaticMesh copyMesh(Matrix4f transform, StaticMesh other, boolean keepData)  {
@@ -62,16 +62,16 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh>{
 	}
 	
 	/**
-	 * Supprime le maillage statique possédant l'ID passé en paramètre.
-	 * @param ID
-	 * @return true si le mesh a bien été supprimé.
+	 * Supprime un maillage statique
+	 * @param mesh 
+	 * @return true si le mesh a bien Ã©tÃ© supprimÃ©.
 	 */
-	public boolean deleteMesh(int ID) {
-		return removeElement(ID);
+	public boolean deleteMesh(StaticMesh mesh) {
+		return removeElement(mesh);
 	}
 	
 	/**
-	 * Récupère l'ensemble des triangles en intersection avec l'AABB.
+	 * Rï¿½cupï¿½re l'ensemble des triangles en intersection avec l'AABB.
 	 * 
 	 * @param box
 	 * @param dest
@@ -82,14 +82,14 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh>{
 	
 	/**
 	 * 
-	 * Calcule la distance entre start et le premier triangle touché par le rayon ray.
+	 * Calcule la distance entre start et le premier triangle touchï¿½ par le rayon ray.
 	 * 
-	 * @param start Le point de départ du rayon.
-	 * @param dir La direction du rayon, le vecteur doit être unitaire.
+	 * @param start Le point de dï¿½part du rayon.
+	 * @param dir La direction du rayon, le vecteur doit ï¿½tre unitaire.
 	 * @param maxLength La distance maximale de recherche.
-	 * @param backfaceCulling Les triangles ne faisant pas face au rayon seront ignorés si true.
-	 * @param normalDest La normale du triangle touché sera stockée dedans.
-	 * @return la distance du premier triangle touché ou maxLength si aucun triangle n'a été trouvé.
+	 * @param backfaceCulling Les triangles ne faisant pas face au rayon seront ignorï¿½s si true.
+	 * @param normalDest La normale du triangle touchï¿½ sera stockï¿½e dedans.
+	 * @return la distance du premier triangle touchï¿½ ou maxLength si aucun triangle n'a ï¿½tï¿½ trouvï¿½.
 	 */
 	public float rayTest(Vector3f start, Vector3f dir, float maxLength, boolean backfaceCulling, Vector3f normalDest) {
 		return mapGrid.rayTest(start, dir, maxLength, backfaceCulling, normalDest);
@@ -118,12 +118,12 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh>{
 	
 	
 	/**
-	 * Explore l'octree et ajoute une boite affichable dans la liste boxes à chaque cellule rencontrée.
+	 * Explore l'octree et ajoute une boite affichable dans la liste boxes ï¿½ chaque cellule rencontrï¿½e.
 	 * @param boxes La liste dans laquelle ranger les boites affichables.
 	 * @param maxDepth La profondeur maximale d'exploration.
 	 * @param leavesOnly N'ajoute que les cellules de profondeur maxDepth.
 	 * @param nonVoidBoxes Ignore les cellules vides.
-	 * @param position La position en worldspace du début de l'exploration.
+	 * @param position La position en worldspace du dï¿½but de l'exploration.
 	 */
 	public void exploreHierarchy(List<OctreeCellRenderable> boxes, int maxDepth, boolean leavesOnly, boolean nonVoidBoxes, Vector3f position) {
 		mapGrid.exploreOctree(boxes, maxDepth, leavesOnly, nonVoidBoxes, position);

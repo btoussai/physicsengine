@@ -6,8 +6,8 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 
 /**
- * Repr�sente un arbre dont les noeuds sont des {@link BroadPhaseNode}. L'arbre
- * repr�sente une BVH (Bounding Volume Hierarchy). Il s'agit d'un arbre binaire
+ * Représente un arbre dont les noeuds sont des {@link BroadPhaseNode}. L'arbre
+ * représente une BVH (Bounding Volume Hierarchy). Il s'agit d'un arbre binaire
  * dans lequel chaque noeud est une AABB englobant tous ses noeuds fils.
  * 
  * @author Briac
@@ -24,7 +24,7 @@ public class BroadPhaseTree<T> {
 	private final PriorityQueue<BroadPhaseNode<T>> queue = new PriorityQueue<BroadPhaseNode<T>>(
 			(left, right) -> Float.compare(left.cost, right.cost));
 
-	public void add(BroadPhaseNode<T> node) {
+	public void add(BroadPhaseNode<T> node, BroadPhaseNode<T> previousParent) {
 		node.isLeaf = true;
 
 		if (root == null) {
@@ -37,7 +37,13 @@ public class BroadPhaseTree<T> {
 
 		// Stage 2: create a new parent
 		BroadPhaseNode<T> oldParent = bestSibling.parent;
-		BroadPhaseNode<T> newParent = new BroadPhaseNode<T>(oldParent, AABB.union(node.box, bestSibling.box));
+		BroadPhaseNode<T> newParent = previousParent;
+		if(newParent == null) {
+			newParent = new BroadPhaseNode<T>(oldParent, AABB.union(node.box, bestSibling.box));
+		}else {
+			newParent.parent = oldParent;
+			AABB.union(node.box, bestSibling.box, newParent.box);
+		}
 		if (oldParent != null) {
 			// The sibling was not the root
 			if (oldParent.child1 == bestSibling) {
@@ -63,13 +69,18 @@ public class BroadPhaseTree<T> {
 			}
 	}
 
-	public void remove(BroadPhaseNode<T> node) {
+	/**
+	 * 
+	 * @param node
+	 * @return L'ancien noeud parent de node
+	 */
+	public BroadPhaseNode<T> remove(BroadPhaseNode<T> node) {
 		assert node.isLeaf;
 		if (node.parent == null) {
 			if(node == root) {
 				root = null;
 			}
-			return;
+			return null;
 		}
 
 		BroadPhaseNode<T> parent = node.parent;
@@ -84,7 +95,9 @@ public class BroadPhaseTree<T> {
 		if (grandParent == null) {
 			root = sibling;
 			root.parent = null;
-			return;
+			
+			parent.parent = parent.child1 = parent.child2 = null;
+			return parent;
 		}
 
 		if (grandParent.child1 == parent) {
@@ -102,6 +115,9 @@ public class BroadPhaseTree<T> {
 			if (!checkValidity()) {
 				throw new IllegalStateException();
 			}
+		
+		parent.parent = parent.child1 = parent.child2 = null;
+		return parent;
 	}
 
 	public void rayTest() {
@@ -141,6 +157,7 @@ public class BroadPhaseTree<T> {
 		}
 
 		while (!queue.isEmpty()) {
+			
 			BroadPhaseNode<T> current = queue.poll();
 			BroadPhaseNode<T> parent = current.parent;
 
@@ -169,7 +186,7 @@ public class BroadPhaseTree<T> {
 			}
 
 		}
-
+		
 		return bestSibling;
 	}
 

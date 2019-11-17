@@ -72,7 +72,7 @@ class RigidBodyManagerUpdate {
 
 		HashSet<Wrapper> intersectedWrappers = new HashSet<Wrapper>();
 		HashSet<Triangle> intersectedTriangles = new HashSet<Triangle>();
-		
+
 		for (RigidBody body : added) {
 			for (Wrapper wrapper : body.getWrappers()) {
 				recomputeDoubleBodyContactList(wrapper, intersectedWrappers);
@@ -89,13 +89,31 @@ class RigidBodyManagerUpdate {
 		stats.bodyToMeshContacts = 0;
 		stats.bodyToBodyContacts = 0;
 
+		stats.updateSingleBodyContacts.start();
+		updateSingleBodyContacts(bodies, meshes, callbacks, stats, meshContacts);
+		stats.updateSingleBodyContacts.stop();
+		
+		stats.updateDoubleBodyContacts.start();
+		updateDoubleBodyContacts(bodies, callbacks, bodyContacts);
+		stats.updateDoubleBodyContacts.stop();
+
+		stats.bodyToBodyContacts /= 2;
+		stats.bodyToBodyActiveContacts = bodyContacts.size();
+		stats.bodyToMeshActiveContacts = meshContacts.size();
+	}
+	
+	private void updateSingleBodyContacts(RigidBodyManager bodies, StaticMeshManager meshes, CataclysmCallbacks callbacks,
+			PhysicsStats stats, List<SingleBodyContact> meshContacts) {
 		HashSet<Wrapper> intersectedWrappers = new HashSet<Wrapper>();
 		HashSet<Triangle> intersectedTriangles = new HashSet<Triangle>();
 
 		for (RigidBody body : bodies) {
 			if (body.isSleeping())
 				continue;
-			for (Wrapper wrapper : body.getWrappers()) {
+			ArrayList<Wrapper> wrappers = body.getWrappers();
+			for (int i=0; i<wrappers.size(); i++) {
+				Wrapper wrapper = wrappers.get(i);
+
 				AABB box = wrapper.getNode().getBox();
 				Vector3f centroid = wrapper.getCentroid();
 
@@ -117,39 +135,51 @@ class RigidBodyManagerUpdate {
 					collisionTest.meshContacts(wrapper, callbacks, meshContacts);
 			}
 		}
-
+	}
+	
+	private void updateDoubleBodyContacts(RigidBodyManager bodies, CataclysmCallbacks callbacks,
+			List<DoubleBodyContact> bodyContacts) {
+		int bodyContactsCount = 0;
 		for (RigidBody body : bodies) {
-			for (Wrapper wrapper : body.getWrappers()) {
-				for (DoubleBodyContact contact : wrapper.getBodyContacts()) {
+			ArrayList<Wrapper> wrappers = body.getWrappers();
+			for (int i=0; i<wrappers.size(); i++) {
+				Wrapper wrapper = wrappers.get(i);
+				ArrayList<DoubleBodyContact> contacts = wrapper.getBodyContacts();
+				if(contacts.isEmpty()) {
+					continue;
+				}
+
+				bodyContactsCount += contacts.size();
+				for (int j=0; j<contacts.size(); j++) {
+					DoubleBodyContact contact = contacts.get(j);
 					boolean sleeping = contact.getWrapperA().getBody().isSleeping()
 							&& contact.getWrapperB().getBody().isSleeping();
-					if (contact.getWrapperA() == wrapper && !sleeping) {
+					if (!sleeping && contact.getWrapperA() == wrapper) {
 						collisionTest.bodyContacts(contact, callbacks, bodyContacts);
 					}
 				}
 			}
 		}
 
-		stats.bodyToBodyContacts /= 2;
-		stats.bodyToBodyActiveContacts = bodyContacts.size();
-		stats.bodyToMeshActiveContacts = meshContacts.size();
+		System.out.println("bodyContactsCount:" + bodyContactsCount);
 	}
 
 	void recomputeDoubleBodyContactList(Wrapper wrapper, HashSet<Wrapper> intersectedWrappers) {
 		intersectedWrappers.clear();
 
 		BroadPhaseNode<Wrapper> node = wrapper.getNode();
-		bvh.remove(node);
+		BroadPhaseNode<Wrapper> parent = bvh.remove(node);
 
 		wrapper.placeBox(PADDING);
-		bvh.add(node);
+		bvh.add(node, parent);
 		bvh.boxTest(node.getBox(), intersectedWrappers);
 		intersectedWrappers.remove(wrapper);
 
 		ArrayList<DoubleBodyContact> contacts = wrapper.getBodyContacts();
 
 		contacts.removeIf(contact -> {
-			Wrapper other = wrapper.getID() == contact.getWrapperA().getID() ? contact.getWrapperB() : contact.getWrapperA();
+			Wrapper other = wrapper.getID() == contact.getWrapperA().getID() ? contact.getWrapperB()
+					: contact.getWrapperA();
 			if (!intersectedWrappers.remove(other)) {
 				other.getBodyContacts().remove(contact);
 				contact.refresh(null, null);
@@ -167,7 +197,7 @@ class RigidBodyManagerUpdate {
 		if (wrapper.getBody().getInvMass() == 0) {
 			return;
 		}
-		
+
 		intersectedTriangles.clear();
 		meshes.boxTest(wrapper.getNode().getBox(), intersectedTriangles);
 

@@ -89,7 +89,7 @@ public class DefaultParameters {
 		this.timeStep = 1.0f / 60.0f;
 		this.maxIterationsPosition = 2;
 		this.maxIterationVelocity = 8;
-		this.padding = (timeStep * 10) * 2;
+		this.padding = (timeStep * 10) * 2.0f;
 		this.gridCellSize = 32.0f;
 		this.maxOctreeDepth = 5;
 		this.forceIntegrator = new VerticalGravityIntegrator();

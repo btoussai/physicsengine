@@ -1,8 +1,8 @@
 package cataclysm.datastructures;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 
 /**
  * Repr�sente un manager d'objets.
@@ -21,7 +21,8 @@ public abstract class Manager<T extends Identifier> implements Iterable<T> {
 	/**
 	 * Les objets gérés par le manager.
 	 */
-	protected Map<Long, T> elements = new HashMap<Long, T>();
+	//protected HashSet<T> elements = new HashSet<T>();
+	protected ArrayList<T> elements = new ArrayList<T>();
 
 	/**
 	 * Construit un nouveau manager d'objets.
@@ -64,7 +65,7 @@ public abstract class Manager<T extends Identifier> implements Iterable<T> {
 	 * @param element L'élément à ajouter.
 	 */
 	public void addElement(T element) {
-		elements.put(element.getID(), element);
+		elements.add(element);
 	}
 
 	/**
@@ -74,7 +75,7 @@ public abstract class Manager<T extends Identifier> implements Iterable<T> {
 	 * @return true si l'élément a bien été supprimé.
 	 */
 	public boolean removeElement(T element) {
-		if (elements.remove(element.getID()) != null) {
+		if (elements.remove(element)) {
 			generator.freeID(element.getID());
 			return true;
 		}
@@ -89,7 +90,7 @@ public abstract class Manager<T extends Identifier> implements Iterable<T> {
 	 *         {@code e.getID()==element.getID()}
 	 */
 	public boolean contains(T element) {
-		return elements.containsKey(element.getID());
+		return elements.contains(element);
 	}
 
 	/**
@@ -103,7 +104,7 @@ public abstract class Manager<T extends Identifier> implements Iterable<T> {
 
 	@Override
 	public Iterator<T> iterator() {
-		return elements.values().iterator();
+		return elements.iterator();
 	}
 
 }

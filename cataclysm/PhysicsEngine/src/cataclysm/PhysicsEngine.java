@@ -140,13 +140,13 @@ final class PhysicsEngine {
 
 			Vector3f pseudoAngVel = body.getPseudoAngularVelocity();
 			Vector3f.add(angularVelocity, pseudoAngVel, axis);
-			float omega = axis.length();
+			float omega2 = axis.lengthSquared();
 
 			float movement_squared = dx * dx + dy * dy + dz * dz;
 
 			boolean translation_negligible = movement_squared < Epsilons.Sleep.MIN_TRANSLATION_SPEED
 					* Epsilons.Sleep.MIN_TRANSLATION_SPEED;
-			boolean rotation_negligible = omega < Epsilons.Sleep.MIN_ROTATION_SPEED;
+			boolean rotation_negligible = omega2 < Epsilons.Sleep.MIN_ROTATION_SPEED*Epsilons.Sleep.MIN_ROTATION_SPEED;
 
 			if (Epsilons.Sleep.SLEEPING_ALLOWED) {
 
@@ -175,6 +175,7 @@ final class PhysicsEngine {
 			}
 
 			if (!rotation_negligible) {
+				float omega = (float)Math.sqrt(omega2);
 				float one_over_omega = 1.0f / omega;
 				axis.set(axis.x * one_over_omega, axis.y * one_over_omega, axis.z * one_over_omega);
 				MatrixOps.createRotationMatrix3f(omega * timeStep, axis, rotation);
