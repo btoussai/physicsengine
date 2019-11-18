@@ -11,7 +11,7 @@ import org.lwjgl.util.vector.Vector3f;
 import cataclysm.broadphase.AABB;
 
 /**
- * Représente la grille 3D dans laquel sont stockés les triangles des
+ * Reprï¿½sente la grille 3D dans laquel sont stockï¿½s les triangles des
  * physicsmesh.
  * 
  * @author Briac
@@ -111,18 +111,18 @@ class MapGrid {
 
 	/**
 	 * 
-	 * Calcule la distance entre start et le premier triangle touché par le rayon
+	 * Calcule la distance entre start et le premier triangle touchï¿½ par le rayon
 	 * ray.
 	 * 
-	 * @param start           Le point de départ du rayon.
-	 * @param dir             La direction du rayon, le vecteur doit être unitaire.
-	 * @param maxLength       La distance maximale de recherche, supérieure à zéro.
-	 *                        Ne peut pas être +INF.
+	 * @param start           Le point de dÃ©part du rayon.
+	 * @param dir             La direction du rayon, le vecteur doit ï¿½tre unitaire.
+	 * @param maxLength       La distance maximale de recherche, supï¿½rieure ï¿½ zï¿½ro.
+	 *                        Ne peut pas Ãªtre +INF.
 	 * @param backfaceCulling Les triangles ne faisant pas face au rayon seront
-	 *                        ignorés si true.
-	 * @param normalDest      La normale du triangle touché sera stockée dedans.
-	 * @return la distance du premier triangle touché ou maxLength si aucun triangle
-	 *         n'a été trouvé.
+	 *                        ignorÃ©s si true.
+	 * @param normalDest      La normale du triangle touchÃ© sera stockÃ©e dedans.
+	 * @return la distance du premier triangle touchÃ© ou maxLength si aucun triangle
+	 *         n'a Ã©tÃ© trouvÃ©.
 	 */
 	float rayTest(Vector3f start, Vector3f dir, float maxLength, boolean backfaceCulling, Vector3f normalDest) {
 		
@@ -150,7 +150,7 @@ class MapGrid {
 	}
 
 	/**
-	 * Récupère l'ensemble des triangles en intersection avec l'AABB.
+	 * RÃ©cupÃ¨re l'ensemble des triangles en intersection avec l'AABB.
 	 * 
 	 * @param box
 	 * @param dest
@@ -171,14 +171,14 @@ class MapGrid {
 	}
 
 	/**
-	 * Explore l'octree et ajoute une boite affichable dans la liste boxes à chaque
-	 * cellule rencontrée.
+	 * Explore l'octree et ajoute une boite affichable dans la liste boxes ï¿½ chaque
+	 * cellule rencontrÃ©e.
 	 * 
 	 * @param boxes        La liste dans laquelle ranger les boites affichables.
 	 * @param maxDepth     La profondeur maximale d'exploration.
 	 * @param leavesOnly   N'ajoute que les cellules de profondeur maxDepth.
 	 * @param nonVoidBoxes Ignore les cellules vides.
-	 * @param position     La position en worldspace du début de l'exploration.
+	 * @param position     La position en worldspace du dï¿½but de l'exploration.
 	 */
 	void exploreOctree(List<OctreeCellRenderable> boxes, int maxDepth, boolean leavesOnly, boolean nonVoidBoxes,
 			Vector3f position) {
@@ -220,7 +220,7 @@ class MapGrid {
 	}
 
 	/**
-	 * Calcule la position dans la grille du point. Stocke le résultat dans dest
+	 * Calcule la position dans la grille du point. Stocke le rï¿½sultat dans dest
 	 * 
 	 * @param position
 	 * @param dest

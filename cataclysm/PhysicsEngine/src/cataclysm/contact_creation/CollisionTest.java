@@ -40,7 +40,7 @@ public class CollisionTest {
 	}
 
 	/**
-	 * Teste les collisions entre les paires d'objets et construit des zones de
+	 * Teste la collision d'une paire d'objets et construit des zones de
 	 * contact le cas échéant.
 	 * 
 	 * @param contact 

@@ -40,6 +40,9 @@ class RigidBodyManagerUpdate {
 	@SuppressWarnings("unchecked")
 	private final ArrayList<SingleBodyContact>[] meshContactPool = new ArrayList[Epsilons.MAX_CONTACTS + 1];
 
+	private final HashSet<Wrapper> intersectedWrappers = new HashSet<Wrapper>();
+	private final HashSet<Triangle> intersectedTriangles = new HashSet<Triangle>();
+
 	private final CollisionFilter filter;
 
 	private final BroadPhaseTree<Wrapper> bvh = new BroadPhaseTree<Wrapper>();
@@ -70,13 +73,10 @@ class RigidBodyManagerUpdate {
 			}
 		}
 
-		HashSet<Wrapper> intersectedWrappers = new HashSet<Wrapper>();
-		HashSet<Triangle> intersectedTriangles = new HashSet<Triangle>();
-
 		for (RigidBody body : added) {
 			for (Wrapper wrapper : body.getWrappers()) {
-				recomputeDoubleBodyContactList(wrapper, intersectedWrappers);
-				recomputeSingleBodyContactList(wrapper, meshes, intersectedTriangles);
+				recomputeDoubleBodyContactList(wrapper);
+				recomputeSingleBodyContactList(wrapper, meshes);
 			}
 		}
 
@@ -89,82 +89,73 @@ class RigidBodyManagerUpdate {
 		stats.bodyToMeshContacts = 0;
 		stats.bodyToBodyContacts = 0;
 
-		stats.updateSingleBodyContacts.start();
-		updateSingleBodyContacts(bodies, meshes, callbacks, stats, meshContacts);
-		stats.updateSingleBodyContacts.stop();
-		
-		stats.updateDoubleBodyContacts.start();
-		updateDoubleBodyContacts(bodies, callbacks, bodyContacts);
-		stats.updateDoubleBodyContacts.stop();
+		for (RigidBody body : bodies) {
+			if (body.isSleeping())
+				continue;
+			ArrayList<Wrapper> wrappers = body.getWrappers();
+			if (wrappers.size() == 1) {
+				updateWrapper(body.getInvMass() == 0, wrappers.get(0), meshes, callbacks, stats, meshContacts,
+						bodyContacts);
+			} else {
+				for (int i = 0; i < wrappers.size(); i++) {
+					Wrapper wrapper = wrappers.get(i);
+					updateWrapper(body.getInvMass() == 0, wrapper, meshes, callbacks, stats, meshContacts,
+							bodyContacts);
+				}
+			}
+		}
 
 		stats.bodyToBodyContacts /= 2;
 		stats.bodyToBodyActiveContacts = bodyContacts.size();
 		stats.bodyToMeshActiveContacts = meshContacts.size();
 	}
-	
-	private void updateSingleBodyContacts(RigidBodyManager bodies, StaticMeshManager meshes, CataclysmCallbacks callbacks,
-			PhysicsStats stats, List<SingleBodyContact> meshContacts) {
-		HashSet<Wrapper> intersectedWrappers = new HashSet<Wrapper>();
-		HashSet<Triangle> intersectedTriangles = new HashSet<Triangle>();
 
-		for (RigidBody body : bodies) {
-			if (body.isSleeping())
-				continue;
-			ArrayList<Wrapper> wrappers = body.getWrappers();
-			for (int i=0; i<wrappers.size(); i++) {
-				Wrapper wrapper = wrappers.get(i);
-
-				AABB box = wrapper.getNode().getBox();
-				Vector3f centroid = wrapper.getCentroid();
-
-				float sx = 0.5f * (box.min.x + box.max.x) - centroid.x;
-				float sy = 0.5f * (box.min.y + box.max.y) - centroid.y;
-				float sz = 0.5f * (box.min.z + box.max.z) - centroid.z;
-
-				float d2 = sx * sx + sy * sy + sz * sz;
-
-				if (d2 > PADDING_SQUARED) {
-					recomputeDoubleBodyContactList(wrapper, intersectedWrappers);
-					recomputeSingleBodyContactList(wrapper, meshes, intersectedTriangles);
-				}
-
-				stats.bodyToMeshContacts += wrapper.getMeshContacts().size();
-				stats.bodyToBodyContacts += wrapper.getBodyContacts().size();
-
-				if (body.getInvMass() != 0)
-					collisionTest.meshContacts(wrapper, callbacks, meshContacts);
-			}
-		}
-	}
-	
-	private void updateDoubleBodyContacts(RigidBodyManager bodies, CataclysmCallbacks callbacks,
+	private void updateWrapper(boolean isKinematic, Wrapper wrapper, StaticMeshManager meshes,
+			CataclysmCallbacks callbacks, PhysicsStats stats, List<SingleBodyContact> meshContacts,
 			List<DoubleBodyContact> bodyContacts) {
-		int bodyContactsCount = 0;
-		for (RigidBody body : bodies) {
-			ArrayList<Wrapper> wrappers = body.getWrappers();
-			for (int i=0; i<wrappers.size(); i++) {
-				Wrapper wrapper = wrappers.get(i);
-				ArrayList<DoubleBodyContact> contacts = wrapper.getBodyContacts();
-				if(contacts.isEmpty()) {
-					continue;
-				}
+		AABB box = wrapper.getNode().getBox();
+		Vector3f centroid = wrapper.getCentroid();
 
-				bodyContactsCount += contacts.size();
-				for (int j=0; j<contacts.size(); j++) {
-					DoubleBodyContact contact = contacts.get(j);
-					boolean sleeping = contact.getWrapperA().getBody().isSleeping()
-							&& contact.getWrapperB().getBody().isSleeping();
-					if (!sleeping && contact.getWrapperA() == wrapper) {
-						collisionTest.bodyContacts(contact, callbacks, bodyContacts);
-					}
-				}
-			}
+		float sx = 0.5f * (box.min.x + box.max.x) - centroid.x;
+		float sy = 0.5f * (box.min.y + box.max.y) - centroid.y;
+		float sz = 0.5f * (box.min.z + box.max.z) - centroid.z;
+
+		float d2 = sx * sx + sy * sy + sz * sz;
+
+		if (d2 > PADDING_SQUARED) {
+			recomputeDoubleBodyContactList(wrapper);
+			recomputeSingleBodyContactList(wrapper, meshes);
 		}
 
-		System.out.println("bodyContactsCount:" + bodyContactsCount);
+		stats.bodyToMeshContacts += wrapper.getMeshContacts().size();
+
+		if (!isKinematic)
+			collisionTest.meshContacts(wrapper, callbacks, meshContacts);
+
+		ArrayList<DoubleBodyContact> contacts = wrapper.getBodyContacts();
+		if (contacts.isEmpty()) {
+			return;
+		}
+		stats.bodyToBodyContacts += contacts.size();
+
+		for (int j = 0; j < contacts.size(); j++) {
+			DoubleBodyContact contact = contacts.get(j);
+			//boolean wrapperA_sleeping = contact.getWrapperA().getBody().isSleeping();
+			//boolean wrapperB_sleeping = contact.getWrapperB().getBody().isSleeping();
+			//boolean update = (wrapperA_sleeping || wrapperB_sleeping) || contact.getUpdateFlag();
+			
+			boolean update = contact.getUpdateFlag();
+			if (update) {
+				collisionTest.bodyContacts(contact, callbacks, bodyContacts);
+				contact.setUpdateFlag(false);
+			} else {
+				contact.setUpdateFlag(true);
+			}
+
+		}
 	}
 
-	void recomputeDoubleBodyContactList(Wrapper wrapper, HashSet<Wrapper> intersectedWrappers) {
+	void recomputeDoubleBodyContactList(Wrapper wrapper) {
 		intersectedWrappers.clear();
 
 		BroadPhaseNode<Wrapper> node = wrapper.getNode();
@@ -191,8 +182,7 @@ class RigidBodyManagerUpdate {
 		intersectedWrappers.forEach(other -> createBodyContact(wrapper, other));
 	}
 
-	void recomputeSingleBodyContactList(Wrapper wrapper, StaticMeshManager meshes,
-			HashSet<Triangle> intersectedTriangles) {
+	void recomputeSingleBodyContactList(Wrapper wrapper, StaticMeshManager meshes) {
 
 		if (wrapper.getBody().getInvMass() == 0) {
 			return;

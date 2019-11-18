@@ -20,6 +20,12 @@ public class DoubleBodyContact extends AbstractContact {
 	private Wrapper wrapperA;
 	private Wrapper wrapperB;
 
+	/**
+	 * Permet de déterminer si les deux wrappers ont été mis à jour avant de mettre
+	 * à jour le contact.
+	 */
+	private boolean updateFlag = false;
+
 	private final Vector3f N = new Vector3f();
 	private final Vector3f finalImpulse = new Vector3f();
 	private final Vector3f[] Ra;
@@ -287,6 +293,14 @@ public class DoubleBodyContact extends AbstractContact {
 
 	public Wrapper getWrapperB() {
 		return wrapperB;
+	}
+
+	public boolean getUpdateFlag() {
+		return updateFlag;
+	}
+	
+	public void setUpdateFlag(boolean updateFlag) {
+		this.updateFlag = updateFlag;
 	}
 
 }
