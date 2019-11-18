@@ -5,7 +5,7 @@ import org.lwjgl.util.vector.Vector3f;
 import math.VectorOps;
 
 /**
- * Représente une boîte alignée sur les axes xyz.
+ * Reprï¿½sente une boï¿½te alignï¿½e sur les axes xyz.
  * 
  * @author Briac
  *
@@ -24,7 +24,7 @@ public class AABB {
 	}
 
 	/**
-	 * Construit une AABB à partir d'un point central et d'une taille. <br>
+	 * Construit une AABB ï¿½ partir d'un point central et d'une taille. <br>
 	 * L'AABB mesurera 2*radius selon chaque direction.
 	 * 
 	 * @param center
@@ -36,11 +36,11 @@ public class AABB {
 	}
 
 	/**
-	 * Teste si cette AABB contient entièrement other.<br>
+	 * Teste si cette AABB contient entiÃ¨rement other.<br>
 	 * Note: {@code this.contains(this)} vaut toujours true.
 	 * 
 	 * @param other
-	 * @return true si other est à l'intérieur de cette AABB.
+	 * @return true si other est Ã  l'intÃ©rieur de cette AABB.
 	 */
 	public boolean contains(AABB other) {
 		if (min.x <= other.min.x && max.x >= other.max.x) {
@@ -58,8 +58,8 @@ public class AABB {
 	 * 
 	 * @param left
 	 * @param right
-	 * @return l'AABB la plus petite telle que left & right soient comprises à
-	 *         l'intérieur.
+	 * @return l'AABB la plus petite telle que left & right soient comprises ï¿½
+	 *         l'intï¿½rieur.
 	 */
 	public static AABB union(AABB left, AABB right) {
 		AABB dest = new AABB();
@@ -68,7 +68,7 @@ public class AABB {
 	}
 
 	/**
-	 * Calcule l'union de deux AABB et place le résultat dans dest.
+	 * Calcule l'union de deux AABB et place le rï¿½sultat dans dest.
 	 * 
 	 * @param left
 	 * @param right

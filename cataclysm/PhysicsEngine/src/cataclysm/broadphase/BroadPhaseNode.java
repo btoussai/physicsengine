@@ -6,7 +6,7 @@ import java.util.HashSet;
  * Représente un noeud du {@link BroadPhaseTree}.
  * 
  * @author Briac
- * @param <T> 
+ * @param <T>
  *
  */
 public class BroadPhaseNode<T> {
@@ -15,20 +15,34 @@ public class BroadPhaseNode<T> {
 	BroadPhaseNode<T> parent;
 	BroadPhaseNode<T> child1;
 	BroadPhaseNode<T> child2;
-	boolean isLeaf;
+	final boolean isLeaf;
 	float cost;
-	
+
 	private final T handle;
 
+	/**
+	 * Construit un nouveau noeud qui pourra être inséré dans l'arbre.
+	 * 
+	 * @param box
+	 * @param handle
+	 */
 	public BroadPhaseNode(AABB box, T handle) {
 		this.box = box;
 		this.handle = handle;
+		this.isLeaf = true;
 	}
 
-	public BroadPhaseNode(BroadPhaseNode<T> parent, AABB box) {
+	/**
+	 * Ce constructeur permet de construire les noeuds intérieur de l'arbre.
+	 * 
+	 * @param parent
+	 * @param box
+	 */
+	BroadPhaseNode(BroadPhaseNode<T> parent, AABB box) {
 		this.parent = parent;
 		this.box = box;
 		this.handle = null;
+		this.isLeaf = false;
 	}
 
 	/**
@@ -54,7 +68,7 @@ public class BroadPhaseNode<T> {
 	public AABB getBox() {
 		return box;
 	}
-	
+
 	public T getHandle() {
 		return handle;
 	}
@@ -62,7 +76,6 @@ public class BroadPhaseNode<T> {
 	@Override
 	public String toString() {
 		return (isLeaf ? "Leaf " : "Node ") + super.toString();
-		// + id + " --> " + (parent != null ? parent.id : "null");
 	}
 
 }

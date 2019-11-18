@@ -11,7 +11,7 @@ import java.util.Queue;
  * dans lequel chaque noeud est une AABB englobant tous ses noeuds fils.
  * 
  * @author Briac
- * @param <T> 
+ * @param <T>
  *
  */
 public class BroadPhaseTree<T> {
@@ -19,28 +19,40 @@ public class BroadPhaseTree<T> {
 	private static final boolean DEBUG = false;
 
 	private BroadPhaseNode<T> root;
+	private BroadPhaseNode<T> tempNode;
 
-	private final AABB temp = new AABB();
+	private final AABB tempBox = new AABB();
 	private final PriorityQueue<BroadPhaseNode<T>> queue = new PriorityQueue<BroadPhaseNode<T>>(
 			(left, right) -> Float.compare(left.cost, right.cost));
 
-	public void add(BroadPhaseNode<T> node, BroadPhaseNode<T> previousParent) {
-		node.isLeaf = true;
+	/**
+	 * Ajoute un noeud dans l'arbre.
+	 * 
+	 * @param node Le noeud à insérer.
+	 */
+	public void add(BroadPhaseNode<T> node) {
 
 		if (root == null) {
 			root = node;
 			return;
 		}
 
+		add(node, root);
+	}
+
+	private void add(BroadPhaseNode<T> node, BroadPhaseNode<T> ancestor) {
+
 		// Stage 1: find the best sibling for the new leaf
-		BroadPhaseNode<T> bestSibling = pickBestSibling(node);
+		BroadPhaseNode<T> bestSibling = pickBestSibling(node, ancestor);
 
 		// Stage 2: create a new parent
 		BroadPhaseNode<T> oldParent = bestSibling.parent;
-		BroadPhaseNode<T> newParent = previousParent;
-		if(newParent == null) {
+		BroadPhaseNode<T> newParent = null;
+		if (tempNode == null) {
 			newParent = new BroadPhaseNode<T>(oldParent, AABB.union(node.box, bestSibling.box));
-		}else {
+		} else {
+			newParent = tempNode;
+			tempNode = null;
 			newParent.parent = oldParent;
 			AABB.union(node.box, bestSibling.box, newParent.box);
 		}
@@ -67,20 +79,21 @@ public class BroadPhaseTree<T> {
 			if (!checkValidity()) {
 				throw new IllegalStateException();
 			}
+
 	}
 
 	/**
 	 * 
-	 * @param node
-	 * @return L'ancien noeud parent de node
+	 * Supprime une feuille de l'arbre.
+	 * 
+	 * @param node Le noeud à retirer.
 	 */
-	public BroadPhaseNode<T> remove(BroadPhaseNode<T> node) {
-		assert node.isLeaf;
+	public void remove(BroadPhaseNode<T> node) {
 		if (node.parent == null) {
-			if(node == root) {
+			if (node == root) {
 				root = null;
 			}
-			return null;
+			return;
 		}
 
 		BroadPhaseNode<T> parent = node.parent;
@@ -95,9 +108,10 @@ public class BroadPhaseTree<T> {
 		if (grandParent == null) {
 			root = sibling;
 			root.parent = null;
-			
+
 			parent.parent = parent.child1 = parent.child2 = null;
-			return parent;
+			tempNode = parent;
+			return;
 		}
 
 		if (grandParent.child1 == parent) {
@@ -115,9 +129,48 @@ public class BroadPhaseTree<T> {
 			if (!checkValidity()) {
 				throw new IllegalStateException();
 			}
-		
+
 		parent.parent = parent.child1 = parent.child2 = null;
-		return parent;
+		tempNode = parent;
+		return;
+	}
+
+	/**
+	 * Met à jour un noeud. Si le noeud est nouveau, il est inséré dans l'arbre.
+	 * 
+	 * @param node
+	 */
+	public void update(BroadPhaseNode<T> node) {
+		if(node.parent == null) {
+			remove(node);
+			add(node);
+			return;
+		}
+
+		AABB box = node.getBox();
+		BroadPhaseNode<T> ancestor = node.parent;
+		
+		if(ancestor.box.contains(box)) {
+			return;
+		}
+		
+		ancestor = ancestor.parent;
+		while (ancestor != null) {
+			if (ancestor.box.contains(box)) {
+				break;
+			} else {
+				ancestor = ancestor.parent;
+			}
+		}
+
+		if (ancestor == null) {
+			remove(node);
+			add(node);
+		} else {
+			remove(node);
+			add(node, ancestor);
+		}
+
 	}
 
 	public void rayTest() {
@@ -136,33 +189,39 @@ public class BroadPhaseTree<T> {
 		}
 	}
 
-	private BroadPhaseNode<T> pickBestSibling(BroadPhaseNode<T> nodeToInsert) {
+	/**
+	 * Sélectionne un noeud parmi les descendants de ancestor qui deviendra le "frère" de nodeToInsert.
+	 * @param nodeToInsert
+	 * @param ancestor
+	 * @return
+	 */
+	private BroadPhaseNode<T> pickBestSibling(BroadPhaseNode<T> nodeToInsert, BroadPhaseNode<T> ancestor) {
 
-		if (root.isLeaf) {
-			return root;
+		if (ancestor.isLeaf) {
+			return ancestor;
 		}
 
-		AABB.union(root.box, nodeToInsert.box, temp);
-		root.cost = temp.getSurfaceArea();
+		AABB.union(ancestor.box, nodeToInsert.box, tempBox);
+		ancestor.cost = tempBox.getSurfaceArea();
 
-		float bestCost = root.cost;
-		BroadPhaseNode<T> bestSibling = root;
+		float bestCost = ancestor.cost;
+		BroadPhaseNode<T> bestSibling = ancestor;
 
-		float childLowerBoundCost = nodeToInsert.box.getSurfaceArea() + root.cost - root.box.getSurfaceArea();
+		float childLowerBoundCost = nodeToInsert.box.getSurfaceArea() + ancestor.cost - ancestor.box.getSurfaceArea();
 		if (childLowerBoundCost < bestCost) {
-			root.child1.cost = childLowerBoundCost;
-			queue.add(root.child1);
-			root.child2.cost = childLowerBoundCost;
-			queue.add(root.child2);
+			ancestor.child1.cost = childLowerBoundCost;
+			queue.add(ancestor.child1);
+			ancestor.child2.cost = childLowerBoundCost;
+			queue.add(ancestor.child2);
 		}
 
 		while (!queue.isEmpty()) {
-			
+
 			BroadPhaseNode<T> current = queue.poll();
 			BroadPhaseNode<T> parent = current.parent;
 
-			AABB.union(current.box, nodeToInsert.box, temp);
-			float unionCost = temp.getSurfaceArea();
+			AABB.union(current.box, nodeToInsert.box, tempBox);
+			float unionCost = tempBox.getSurfaceArea();
 
 			float inheritedCost = parent.cost - parent.box.getSurfaceArea();
 			current.cost = unionCost + inheritedCost;
@@ -186,7 +245,7 @@ public class BroadPhaseTree<T> {
 			}
 
 		}
-		
+
 		return bestSibling;
 	}
 
@@ -218,16 +277,16 @@ public class BroadPhaseTree<T> {
 		BroadPhaseNode<T> child = null;
 
 		if (!current.child1.isLeaf) {
-			AABB.union(current.child1.child2.box, current.child2.box, temp);
-			deltaSA = temp.getSurfaceArea() - current.child1.box.getSurfaceArea();
+			AABB.union(current.child1.child2.box, current.child2.box, tempBox);
+			deltaSA = tempBox.getSurfaceArea() - current.child1.box.getSurfaceArea();
 			if (deltaSA < bestDeltaSA) {
 				bestDeltaSA = deltaSA;
 				grandchild = current.child1.child1;
 				child = current.child2;
 			}
 
-			AABB.union(current.child1.child1.box, current.child2.box, temp);
-			deltaSA = temp.getSurfaceArea() - current.child1.box.getSurfaceArea();
+			AABB.union(current.child1.child1.box, current.child2.box, tempBox);
+			deltaSA = tempBox.getSurfaceArea() - current.child1.box.getSurfaceArea();
 			if (deltaSA < bestDeltaSA) {
 				bestDeltaSA = deltaSA;
 				grandchild = current.child1.child2;
@@ -235,16 +294,16 @@ public class BroadPhaseTree<T> {
 			}
 		}
 		if (!current.child2.isLeaf) {
-			AABB.union(current.child2.child2.box, current.child1.box, temp);
-			deltaSA = temp.getSurfaceArea() - current.child2.box.getSurfaceArea();
+			AABB.union(current.child2.child2.box, current.child1.box, tempBox);
+			deltaSA = tempBox.getSurfaceArea() - current.child2.box.getSurfaceArea();
 			if (deltaSA < bestDeltaSA) {
 				bestDeltaSA = deltaSA;
 				grandchild = current.child2.child1;
 				child = current.child1;
 			}
 
-			AABB.union(current.child2.child1.box, current.child1.box, temp);
-			deltaSA = temp.getSurfaceArea() - current.child2.box.getSurfaceArea();
+			AABB.union(current.child2.child1.box, current.child1.box, tempBox);
+			deltaSA = tempBox.getSurfaceArea() - current.child2.box.getSurfaceArea();
 			if (deltaSA < bestDeltaSA) {
 				bestDeltaSA = deltaSA;
 				grandchild = current.child2.child2;

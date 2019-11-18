@@ -159,10 +159,11 @@ class RigidBodyManagerUpdate {
 		intersectedWrappers.clear();
 
 		BroadPhaseNode<Wrapper> node = wrapper.getNode();
-		BroadPhaseNode<Wrapper> parent = bvh.remove(node);
-
 		wrapper.placeBox(PADDING);
-		bvh.add(node, parent);
+
+		//bvh.remove(node);
+		//bvh.add(node);
+		bvh.update(node);
 		bvh.boxTest(node.getBox(), intersectedWrappers);
 		intersectedWrappers.remove(wrapper);
 

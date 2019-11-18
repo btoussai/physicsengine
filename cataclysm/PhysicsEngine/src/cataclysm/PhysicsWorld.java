@@ -16,7 +16,7 @@ import cataclysm.wrappers.WrapperBuilder;
 import math.MatrixOps;
 
 /**
- * Repr�sente l'ensemble des objets sur lesquels de la physique est appliqu�e.
+ * Repr�sente l'ensemble des objets sur lesquels de la physique est appliquée.
  * 
  * @author Briac
  *
@@ -24,7 +24,7 @@ import math.MatrixOps;
 public class PhysicsWorld {
 
 	/**
-	 * Les param�tres de la simulation.
+	 * Les paramètres de la simulation.
 	 */
 	private final DefaultParameters params;
 
@@ -55,14 +55,14 @@ public class PhysicsWorld {
 	private final PhysicsStats stats = new PhysicsStats();
 
 	/**
-	 * Des fonctions de mise � jour d�finies par l'utilisateur.
+	 * Des fonctions de mise à jour définies par l'utilisateur.
 	 */
 	private final List<Actor> actors = new ArrayList<Actor>();
 
 	/**
 	 * Instancie un nouveau monde pour simuler de la physique.
 	 * 
-	 * @param params Les param�tres par d�faut.
+	 * @param params Les paramètres par défaut.
 	 */
 	public PhysicsWorld(DefaultParameters params) {
 		this.params = params;
@@ -72,7 +72,7 @@ public class PhysicsWorld {
 	}
 
 	/**
-	 * Cette m�thode doit �tre appel�e pour initialiser la simulation.
+	 * Cette méthode doit être appelée pour initialiser la simulation.
 	 */
 	public void start() {
 		meshes.update();
@@ -80,9 +80,9 @@ public class PhysicsWorld {
 	}
 
 	/**
-	 * Met � jour la simulation.
+	 * Met à jour la simulation.
 	 * 
-	 * @param frameCount Le nombre de pas de temps � simuler.
+	 * @param frameCount Le nombre de pas de temps à simuler.
 	 */
 	public void update(int frameCount) {
 		if (frameCount < 1) {
@@ -210,7 +210,7 @@ public class PhysicsWorld {
 	public StaticMesh copyMesh(Matrix4f transform, StaticMesh other, boolean keepData) {
 		return meshes.copyMesh(transform, other, keepData);
 	}
-	
+
 	/**
 	 * Supprime un staticmesh.
 	 * 
@@ -243,6 +243,7 @@ public class PhysicsWorld {
 
 	/**
 	 * Supprime une contrainte
+	 * 
 	 * @param constraint
 	 */
 	public void deleteConstraint(AbstractConstraint constraint) {
@@ -297,10 +298,18 @@ public class PhysicsWorld {
 	}
 
 	/**
-	 * @return Les param�tres par d�faut de la simulation.
+	 * @return Les param�tres par défaut de la simulation.
 	 */
 	public DefaultParameters getParameters() {
 		return params;
+	}
+
+	/**
+	 * @return la nombre de nanosecondes écoulées lors de la mise à jour de la
+	 *         simulation.
+	 */
+	public double getLastUpdateDeltaNanosec() {
+		return stats.globalUpdate.getDeltaNanos();
 	}
 
 }

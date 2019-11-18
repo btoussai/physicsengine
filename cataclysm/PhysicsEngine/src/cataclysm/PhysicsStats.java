@@ -81,6 +81,10 @@ public class PhysicsStats {
 		public double getAverageNanos() {
 			return average;
 		}
+		
+		public double getDeltaNanos() {
+			return history[history.length - 1];
+		}
 
 		public String asPercentage(double totalNanoSec) {
 			return name + ": " + String.format("%4.2f", average / totalNanoSec * 100.0) + "%";
