@@ -6,8 +6,8 @@ import cataclysm.Epsilons;
 import cataclysm.wrappers.RigidBody;
 
 /**
- * Cet objet permet d'appliquer une force d'attraction décroissant comme
- * l'inverse du carré de la distance entre les solides et un point fixe de
+ * Cet objet permet d'appliquer une force d'attraction dï¿½croissant comme
+ * l'inverse du carrï¿½ de la distance entre les solides et un point fixe de
  * l'espace.
  * 
  * @author Briac
@@ -55,6 +55,11 @@ public class NewtonianGravityIntegrator implements ExternalForceIntegrator {
 	@Override
 	public void prepare() {
 		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setGravityStrength(float gravityStrength) {
 		
 	}
 

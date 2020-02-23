@@ -379,6 +379,7 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
 		return z;
 	}
 	
+	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) return true;
 		if (obj == null) return false;
@@ -389,4 +390,11 @@ public class Vector3f extends Vector implements Serializable, ReadableVector3f, 
 		
 		return false;
 	}
+	
+	@Override
+	public int hashCode() {
+		return Float.floatToRawIntBits(x) ^ Float.floatToRawIntBits(y) ^ Float.floatToRawIntBits(z);
+	}
+	
+	
 }

@@ -130,6 +130,10 @@ public class PhysicsWorld {
 	public long getElapsedFrames() {
 		return stats.frame_count;
 	}
+	
+	public PhysicsStats getUpdateStats() {
+		return stats;
+	}
 
 	/**
 	 * Ajoute un objet dans la simulation � la position sp�cifi�e. <br>

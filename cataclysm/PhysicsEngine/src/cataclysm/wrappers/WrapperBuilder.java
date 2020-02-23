@@ -29,7 +29,7 @@ public abstract class WrapperBuilder {
 
 	/**
 	 * Les enveloppes construites par ce builder seront vide ou pleines. Ceci
-	 * n'influence que le tenseur d'inertie du rigidbody possédent l'enveloppe.
+	 * n'influence que le tenseur d'inertie du rigidbody possï¿½dent l'enveloppe.
 	 * 
 	 * @param hollow
 	 */
@@ -38,10 +38,10 @@ public abstract class WrapperBuilder {
 	}
 
 	/**
-	 * Change la densité des enveloppes construites par ce builder. La masse des
-	 * enveloppes sera déduite de la densité. <br>
-	 * Si l'enveloppe est pleine, la densité correspond à la masse surfacique. <br>
-	 * Si l'enveloppe est creuse, la densité correspond à la masse volumique.
+	 * Change la densitï¿½ des enveloppes construites par ce builder. La masse des
+	 * enveloppes sera dï¿½duite de la densitï¿½. <br>
+	 * Si l'enveloppe est pleine, la densitï¿½ correspond ï¿½ la masse surfacique. <br>
+	 * Si l'enveloppe est creuse, la densitï¿½ correspond ï¿½ la masse volumique.
 	 * 
 	 * @param density
 	 */
@@ -51,10 +51,10 @@ public abstract class WrapperBuilder {
 	}
 
 	/**
-	 * Change la masse des enveloppes construites par ce builder. La densité sera
-	 * déduite de la masse. <br>
-	 * Si l'enveloppe est pleine, la densité correspond à la masse surfacique. <br>
-	 * Si l'enveloppe est creuse, la densité correspond à la masse volumique.
+	 * Change la masse des enveloppes construites par ce builder. La densitï¿½ sera
+	 * dï¿½duite de la masse. <br>
+	 * Si l'enveloppe est pleine, la densitï¿½ correspond ï¿½ la masse surfacique. <br>
+	 * Si l'enveloppe est creuse, la densitï¿½ correspond ï¿½ la masse volumique.
 	 * 
 	 * @param mass
 	 */
@@ -64,8 +64,8 @@ public abstract class WrapperBuilder {
 	}
 
 	/**
-	 * Construit une nouvelle enveloppe de collision pour le corps rigide passé en
-	 * paramètre.
+	 * Construit une nouvelle enveloppe de collision pour le corps rigide passï¿½ en
+	 * paramï¿½tre.
 	 * 
 	 * @param body Le corps rigide pour lequel l'enveloppe est construite.
 	 * @param ID
@@ -74,13 +74,13 @@ public abstract class WrapperBuilder {
 	abstract Wrapper build(RigidBody body, long ID);
 
 	/**
-	 * Applique un facteur d'échelle sur ce builder. Toute les enveloppes
-	 * construites par la suite seront soumises au changement d'échelle. Le
-	 * changement d'échelle ne modifie pas la position et l'orientation en bodyspace
-	 * des enveloppes créées. Pour cela, voir {@link #setTransform(Matrix4f)}.
+	 * Applique un facteur d'ï¿½chelle sur ce builder. Toute les enveloppes
+	 * construites par la suite seront soumises au changement d'ï¿½chelle. Le
+	 * changement d'ï¿½chelle ne modifie pas la position et l'orientation en bodyspace
+	 * des enveloppes crï¿½ï¿½es. Pour cela, voir {@link #setTransform(Matrix4f)}.
 	 * 
 	 * @param scaleFactor
 	 */
-	protected abstract void scale(float scaleFactor);
+	public abstract void scale(float scaleFactor);
 
 }

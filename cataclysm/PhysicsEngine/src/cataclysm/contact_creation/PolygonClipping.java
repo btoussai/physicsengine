@@ -28,10 +28,10 @@ class PolygonClipping {
 	 * 
 	 * @param incidentFace
 	 * @param referenceFace
-	 * @return
+	 * @param clippedVertices
 	 */
-	static List<Vector3f> clipIncidentFaceAgainstReferenceFace(ConvexHullWrapperFace incidentFace,
-			ConvexHullWrapperFace referenceFace) {
+	static void clipIncidentFaceAgainstReferenceFace(ConvexHullWrapperFace incidentFace,
+			ConvexHullWrapperFace referenceFace, List<Vector3f> clippedVertices) {
 		inputListSize = 0;
 		outputListSize = 0;
 
@@ -93,6 +93,10 @@ class PolygonClipping {
 			}
 
 			if (outputListSize == 0) {
+				//the faces aren't overlapping, we return
+				clippedVertices.clear();
+				return;
+				/*
 				// On cherche le point le plus proche du plan et on le projette dessus.
 				float bestDistance = Float.NEGATIVE_INFINITY;
 				Vector3f bestVertex = null;
@@ -110,7 +114,8 @@ class PolygonClipping {
 					bestVertex.y -= bestDistance * clipPlaneNormal.y;
 					bestVertex.z -= bestDistance * clipPlaneNormal.z;
 				}
-					outputListSize = addVertex(outputList, outputListSize, bestVertex);
+				outputListSize = addVertex(outputList, outputListSize, bestVertex);
+				*/
 			}
 
 			swapLists();
@@ -120,7 +125,8 @@ class PolygonClipping {
 			edge = edge.getNext();
 		} while (edge != edge0);
 
-		return new ArrayList<Vector3f>(inputList.subList(0, inputListSize));
+		clippedVertices.clear();
+		clippedVertices.addAll(inputList.subList(0, inputListSize));
 	}
 
 	/**

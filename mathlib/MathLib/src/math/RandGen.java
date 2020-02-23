@@ -5,7 +5,7 @@ import java.util.Random;
 import org.lwjgl.util.vector.Vector3f;
 
 /**
- * Cette classe permet de générer des nombres aléatoires dans un certain
+ * Cette classe permet de gï¿½nï¿½rer des nombres alï¿½atoires dans un certain
  * intervalle.
  * 
  * @author Briac
@@ -30,17 +30,28 @@ public class RandGen {
 	public static long nextLong(long min, long max) {
 		return min + rand.nextLong() % (max - min);
 	}
-	
+
 	public static Vector3f newUnitVector3f() {
 		Vector3f vector = new Vector3f(nextFloat(-1, 1), nextFloat(-1, 1), nextFloat(-1, 1));
 		return vector.normalise(vector);
 	}
-	
+
 	public static Vector3f nextVector3f(float minLength, float maxLength) {
 		float length = nextFloat(minLength, maxLength);
 		Vector3f vector = newUnitVector3f();
 		vector.scale(length);
 		return vector;
+	}
+
+	/**
+	 * @return a random float in [-PI, PI]
+	 */
+	public static float nextAngle() {
+		return (float) nextDouble(-Math.PI, Math.PI);
+	}
+
+	public static void seed(long seed) {
+		rand.setSeed(seed);
 	}
 
 }

@@ -83,7 +83,7 @@ class CollideWrapperTriangle {
 	 * @param callbacks
 	 * @param meshContacts 
 	 */
-	public void test(Wrapper wrapper, CataclysmCallbacks callbacks, List<SingleBodyContact> meshContacts) {
+	public void test(Wrapper wrapper, CataclysmCallbacks callbacks, List<AbstractSingleBodyContact> meshContacts) {
 		
 		//System.out.println("Wrapper vs Triangle");
 		
@@ -91,12 +91,13 @@ class CollideWrapperTriangle {
 
 		updateContacts(wrapper);
 		
-		List<SingleBodyContact> contacts = wrapper.getMeshContacts();
+		List<AbstractSingleBodyContact> contacts = wrapper.getMeshContacts();
 		contacts.sort(Comparator.comparingDouble((c) -> c.area.getPenetrationDepth()));
 
-		for (SingleBodyContact contact : contacts) {
+		for (AbstractSingleBodyContact contact : contacts) {
 			if(!contact.area.isCollisionOccuring()) {
-				break;
+				contact.resetImpulses();
+				continue;
 			}
 			
 			boolean featureAlreadyProcessed = false;
@@ -164,7 +165,7 @@ class CollideWrapperTriangle {
 			break;
 		}
 		
-		for(SingleBodyContact contact : wrapper.getMeshContacts()) {
+		for(AbstractSingleBodyContact contact : wrapper.getMeshContacts()) {
 			triangleHull.setFrom(contact.getTriangle());
 			collisionTest.accept(contact.area);
 		}

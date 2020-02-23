@@ -1,5 +1,6 @@
 package cataclysm.contact_creation;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -84,7 +85,8 @@ class SAT {
 
 		float edgeCheckDistance = Float.NEGATIVE_INFINITY;
 		// If the face check gives a good enough result, we skip the edge check
-		// completely.
+		// completely. This can produce some false positives which will be handled
+		//when clipping the contact faces against each other.
 		if (contact.getFeatureOnA().getHalfedge() != null
 				|| Math.max(faceCheckDistanceA, faceCheckDistanceB) < -Epsilons.ALLOWED_PENETRATION) {
 			edgeCheck(hullA, hullB);
@@ -102,10 +104,11 @@ class SAT {
 			contact.setNoCollision();
 			return;
 		}
-		// }
+		
 
 		if (faceCheckDistanceA > edgeCheckDistance - Epsilons.ALLOWED_PENETRATION
 				|| faceCheckDistanceB > edgeCheckDistance - Epsilons.ALLOWED_PENETRATION) {
+			//we check if face A and face B give similar results
 			if (Math.abs(faceCheckDistanceA - faceCheckDistanceB) < Epsilons.ALLOWED_PENETRATION) {
 				if (contact.getFeatureOnA().getFace() != null) {
 					// A was the reference face and we keep it
@@ -119,10 +122,12 @@ class SAT {
 					createFaceContact(contact, hullA, hullB, false);
 				}
 			} else if (faceCheckDistanceA > faceCheckDistanceB) {
+				//A is definitely better than B
 				penetrationDepth = faceCheckDistanceA;
 				referenceFace = refFaceInA;
 				createFaceContact(contact, hullA, hullB, true);
 			} else {
+				//B is definitely better than A
 				penetrationDepth = faceCheckDistanceB;
 				referenceFace = refFaceInB;
 				createFaceContact(contact, hullA, hullB, false);
@@ -229,16 +234,36 @@ class SAT {
 	private static void createFaceContact(ContactArea contact, ConvexHullWrapper hullA, ConvexHullWrapper hullB,
 			boolean refFaceInHullA) {
 
-		if (DEBUG) {
-			System.out.println("createFaceContact");
-		}
-
 		ConvexHullWrapperFace incidentFace = (refFaceInHullA ? hullB : hullA)
 				.getMostAntiParallelFace(referenceFace.getNormal());
 
-		List<Vector3f> inputList = PolygonClipping.clipIncidentFaceAgainstReferenceFace(incidentFace, referenceFace);
+		List<Vector3f> inputList = new ArrayList<Vector3f>();
+		PolygonClipping.clipIncidentFaceAgainstReferenceFace(incidentFace, referenceFace, inputList);
 
-		// On supprime les points au dessus du plan.
+		if(inputList.isEmpty()) {
+			//the two faces aren't overlapping which means it was a false positive,
+			//it must be an edge contact
+			edgeCheck(hullA, hullB);
+			float edgeCheckDistance = penetrationDepth;
+
+			if (DEBUG) {
+				System.out.println("false positive face contact, performing edgecheck \nedgeCheckDistance: " + edgeCheckDistance);
+			}
+	
+			if (edgeCheckDistance > 0.0f) {
+				onA.setFrom(contactEdgeA);
+				onB.setFrom(contactEdgeB);
+				contact.rebuild(normal, edgeCheckDistance, 0, onA, onB);
+				contact.setNoCollision();
+				return;
+			}
+			
+			penetrationDepth = edgeCheckDistance;
+			createEdgeContact(contact, hullA, hullB);
+			return;
+		}
+		
+		// we delete the points above the face's plane
 		normal.set(referenceFace.getNormal());
 		for (Iterator<Vector3f> it = inputList.iterator(); it.hasNext();) {
 			Vector3f vertex = it.next();
@@ -247,8 +272,13 @@ class SAT {
 				it.remove();
 			}
 		}
-
+		
+		
 		int contactCount = ReduceManifold.reduceManifold(inputList, normal, contact.contactPoints);
+		
+		if (DEBUG) {
+			System.out.println("createFaceContact (" + contactCount + " points)");
+		}
 
 		// On projette les points sur le plan de la face de référence
 		for (int i = 0; i < contactCount; i++) {

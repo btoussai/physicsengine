@@ -35,7 +35,7 @@ public class CollisionTest {
 	 * @param meshContacts
 	 */
 	public void meshContacts(Wrapper wrapper, CataclysmCallbacks callbacks,
-			List<SingleBodyContact> meshContacts) {
+			List<AbstractSingleBodyContact> meshContacts) {
 		wrapperCollider.test(wrapper, callbacks, meshContacts);
 	}
 
@@ -47,8 +47,8 @@ public class CollisionTest {
 	 * @param callbacks
 	 * @param bodyContacts
 	 */
-	public void bodyContacts(DoubleBodyContact contact, CataclysmCallbacks callbacks,
-			List<DoubleBodyContact> bodyContacts) {
+	public void bodyContacts(AbstractDoubleBodyContact contact, CataclysmCallbacks callbacks,
+			List<AbstractDoubleBodyContact> bodyContacts) {
 
 		ContactArea area = contact.area;
 		convexContact(contact.getWrapperA(), contact.getWrapperB(), area);
@@ -56,6 +56,8 @@ public class CollisionTest {
 			bodyContacts.add(contact);
 			if (callbacks.getOnCollision() != null)
 				callbacks.getOnCollision().accept(contact.getWrapperA(), contact.getWrapperB());
+		}else {
+			contact.resetImpulses();
 		}
 
 	}

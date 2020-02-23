@@ -5,7 +5,7 @@ import org.lwjgl.util.vector.Vector3f;
 import cataclysm.wrappers.RigidBody;
 
 /**
- * Cet objet permet de simuler une gravité constante selon une direction.
+ * Cet objet permet de simuler une gravitï¿½ constante selon une direction.
  * 
  * @author Briac
  *
@@ -15,17 +15,16 @@ public class VerticalGravityIntegrator implements ExternalForceIntegrator {
 	private final Vector3f GRAVITY;
 
 	/**
-	 * Représente une accélération contante dans la direction [-Y] de 9.81 m/s².
-	 * Comme sur Terre, quoi.
+	 * Reprï¿½sente une accï¿½lï¿½ration contante dans la direction [-Y].
 	 */
 	public VerticalGravityIntegrator() {
 		this.GRAVITY = new Vector3f(0, -9.81f, 0);
 	}
 
 	/**
-	 * Permet d'appliquer une force de gravité constante dans une direction fixe.
+	 * Permet d'appliquer une force de gravitï¿½ constante dans une direction fixe.
 	 * 
-	 * @param gravity L'accélération appliquée aux objets. Le vecteur est recopié à
+	 * @param gravity L'accï¿½lï¿½ration appliquï¿½e aux objets. Le vecteur est recopiï¿½ ï¿½
 	 *                l'instanciation.
 	 */
 	public VerticalGravityIntegrator(Vector3f gravity) {
@@ -44,6 +43,11 @@ public class VerticalGravityIntegrator implements ExternalForceIntegrator {
 	public void prepare() {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public void setGravityStrength(float gravityStrength) {
+		this.GRAVITY.set(0, -gravityStrength, 0);
 	}
 
 }

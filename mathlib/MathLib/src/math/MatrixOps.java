@@ -634,7 +634,7 @@ public class MatrixOps {
 		return dest;
 
 	}
-	
+
 	/**
 	 * Construit une matrice de rotation pour un mod�le 3D. Permet d'orienter un
 	 * objet suivant une direction pr�cise.
@@ -1009,7 +1009,6 @@ public class MatrixOps {
 			dest.setIdentity();
 		}
 
-		dest = new Matrix4f();
 		dest.m00 = 2.0f / width;
 		dest.m11 = 2.0f / height;
 		dest.m22 = -2.0f / depth;
@@ -1674,5 +1673,37 @@ public class MatrixOps {
 		}
 
 		return dest;
+	}
+
+	/**
+	 * Calcule dest = transpose(rotation) * src;
+	 * 
+	 * @param rotation
+	 * @param src 
+	 * @param dest 
+	 */
+	public static void transformTranspose(Matrix3f rotation, Vector3f src, Vector3f dest) {
+		if (dest == null)
+			dest = new Vector3f();
+		float x = rotation.m00 * src.x + rotation.m01 * src.y + rotation.m02 * src.z;
+		float y = rotation.m10 * src.x + rotation.m11 * src.y + rotation.m12 * src.z;
+		float z = rotation.m20 * src.x + rotation.m21 * src.y + rotation.m22 * src.z;
+		dest.set(x, y, z);
+	}
+
+	/**
+	 * Calcule dest = transpose(rotation) * src;
+	 * 
+	 * @param rotation
+	 * @param src 
+	 * @param dest 
+	 */
+	public static void transformTranspose(Matrix4f rotation, Vector3f src, Vector3f dest) {
+		if (dest == null)
+			dest = new Vector3f();
+		float x = rotation.m00 * src.x + rotation.m01 * src.y + rotation.m02 * src.z;
+		float y = rotation.m10 * src.x + rotation.m11 * src.y + rotation.m12 * src.z;
+		float z = rotation.m20 * src.x + rotation.m21 * src.y + rotation.m22 * src.z;
+		dest.set(x, y, z);
 	}
 }

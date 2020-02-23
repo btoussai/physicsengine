@@ -11,8 +11,8 @@ import cataclysm.PhysicsWorld;
 import cataclysm.broadphase.staticmeshes.StaticMeshManager;
 import cataclysm.constraints.AbstractConstraint;
 import cataclysm.constraints.AnchorPoint;
-import cataclysm.contact_creation.DoubleBodyContact;
-import cataclysm.contact_creation.SingleBodyContact;
+import cataclysm.contact_creation.AbstractDoubleBodyContact;
+import cataclysm.contact_creation.AbstractSingleBodyContact;
 import cataclysm.datastructures.BufferedManager;
 
 /**
@@ -35,13 +35,13 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 	 * La liste des contacts Wrapper vs Triangle donnant lieu à une pénétration des
 	 * solides.
 	 */
-	private final List<SingleBodyContact> meshContacts = new ArrayList<SingleBodyContact>();
+	private final List<AbstractSingleBodyContact> meshContacts = new ArrayList<AbstractSingleBodyContact>();
 
 	/**
 	 * La liste des contacts Wrapper vs Wrapper donnant lieu à une pénétration des
 	 * solides.
 	 */
-	private final List<DoubleBodyContact> bodyContacts = new ArrayList<DoubleBodyContact>();
+	private final List<AbstractDoubleBodyContact> bodyContacts = new ArrayList<AbstractDoubleBodyContact>();
 
 	
 	public RigidBodyManager(PhysicsWorld world, StaticMeshManager meshes, PhysicsStats stats) {
@@ -121,11 +121,11 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 		}
 	}
 	
-	public List<SingleBodyContact> getMeshContacts() {
+	public List<AbstractSingleBodyContact> getMeshContacts() {
 		return meshContacts;
 	}
 
-	public List<DoubleBodyContact> getBodyContacts() {
+	public List<AbstractDoubleBodyContact> getBodyContacts() {
 		return bodyContacts;
 	}
 

@@ -17,38 +17,42 @@ import org.lwjgl.util.vector.Vector3f;
 public class QuickHull {
 
 	/**
-	 * Représente la précision générale pour l'algorithme.
+	 * Reprï¿½sente la prï¿½cision gï¿½nï¿½rale pour l'algorithme.
 	 */
 	static final float FLT_EPSILON = 1E-4f;
 
 	/**
-	 * Représente la précision pour l'enveloppe convexe en cours de construction.
-	 * Celle-ci est proportionnelle à la taille de l'enveloppe (spatialement)
+	 * Reprï¿½sente la prï¿½cision pour l'enveloppe convexe en cours de construction.
+	 * Celle-ci est proportionnelle ï¿½ la taille de l'enveloppe (spatialement)
 	 */
 	public static float epsilon = 0;
 
 	/**
-	 * Représente une borne supérieure au nombre d'itérations.
+	 * Reprï¿½sente une borne supï¿½rieure au nombre d'itï¿½rations.
 	 */
-	private static int MAX_ITERATIONS = 1000;
+	private static int MAX_ITERATIONS;
 
 	/**
-	 * Le nombre d'itération pour l'enveloppe convexe en cours de calcul.
+	 * Le nombre d'itï¿½ration pour l'enveloppe convexe en cours de calcul.
 	 */
 	public static int iterations = 0;
 
 	public static final boolean DEBUG = false;
 
-	public static ConvexHull buildConvexHull(Vector3f[] points) {
-		return buildConvexHull(Arrays.asList(points));
+	public static ConvexHull buildConvexHull(Vector3f[] points, int max_points) {
+		return buildConvexHull(Arrays.asList(points), max_points);
 	}
 
-	public static ConvexHull buildConvexHull(List<Vector3f> points) {
+	public static ConvexHull buildConvexHull(List<Vector3f> points, int max_points) {
+
+		MAX_ITERATIONS = Math.min(max_points, points.size());
+		if (MAX_ITERATIONS < 4) {
+			throw new IllegalArgumentException("Error, at least 4 points are needed to build a convex hull");
+		}
 
 		ConvexHull hull = new ConvexHull(points);
 		if (!Tetrahedron.buildInitialHull(hull, points)) {
-			throw new IllegalArgumentException(
-					"Erreur dans la création de l'enveloppe ! Les points sont coplanaires / alignés / confondus");
+			throw new IllegalArgumentException("Error while building the convex hull. The points are coplanar");
 		}
 
 		// System.out.println("Initial hull: ");
@@ -83,12 +87,12 @@ public class QuickHull {
 	}
 
 	/**
-	 * Detérmine le prochain sommet à ajouter à l'enveloppe et range ses coordonnées
-	 * dans le vecteur en paramètre.
+	 * Detï¿½rmine le prochain sommet ï¿½ ajouter ï¿½ l'enveloppe et range ses coordonnï¿½es
+	 * dans le vecteur en paramï¿½tre.
 	 * 
 	 * @param hull
 	 * @param vertex
-	 * @return la face contenant le sommet à ajouter.
+	 * @return la face contenant le sommet ï¿½ ajouter.
 	 */
 	private static Face nextConflictVertex(ConvexHull hull, Vector3f vertex) {
 
@@ -118,9 +122,9 @@ public class QuickHull {
 	}
 
 	/**
-	 * Ajoute un sommet à l'enveloppe.
+	 * Ajoute un sommet ï¿½ l'enveloppe.
 	 * 
-	 * @param vertex Les coordonnées du sommet.
+	 * @param vertex Les coordonnï¿½es du sommet.
 	 * @parma conflictFace La face dont le sommet est le plus proche.
 	 * @param hull
 	 */
@@ -128,15 +132,15 @@ public class QuickHull {
 
 		List<HalfEdge> horizon = buildhorizon(vertex, conflictFace, hull);
 
-		// System.out.println("Après construction de l'horizon: " + hull);
+		// System.out.println("Aprï¿½s construction de l'horizon: " + hull);
 
 		buildNewFaces(horizon, vertex, hull);
 
 	}
 
 	/**
-	 * Calcule la liste des arrêtes délimitant la zone "visible" par le sommet. Les
-	 * arrêtes sont listées CCW.
+	 * Calcule la liste des arrï¿½tes dï¿½limitant la zone "visible" par le sommet. Les
+	 * arrï¿½tes sont listï¿½es CCW.
 	 * 
 	 * @param vertex
 	 * @param conflictFace
@@ -171,7 +175,7 @@ public class QuickHull {
 	}
 
 	/**
-	 * Construit les nouvelles faces de l'enveloppe à partir de l'horizon et
+	 * Construit les nouvelles faces de l'enveloppe ï¿½ partir de l'horizon et
 	 * supprime les anciennes faces.
 	 * 
 	 * @param horizon
@@ -200,24 +204,24 @@ public class QuickHull {
 			previousFace = face;
 		}
 
-		// Soude la première et la dernière face.
+		// Soude la premiï¿½re et la derniï¿½re face.
 		HalfEdge firstFacePrevEdge = newFaces.get(0).getEdge().getPrev();
 		HalfEdge lastFaceNextEdge = newFaces.get(newFaces.size() - 1).getEdge().getNext();
 		HalfEdge.makeTwins(firstFacePrevEdge, lastFaceNextEdge);
 
-		// System.out.println("Après suppression des anciennes faces: " + hull);
+		// System.out.println("Aprï¿½s suppression des anciennes faces: " + hull);
 
 		mergeFaces(newFaces, hull);
 
 		List<Vector3f> orphans = getOrphans(hull);
 
-		// System.out.println("Après fusion des nouvelles faces: " + hull);
+		// System.out.println("Aprï¿½s fusion des nouvelles faces: " + hull);
 
 		resolveOrphans(newFaces, hull, orphans);
 	}
 
 	/**
-	 * Supprime les anciennes faces à l'intérieur de l'horizon.
+	 * Supprime les anciennes faces ï¿½ l'intï¿½rieur de l'horizon.
 	 * 
 	 * @return La liste des sommets en cours de traitement.
 	 */
@@ -228,9 +232,9 @@ public class QuickHull {
 		while (it.hasNext()) {
 			Face oldFace = it.next();
 			if (oldFace.isVisited()) {
-				// récupère les sommets en cours de traitement.
+				// rï¿½cupï¿½re les sommets en cours de traitement.
 				orphans.addAll(oldFace.getConflictList());
-				// supprime les faces marquées comme supprimées.
+				// supprime les faces marquï¿½es comme supprimï¿½es.
 				it.remove();
 			}
 		}
@@ -239,8 +243,8 @@ public class QuickHull {
 	}
 
 	/**
-	 * Intègre les nouvelles faces à l'enveloppe actuelle, fusionne certaines faces
-	 * si elles sont trop parallèles.
+	 * Intï¿½gre les nouvelles faces ï¿½ l'enveloppe actuelle, fusionne certaines faces
+	 * si elles sont trop parallï¿½les.
 	 * 
 	 * @param newFaces
 	 * @param hull
@@ -264,7 +268,7 @@ public class QuickHull {
 	}
 
 	/**
-	 * Itère sur les arrêtes d'une face et fusionne la première face voisine non
+	 * Itï¿½re sur les arrï¿½tes d'une face et fusionne la premiï¿½re face voisine non
 	 * convexe ou coplanaire.
 	 * 
 	 * @param face
@@ -300,7 +304,7 @@ public class QuickHull {
 	}
 
 	/**
-	 * Réassigne les sommets des listes de conflit des anciennes faces aux listes de
+	 * Rï¿½assigne les sommets des listes de conflit des anciennes faces aux listes de
 	 * conflits des nouvelles faces.
 	 * 
 	 * @param newFaces

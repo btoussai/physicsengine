@@ -4,7 +4,7 @@ import cataclysm.wrappers.RigidBody;
 
 /**
  * Cet objet permet d'appliquer des forces externes aux objets, telles que la
- * gravité.
+ * gravitï¿½.
  * 
  * @author Briac
  *
@@ -12,20 +12,22 @@ import cataclysm.wrappers.RigidBody;
 public interface ExternalForceIntegrator {
 
 	/**
-	 * Cette fonction est appelée avant l'application des forces.
+	 * Cette fonction est appelï¿½e avant l'application des forces.
 	 */
 	public void prepare();
+	
+	public void setGravityStrength(float gravityStrength);
 
 	/**
-	 * Intègre les forces externes sur la vitesse (linéaire et angulaire)
-	 * uniquement. La position (translation et rotation) ne doit pas être modifiée
-	 * car la résolution des collisions intervient après l'application des forces.
+	 * Intï¿½gre les forces externes sur la vitesse (linï¿½aire et angulaire)
+	 * uniquement. La position (translation et rotation) ne doit pas ï¿½tre modifiï¿½e
+	 * car la rï¿½solution des collisions intervient aprï¿½s l'application des forces.
 	 * <br>
-	 * Cette fonction est appelée sequentiellement sur tous les rigidbody de la
-	 * simulation soumis à la gravité.
+	 * Cette fonction est appelï¿½e sequentiellement sur tous les rigidbody de la
+	 * simulation soumis ï¿½ la gravitï¿½.
 	 * 
-	 * @param body     L'objet sur lequel des forces seront appliquées.
-	 * @param timeStep Le pas d'intégration.
+	 * @param body     L'objet sur lequel des forces seront appliquï¿½es.
+	 * @param timeStep Le pas d'intï¿½gration.
 	 */
 	public void applyExternalForces(RigidBody body, float timeStep);
 

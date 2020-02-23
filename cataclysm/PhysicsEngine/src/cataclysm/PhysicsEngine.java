@@ -186,6 +186,7 @@ final class PhysicsEngine {
 
 			pseudoVel.set(0, 0, 0);
 			pseudoAngVel.set(0, 0, 0);
+			
 		}
 	}
 

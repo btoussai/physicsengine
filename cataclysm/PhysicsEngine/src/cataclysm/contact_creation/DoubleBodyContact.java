@@ -15,16 +15,7 @@ import math.Clamp;
  * @author Briac
  *
  */
-public class DoubleBodyContact extends AbstractContact {
-
-	private Wrapper wrapperA;
-	private Wrapper wrapperB;
-
-	/**
-	 * Permet de déterminer si les deux wrappers ont été mis à jour avant de mettre
-	 * à jour le contact.
-	 */
-	private boolean updateFlag = false;
+public class DoubleBodyContact extends AbstractDoubleBodyContact {
 
 	private final Vector3f N = new Vector3f();
 	private final Vector3f finalImpulse = new Vector3f();
@@ -47,14 +38,12 @@ public class DoubleBodyContact extends AbstractContact {
 	private final float[] inv_mass_N;
 	private final float[] inv_mass_T;
 
-	private final float[] impulses_N;
+	public final float[] impulses_N;
 	private final float[] impulses_T;
 	private final float[] pseudo_impulses;
 
 	public DoubleBodyContact(int maxContacts, Wrapper wrapperA, Wrapper wrapperB) {
-		super(maxContacts);
-		this.wrapperA = wrapperA;
-		this.wrapperB = wrapperB;
+		super(maxContacts, wrapperA, wrapperB);
 
 		Ra = super.initArray(maxContacts);
 		Rb = super.initArray(maxContacts);
@@ -80,18 +69,12 @@ public class DoubleBodyContact extends AbstractContact {
 		pseudo_impulses = new float[maxContacts];
 	}
 
-	/**
-	 * Cette fonction est utilisée pour réassigner ce contact à un nouveau couple de
-	 * wrappers en collision.
-	 * 
-	 * @param wrapperA
-	 * @param wrapperB
-	 */
-	public void refresh(Wrapper wrapperA, Wrapper wrapperB) {
-		this.wrapperA = wrapperA;
-		this.wrapperB = wrapperB;
-
-		super.getContactArea().resetState();
+	@Override
+	public void resetImpulses() {
+		for(int i=0; i<super.getMaxContacts(); i++) {
+			this.impulses_N[i] = 0;
+			this.impulses_T[i] = 0;
+		}
 	}
 
 	@Override
@@ -102,38 +85,29 @@ public class DoubleBodyContact extends AbstractContact {
 					wrapperB.getBody().getContactProperties());
 		}
 
-		if (firstIteration && Epsilons.WARM_START) {
-			for (int i = 0; i < super.area.getContactCount(); i++) {
-				buildVelocityJacobian(i, temp);
-				computeVelocityInvMass(i, temp);
-				if (deltaV_N[i] < -Epsilons.VELOCITY_ELASTICITY_LIMIT) {
-					bias[i] = elasticity * deltaV_N[i];
-				} else {
-					bias[i] = 0;
-				}
-				float applied_impulse_N = impulses_N[i];
-				float applied_impulse_T = impulses_T[i];
-				finalImpulse.x = N.x * applied_impulse_N + T[i].x * applied_impulse_T;
-				finalImpulse.y = N.y * applied_impulse_N + T[i].y * applied_impulse_T;
-				finalImpulse.z = N.z * applied_impulse_N + T[i].z * applied_impulse_T;
-
-				applyImpulse(i, temp, finalImpulse);
-			}
-			return;
-		}
-
 		for (int i = 0; i < super.area.getContactCount(); i++) {
 			if (firstIteration) {
-				impulses_N[i] = 0;
-				impulses_T[i] = 0;
 				buildVelocityJacobian(i, temp);
 				computeVelocityInvMass(i, temp);
-
 				if (deltaV_N[i] < -Epsilons.VELOCITY_ELASTICITY_LIMIT) {
 					bias[i] = elasticity * deltaV_N[i];
 				} else {
 					bias[i] = 0;
 				}
+				
+				if(Epsilons.WARM_START) {
+					float applied_impulse_N = impulses_N[i];
+					float applied_impulse_T = impulses_T[i];
+					finalImpulse.x = N.x * applied_impulse_N + T[i].x * applied_impulse_T;
+					finalImpulse.y = N.y * applied_impulse_N + T[i].y * applied_impulse_T;
+					finalImpulse.z = N.z * applied_impulse_N + T[i].z * applied_impulse_T;
+
+					applyImpulse(i, temp, finalImpulse);
+				}else {
+					impulses_N[i] = 0;
+					impulses_T[i] = 0;
+				}
+				
 			} else {
 				// the velocity may have changed due to other constraints, we need to recompute
 				// it.
@@ -263,6 +237,7 @@ public class DoubleBodyContact extends AbstractContact {
 
 	@Override
 	protected void applyImpulse(int i, Vector3f temp, Vector3f finalImpulse) {
+		//System.out.println("Total impulse: " + this.impulses_N[0] + " Impulse: " + finalImpulse.y);
 		wrapperA.getBody().applyImpulse(finalImpulse, Ra[i], temp);
 		finalImpulse.negate();
 		wrapperB.getBody().applyImpulse(finalImpulse, Rb[i], temp);
@@ -285,22 +260,6 @@ public class DoubleBodyContact extends AbstractContact {
 	protected void applyPseudoImpulse(int i, Vector3f temp, float applied_impulse) {
 		wrapperA.getBody().applyPseudoImpulse(N, RaxN[i], applied_impulse, temp);
 		wrapperB.getBody().applyPseudoImpulse(N, RbxN[i], -applied_impulse, temp);
-	}
-
-	public Wrapper getWrapperA() {
-		return wrapperA;
-	}
-
-	public Wrapper getWrapperB() {
-		return wrapperB;
-	}
-
-	public boolean getUpdateFlag() {
-		return updateFlag;
-	}
-	
-	public void setUpdateFlag(boolean updateFlag) {
-		this.updateFlag = updateFlag;
 	}
 
 }

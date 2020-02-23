@@ -15,9 +15,13 @@ import cataclysm.broadphase.BroadPhaseNode;
 import cataclysm.broadphase.BroadPhaseTree;
 import cataclysm.broadphase.staticmeshes.StaticMeshManager;
 import cataclysm.broadphase.staticmeshes.Triangle;
+import cataclysm.contact_creation.AbstractDoubleBodyContact;
+import cataclysm.contact_creation.AbstractSingleBodyContact;
 import cataclysm.contact_creation.CollisionTest;
 import cataclysm.contact_creation.DoubleBodyContact;
+import cataclysm.contact_creation.DoubleBodyContactSimplified;
 import cataclysm.contact_creation.SingleBodyContact;
+import cataclysm.contact_creation.SingleBodyContactSimplified;
 
 /**
  * Cette classe permet d'effectuer la broadphase et la narrow phase en une même
@@ -26,19 +30,19 @@ import cataclysm.contact_creation.SingleBodyContact;
  * @author Briac
  *
  */
-class RigidBodyManagerUpdate {
+public class RigidBodyManagerUpdate {
 
 	/**
 	 * Représente un buffer permettant de réutiliser les contacts body vs body.
 	 */
 	@SuppressWarnings("unchecked")
-	private final ArrayList<DoubleBodyContact>[] bodyContactPool = new ArrayList[Epsilons.MAX_CONTACTS + 1];
+	private final ArrayList<AbstractDoubleBodyContact>[] bodyContactPool = new ArrayList[Epsilons.MAX_CONTACTS + 1];
 
 	/**
 	 * Représente un buffer permettant de réutiliser les contacts body vs triangle.
 	 */
 	@SuppressWarnings("unchecked")
-	private final ArrayList<SingleBodyContact>[] meshContactPool = new ArrayList[Epsilons.MAX_CONTACTS + 1];
+	private final ArrayList<AbstractSingleBodyContact>[] meshContactPool = new ArrayList[Epsilons.MAX_CONTACTS + 1];
 
 	private final HashSet<Wrapper> intersectedWrappers = new HashSet<Wrapper>();
 	private final HashSet<Triangle> intersectedTriangles = new HashSet<Triangle>();
@@ -51,6 +55,8 @@ class RigidBodyManagerUpdate {
 	private final float PADDING_SQUARED;
 
 	private final CollisionTest collisionTest = new CollisionTest();
+	
+	public static boolean ARRAY_BASED_CONTACTS = true;
 
 	public RigidBodyManagerUpdate(CollisionFilter filter, float padding) {
 		this.filter = filter;
@@ -58,8 +64,8 @@ class RigidBodyManagerUpdate {
 		this.PADDING_SQUARED = padding * padding;
 
 		for (int i = 1; i <= Epsilons.MAX_CONTACTS; i++) {
-			bodyContactPool[i] = new ArrayList<DoubleBodyContact>();
-			meshContactPool[i] = new ArrayList<SingleBodyContact>();
+			bodyContactPool[i] = new ArrayList<AbstractDoubleBodyContact>();
+			meshContactPool[i] = new ArrayList<AbstractSingleBodyContact>();
 		}
 	}
 
@@ -83,7 +89,7 @@ class RigidBodyManagerUpdate {
 	}
 
 	void updateBodies(RigidBodyManager bodies, StaticMeshManager meshes, CataclysmCallbacks callbacks,
-			PhysicsStats stats, List<SingleBodyContact> meshContacts, List<DoubleBodyContact> bodyContacts) {
+			PhysicsStats stats, List<AbstractSingleBodyContact> meshContacts, List<AbstractDoubleBodyContact> bodyContacts) {
 		meshContacts.clear();
 		bodyContacts.clear();
 		stats.bodyToMeshContacts = 0;
@@ -111,8 +117,8 @@ class RigidBodyManagerUpdate {
 	}
 
 	private void updateWrapper(boolean isKinematic, Wrapper wrapper, StaticMeshManager meshes,
-			CataclysmCallbacks callbacks, PhysicsStats stats, List<SingleBodyContact> meshContacts,
-			List<DoubleBodyContact> bodyContacts) {
+			CataclysmCallbacks callbacks, PhysicsStats stats, List<AbstractSingleBodyContact> meshContacts,
+			List<AbstractDoubleBodyContact> bodyContacts) {
 		AABB box = wrapper.getNode().getBox();
 		Vector3f centroid = wrapper.getCentroid();
 
@@ -132,14 +138,14 @@ class RigidBodyManagerUpdate {
 		if (!isKinematic)
 			collisionTest.meshContacts(wrapper, callbacks, meshContacts);
 
-		ArrayList<DoubleBodyContact> contacts = wrapper.getBodyContacts();
+		ArrayList<AbstractDoubleBodyContact> contacts = wrapper.getBodyContacts();
 		if (contacts.isEmpty()) {
 			return;
 		}
 		stats.bodyToBodyContacts += contacts.size();
 
 		for (int j = 0; j < contacts.size(); j++) {
-			DoubleBodyContact contact = contacts.get(j);
+			AbstractDoubleBodyContact contact = contacts.get(j);
 			//boolean wrapperA_sleeping = contact.getWrapperA().getBody().isSleeping();
 			//boolean wrapperB_sleeping = contact.getWrapperB().getBody().isSleeping();
 			//boolean update = (wrapperA_sleeping || wrapperB_sleeping) || contact.getUpdateFlag();
@@ -167,7 +173,7 @@ class RigidBodyManagerUpdate {
 		bvh.boxTest(node.getBox(), intersectedWrappers);
 		intersectedWrappers.remove(wrapper);
 
-		ArrayList<DoubleBodyContact> contacts = wrapper.getBodyContacts();
+		ArrayList<AbstractDoubleBodyContact> contacts = wrapper.getBodyContacts();
 
 		contacts.removeIf(contact -> {
 			Wrapper other = wrapper.getID() == contact.getWrapperA().getID() ? contact.getWrapperB()
@@ -192,7 +198,7 @@ class RigidBodyManagerUpdate {
 		intersectedTriangles.clear();
 		meshes.boxTest(wrapper.getNode().getBox(), intersectedTriangles);
 
-		ArrayList<SingleBodyContact> contacts = wrapper.getMeshContacts();
+		ArrayList<AbstractSingleBodyContact> contacts = wrapper.getMeshContacts();
 
 		contacts.removeIf(contact -> {
 			if (!intersectedTriangles.remove(contact.getTriangle())) {
@@ -206,7 +212,7 @@ class RigidBodyManagerUpdate {
 	}
 
 	private void deleteMeshContacts(Wrapper wrapper) {
-		for (SingleBodyContact contact : wrapper.getMeshContacts()) {
+		for (AbstractSingleBodyContact contact : wrapper.getMeshContacts()) {
 			contact.refresh(null, null);
 			meshContactPool[contact.getMaxContacts()].add(contact);
 		}
@@ -214,7 +220,7 @@ class RigidBodyManagerUpdate {
 	}
 
 	private void deleteBodyContacts(Wrapper wrapper) {
-		for (DoubleBodyContact contact : wrapper.getBodyContacts()) {
+		for (AbstractDoubleBodyContact contact : wrapper.getBodyContacts()) {
 			Wrapper other = contact.getWrapperA().getID() == wrapper.getID() ? contact.getWrapperB()
 					: contact.getWrapperA();
 			other.getBodyContacts().remove(contact);
@@ -236,10 +242,14 @@ class RigidBodyManagerUpdate {
 		}
 
 		int maxContacts = wrapperA.getType().maxContacts;
-		ArrayList<DoubleBodyContact> pool = bodyContactPool[maxContacts];
-		DoubleBodyContact contact = null;
+		ArrayList<AbstractDoubleBodyContact> pool = bodyContactPool[maxContacts];
+		AbstractDoubleBodyContact contact = null;
 		if (pool.isEmpty()) {
-			contact = new DoubleBodyContact(maxContacts, wrapperA, wrapperB);
+			if(ARRAY_BASED_CONTACTS) {
+				contact = new DoubleBodyContactSimplified(maxContacts, wrapperA, wrapperB);
+			}else {
+				contact = new DoubleBodyContact(maxContacts, wrapperA, wrapperB);
+			}
 		} else {
 			contact = pool.remove(pool.size() - 1);
 			contact.refresh(wrapperA, wrapperB);
@@ -251,10 +261,14 @@ class RigidBodyManagerUpdate {
 
 	private void createMeshContact(Wrapper wrapper, Triangle triangle) {
 		int maxContacts = wrapper.getType().maxContacts;
-		ArrayList<SingleBodyContact> pool = meshContactPool[maxContacts];
-		SingleBodyContact contact = null;
+		ArrayList<AbstractSingleBodyContact> pool = meshContactPool[maxContacts];
+		AbstractSingleBodyContact contact = null;
 		if (pool.isEmpty()) {
-			contact = new SingleBodyContact(maxContacts, wrapper, triangle);
+			if(ARRAY_BASED_CONTACTS) {
+				contact = new SingleBodyContactSimplified(maxContacts, wrapper, triangle);
+			}else {
+				contact = new SingleBodyContact(maxContacts, wrapper, triangle);
+			}
 		} else {
 			contact = pool.remove(pool.size() - 1);
 			contact.refresh(wrapper, triangle);

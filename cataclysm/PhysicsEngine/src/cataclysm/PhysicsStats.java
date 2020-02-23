@@ -38,6 +38,7 @@ public class PhysicsStats {
 		private final String name;
 		private final long[] history;
 		private double average = Double.POSITIVE_INFINITY;
+		private double std = 0.0;
 
 		public TimeAverage(TimeUnit unit, String name, int length) {
 			this.unit = unit;
@@ -75,7 +76,15 @@ public class PhysicsStats {
 			}
 			average += deltaNanoSec;
 			history[history.length - 1] = deltaNanoSec;
-			average /= updateCount < history.length ? updateCount : history.length;
+			
+			long length = updateCount < history.length ? updateCount : history.length;
+			average /= length;
+			
+			std = 0;
+			for (int i = history.length-1; i >= history.length - length; i--) {
+				std += (history[i]-average)*(history[i]-average);
+			}
+			std = Math.sqrt(std/length);
 		}
 
 		public double getAverageNanos() {
@@ -87,7 +96,7 @@ public class PhysicsStats {
 		}
 
 		public String asPercentage(double totalNanoSec) {
-			return name + ": " + String.format("%4.2f", average / totalNanoSec * 100.0) + "%";
+			return name + ": " + String.format("%4.2f", average / totalNanoSec * 100.0) + "%" + " +/-" + String.format("%4.1f", 100.0*std/totalNanoSec) + "%";
 		}
 
 		@Override
@@ -110,11 +119,13 @@ public class PhysicsStats {
 
 	public int bodyToMeshContacts;
 	public int bodyToMeshActiveContacts;
+	
+	private final int smooth = 10;
 
-	public final TimeAverage globalUpdate = new TimeAverage(TimeUnit.MILLISEC, "Global update", 50);
-	public final TimeAverage broadAndNarrowphase = new TimeAverage(TimeUnit.MILLISEC, "Broad & Narrow phase", 50);
-	public final TimeAverage constraintSolver = new TimeAverage(TimeUnit.MILLISEC, "Constraint Solver", 50);
-	public final TimeAverage velocityIntegration = new TimeAverage(TimeUnit.MILLISEC, "Velocity integration", 50);
+	public final TimeAverage globalUpdate = new TimeAverage(TimeUnit.MILLISEC, "Global update", smooth);
+	public final TimeAverage broadAndNarrowphase = new TimeAverage(TimeUnit.MILLISEC, "Broad & Narrow phase", smooth);
+	public final TimeAverage constraintSolver = new TimeAverage(TimeUnit.MILLISEC, "Constraint Solver", smooth);
+	public final TimeAverage velocityIntegration = new TimeAverage(TimeUnit.MILLISEC, "Velocity integration", smooth);
 
 	public void reset(int rigidBodies, int staticMeshes, int constraints) {
 		this.frame_count++;
@@ -135,7 +146,7 @@ public class PhysicsStats {
 				"\n\tRigidBodies: " + rigidBodies + " StaticMeshes: " + staticMeshes + " Constraints: " + constraints);
 		sb.append("\n\tBody to Body contacts: " + bodyToBodyContacts + " (" + bodyToBodyActiveContacts + " active)");
 		sb.append("\n\tBody to Mesh contacts: " + bodyToMeshContacts + " (" + bodyToMeshActiveContacts + " active)");
-		sb.append("\n]");
+		sb.append("\n] frame " + frame_count);
 		return sb.toString();
 	}
 

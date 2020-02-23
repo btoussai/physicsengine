@@ -16,10 +16,7 @@ import math.Clamp;
  * @author Briac
  *
  */
-public class SingleBodyContact extends AbstractContact {
-
-	private Wrapper wrapper;
-	private Triangle triangle;
+public class SingleBodyContact extends AbstractSingleBodyContact {
 
 	private final Vector3f N = new Vector3f();
 	private final Vector3f finalImpulse = new Vector3f();
@@ -44,9 +41,7 @@ public class SingleBodyContact extends AbstractContact {
 	private final float[] pseudo_impulses;
 
 	public SingleBodyContact(int maxContacts, Wrapper wrapper, Triangle triangle) {
-		super(maxContacts);
-		this.wrapper = wrapper;
-		this.triangle = triangle;
+		super(maxContacts, wrapper, triangle);
 
 		R = super.initArray(maxContacts);
 		RxN = super.initArray(maxContacts);
@@ -68,16 +63,13 @@ public class SingleBodyContact extends AbstractContact {
 		impulses_T = new float[maxContacts];
 		pseudo_impulses = new float[maxContacts];
 	}
-	
-	/**
-	 * Cette fonction est utilisée pour réassigner ce contact à un nouveau wrapper en collision avec un triangle.
-	 * @param wrapper
-	 * @param triangle 
-	 */
-	public void refresh(Wrapper wrapper, Triangle triangle) {
-		this.wrapper = wrapper;
-		this.triangle = triangle;
-		super.getContactArea().resetState();
+
+	@Override
+	public void resetImpulses() {
+		for(int i=0; i<super.getMaxContacts(); i++) {
+			this.impulses_N[i] = 0;
+			this.impulses_T[i] = 0;
+		}
 	}
 
 	@Override

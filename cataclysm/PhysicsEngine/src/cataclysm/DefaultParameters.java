@@ -74,7 +74,7 @@ public class DefaultParameters {
 	 * true si la gravité est activée.
 	 */
 	private boolean gravity = true;
-
+	
 	/**
 	 * Une marge ajoutée à la taille de la {@link WrapperBox} des {@link Wrapper}.
 	 */
@@ -118,6 +118,10 @@ public class DefaultParameters {
 
 	public void setGravity(boolean gravity) {
 		this.gravity = gravity;
+	}
+	
+	public void setGravityStrength(float gravityStrength) {
+		this.forceIntegrator.setGravityStrength(gravityStrength);
 	}
 
 	public float getTimeStep() {

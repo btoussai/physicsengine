@@ -8,8 +8,8 @@ import org.lwjgl.util.vector.Vector3f;
 import cataclysm.Epsilons;
 import cataclysm.broadphase.AABB;
 import cataclysm.broadphase.BroadPhaseNode;
-import cataclysm.contact_creation.DoubleBodyContact;
-import cataclysm.contact_creation.SingleBodyContact;
+import cataclysm.contact_creation.AbstractDoubleBodyContact;
+import cataclysm.contact_creation.AbstractSingleBodyContact;
 import cataclysm.datastructures.Identifier;
 
 /**
@@ -75,12 +75,12 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	 * La liste des contacts entre ce wrapper et des triangles appartenant à des
 	 * staticmesh.
 	 */
-	protected final ArrayList<SingleBodyContact> meshContacts = new ArrayList<SingleBodyContact>(1);
+	protected final ArrayList<AbstractSingleBodyContact> meshContacts = new ArrayList<AbstractSingleBodyContact>(1);
 	
 	/**
 	 * La liste des contacts entre ce wrapper et d'autres wrappers à proximité.
 	 */
-	protected final ArrayList<DoubleBodyContact> bodyContacts = new ArrayList<DoubleBodyContact>(1);
+	protected final ArrayList<AbstractDoubleBodyContact> bodyContacts = new ArrayList<AbstractDoubleBodyContact>(1);
 
 	/**
 	 * Construit une nouvelle enveloppe de collision.
@@ -177,14 +177,14 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	/**
 	 * @return La liste des contacts entre cette enveloppe et des triangles.
 	 */
-	public ArrayList<SingleBodyContact> getMeshContacts() {
+	public ArrayList<AbstractSingleBodyContact> getMeshContacts() {
 		return meshContacts;
 	}
 	
 	/**
 	 * @return La liste des contacts entre ce wrapper et d'autres wrappers à proximité.
 	 */
-	public ArrayList<DoubleBodyContact> getBodyContacts(){
+	public ArrayList<AbstractDoubleBodyContact> getBodyContacts(){
 		return bodyContacts;
 	}
 
