@@ -55,8 +55,6 @@ public class RigidBodyManagerUpdate {
 	private final float PADDING_SQUARED;
 
 	private final CollisionTest collisionTest = new CollisionTest();
-	
-	public static boolean ARRAY_BASED_CONTACTS = true;
 
 	public RigidBodyManagerUpdate(CollisionFilter filter, float padding) {
 		this.filter = filter;
@@ -245,7 +243,7 @@ public class RigidBodyManagerUpdate {
 		ArrayList<AbstractDoubleBodyContact> pool = bodyContactPool[maxContacts];
 		AbstractDoubleBodyContact contact = null;
 		if (pool.isEmpty()) {
-			if(ARRAY_BASED_CONTACTS) {
+			if(Epsilons.ARRAY_BASED_CONTACTS) {
 				contact = new DoubleBodyContactSimplified(maxContacts, wrapperA, wrapperB);
 			}else {
 				contact = new DoubleBodyContact(maxContacts, wrapperA, wrapperB);
@@ -264,7 +262,7 @@ public class RigidBodyManagerUpdate {
 		ArrayList<AbstractSingleBodyContact> pool = meshContactPool[maxContacts];
 		AbstractSingleBodyContact contact = null;
 		if (pool.isEmpty()) {
-			if(ARRAY_BASED_CONTACTS) {
+			if(Epsilons.ARRAY_BASED_CONTACTS) {
 				contact = new SingleBodyContactSimplified(maxContacts, wrapper, triangle);
 			}else {
 				contact = new SingleBodyContact(maxContacts, wrapper, triangle);

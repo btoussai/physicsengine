@@ -30,7 +30,6 @@ public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 	private final Vector3f N = new Vector3f();// normal vector
 	private final Vector3f T = new Vector3f();// tangent vector
 	private final Vector3f B = new Vector3f();// bitangent vector
-	private final Vector3f finalImpulse = new Vector3f();
 	private final float vecData[];
 	private final float floatData[];
 
@@ -41,15 +40,6 @@ public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 
 		vecData = new float[VecData.END.ordinal() * 3 * maxContacts];
 		floatData = new float[FloatData.END.ordinal() * maxContacts];
-	}
-
-	@Override
-	public void resetImpulses() {
-		for (int i = 0; i < super.getMaxContacts(); i++) {
-			setFloat(FloatData.impulses_N, 0, i);
-			setFloat(FloatData.impulses_T, 0, i);
-			setFloat(FloatData.impulses_B, 0, i);
-		}
 	}
 
 	@Override
@@ -69,21 +59,29 @@ public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 			} else {
 				setFloat(FloatData.bias, 0, i);
 			}
+		}
+	}
+	
+	@Override
+	public void resetImpulses() {
+		for (int i = 0; i < super.getMaxContacts(); i++) {
+			setFloat(FloatData.impulses_N, 0, i);
+			setFloat(FloatData.impulses_T, 0, i);
+			setFloat(FloatData.impulses_B, 0, i);
+		}
+	}
+	
+	@Override
+	public void warmStart() {
+		for (int i = 0; i < super.getMaxContacts(); i++) {
+			float applied_impulse_N = getFloat(FloatData.impulses_N, i);
+			float applied_impulse_T = getFloat(FloatData.impulses_T, i);
+			float applied_impulse_B = getFloat(FloatData.impulses_B, i);
+			float Jx = N.x * applied_impulse_N + T.x * applied_impulse_T + B.x * applied_impulse_B;
+			float Jy = N.y * applied_impulse_N + T.y * applied_impulse_T + B.y * applied_impulse_B;
+			float Jz = N.z * applied_impulse_N + T.z * applied_impulse_T + B.z * applied_impulse_B;
 
-			if (Epsilons.WARM_START) {
-				float applied_impulse_N = getFloat(FloatData.impulses_N, i);
-				float applied_impulse_T = getFloat(FloatData.impulses_T, i);
-				float applied_impulse_B = getFloat(FloatData.impulses_B, i);
-				finalImpulse.x = N.x * applied_impulse_N + T.x * applied_impulse_T + B.x * applied_impulse_B;
-				finalImpulse.y = N.y * applied_impulse_N + T.y * applied_impulse_T + B.y * applied_impulse_B;
-				finalImpulse.z = N.z * applied_impulse_N + T.z * applied_impulse_T + B.z * applied_impulse_B;
-
-				applyImpulse(i, finalImpulse);
-			} else {
-				setFloat(FloatData.impulses_N, 0, i);
-				setFloat(FloatData.impulses_T, 0, i);
-				setFloat(FloatData.impulses_B, 0, i);
-			}
+			applyImpulse(i, Jx, Jy, Jz);
 		}
 	}
 
@@ -118,11 +116,11 @@ public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 			setFloat(FloatData.impulses_B, impulse_B, i);
 			float applied_impulse_B = impulse_B - prev_impulse_B;
 
-			finalImpulse.x = N.x * applied_impulse_N + T.x * applied_impulse_T + B.x * applied_impulse_B;
-			finalImpulse.y = N.y * applied_impulse_N + T.y * applied_impulse_T + B.y * applied_impulse_B;
-			finalImpulse.z = N.z * applied_impulse_N + T.z * applied_impulse_T + B.z * applied_impulse_B;
+			float Jx = N.x * applied_impulse_N + T.x * applied_impulse_T + B.x * applied_impulse_B;
+			float Jy = N.y * applied_impulse_N + T.y * applied_impulse_T + B.y * applied_impulse_B;
+			float Jz = N.z * applied_impulse_N + T.z * applied_impulse_T + B.z * applied_impulse_B;
 
-			applyImpulse(i, finalImpulse);
+			applyImpulse(i, Jx, Jy, Jz);
 		}
 	}
 
@@ -225,13 +223,13 @@ public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 
 	}
 
-	private final void applyImpulse(int i, Vector3f finalImpulse) {
+	private final void applyImpulse(int i, float Jx, float Jy, float Jz) {
 		RigidBody bodyA = wrapperA.getBody();
 		float inv_mass = bodyA.getInvMass();
 
-		float dvx = finalImpulse.x * inv_mass;
-		float dvy = finalImpulse.y * inv_mass;
-		float dvz = finalImpulse.z * inv_mass;
+		float dvx = Jx * inv_mass;
+		float dvy = Jy * inv_mass;
+		float dvz = Jz * inv_mass;
 		bodyA.getVelocity().translate(dvx, dvy, dvz);
 
 		int indexR = getVecDataIndex(VecData.Ra, i);
@@ -250,9 +248,9 @@ public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 		RigidBody bodyB = wrapperB.getBody();
 		inv_mass = -bodyB.getInvMass();
 
-		dvx = finalImpulse.x * inv_mass;
-		dvy = finalImpulse.y * inv_mass;
-		dvz = finalImpulse.z * inv_mass;
+		dvx = Jx * inv_mass;
+		dvy = Jy * inv_mass;
+		dvz = Jz * inv_mass;
 		bodyB.getVelocity().translate(dvx, dvy, dvz);
 
 		indexR = getVecDataIndex(VecData.Rb, i);

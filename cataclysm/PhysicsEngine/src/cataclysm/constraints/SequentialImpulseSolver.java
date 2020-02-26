@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.lwjgl.util.vector.Vector3f;
 
+import cataclysm.Epsilons;
 import cataclysm.contact_creation.AbstractDoubleBodyContact;
 import cataclysm.contact_creation.AbstractSingleBodyContact;
 
@@ -39,7 +40,7 @@ public class SequentialImpulseSolver {
 		// computed during the velocity step.
 		for (int i = 0; i < MAX_ITERATIONS_VELOCITY; i++) {
 			// System.out.println("Iteration " + i);
-			solveVelocity(activeMeshContacts, activeBodyContacts, constraints, timeStep, i == 0);
+			solveVelocity(activeMeshContacts, activeBodyContacts, constraints, timeStep, i);
 		}
 
 		/*
@@ -65,21 +66,39 @@ public class SequentialImpulseSolver {
 	 */
 	private void solveVelocity(List<AbstractSingleBodyContact> activeMeshContacts,
 			List<AbstractDoubleBodyContact> activeBodyContacts, List<AbstractConstraint> constraints, float timeStep,
-			boolean firstIteration) {
-		if (firstIteration) {
-			for (AbstractDoubleBodyContact contact : activeBodyContacts) {
-				contact.velocityStart();
-				contact.solveVelocity();
-			}
+			int i) {
+		if (i == 0) {
+			
+				for (AbstractDoubleBodyContact contact : activeBodyContacts) {
+					contact.velocityStart();
+				}
 
-			for (AbstractConstraint constraint : constraints) {
-				constraint.solveVelocity(true, timeStep, temp);
-			}
+				for (AbstractSingleBodyContact contact : activeMeshContacts) {
+					contact.velocityStart();
+				}
+				
+				for (AbstractDoubleBodyContact contact : activeBodyContacts) {
+					if (Epsilons.WARM_START) {
+						contact.warmStart();
+					}else {
+						contact.resetImpulses();
+					}
+					contact.solveVelocity();
+				}
 
-			for (AbstractSingleBodyContact contact : activeMeshContacts) {
-				contact.velocityStart();
-				contact.solveVelocity();
-			}
+				for (AbstractConstraint constraint : constraints) {
+					constraint.solveVelocity(true, timeStep, temp);
+				}
+
+				for (AbstractSingleBodyContact contact : activeMeshContacts) {
+					if (Epsilons.WARM_START) {
+						contact.warmStart();
+					}else {
+						contact.resetImpulses();
+					}
+					contact.solveVelocity();
+				}
+				
 		} else {
 			for (AbstractDoubleBodyContact contact : activeBodyContacts) {
 				contact.solveVelocity();

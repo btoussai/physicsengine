@@ -28,12 +28,6 @@ public abstract class AbstractSingleBodyContact extends AbstractContact {
 		resetImpulses();
 	}
 
-	/**
-	 * Réinitialise les impulsions à zéro. Cette méthode est utile lorsque le Warm
-	 * starting est activé.
-	 */
-	public abstract void resetImpulses();
-
 	public Triangle getTriangle() {
 		return triangle;
 	}

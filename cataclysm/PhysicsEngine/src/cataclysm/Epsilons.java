@@ -53,6 +53,8 @@ public class Epsilons {
 	 * pour la résolution des contraintes.
 	 */
 	public static final boolean WARM_START = false;
+	
+	public static boolean ARRAY_BASED_CONTACTS = false;
 
 	// ############### STATIC CONSTS BELOW ###############
 

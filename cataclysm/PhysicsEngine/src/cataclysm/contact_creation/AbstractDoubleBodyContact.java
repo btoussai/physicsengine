@@ -34,11 +34,6 @@ public abstract class AbstractDoubleBodyContact extends AbstractContact{
 		resetImpulses();
 	}
 	
-	/**
-	 * Réinitialise les impulsions à zéro. Cette méthode est utile lorsque le Warm starting est activé.
-	 */
-	public abstract void resetImpulses();
-	
 	public Wrapper getWrapperA() {
 		return wrapperA;
 	}

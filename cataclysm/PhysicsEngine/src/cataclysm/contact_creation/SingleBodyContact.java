@@ -74,15 +74,6 @@ public class SingleBodyContact extends AbstractSingleBodyContact {
 	}
 
 	@Override
-	public void resetImpulses() {
-		for (int i = 0; i < super.getMaxContacts(); i++) {
-			this.impulses_N[i] = 0;
-			this.impulses_T[i] = 0;
-			this.impulses_B[i] = 0;
-		}
-	}
-
-	@Override
 	public void velocityStart() {
 		super.mixContactProperties(wrapper.getBody().getContactProperties(),
 				triangle.mesh.getContactProperties());
@@ -99,20 +90,29 @@ public class SingleBodyContact extends AbstractSingleBodyContact {
 				bias[i] = 0;
 			}
 
-			if (Epsilons.WARM_START) {
-				float applied_impulse_N = impulses_N[i];
-				float applied_impulse_T = impulses_T[i];
-				float applied_impulse_B = impulses_B[i];
-				finalImpulse.x = N.x * applied_impulse_N + T.x * applied_impulse_T + B.x * applied_impulse_B;
-				finalImpulse.y = N.y * applied_impulse_N + T.y * applied_impulse_T + B.y * applied_impulse_B;
-				finalImpulse.z = N.z * applied_impulse_N + T.z * applied_impulse_T + B.z * applied_impulse_B;
-
-				wrapper.getBody().applyImpulse(finalImpulse, R[i]);
-			} else {
-				impulses_N[i] = 0;
-				impulses_T[i] = 0;
-				impulses_B[i] = 0;
-			}
+		}
+	}
+	
+	@Override
+	public void resetImpulses() {
+		for (int i = 0; i < super.getMaxContacts(); i++) {
+			this.impulses_N[i] = 0;
+			this.impulses_T[i] = 0;
+			this.impulses_B[i] = 0;
+		}
+	}
+	
+	@Override
+	public void warmStart() {
+		for (int i = 0; i < super.area.getContactCount(); i++) {
+			float applied_impulse_N = impulses_N[i];
+			float applied_impulse_T = impulses_T[i];
+			float applied_impulse_B = impulses_B[i];
+			finalImpulse.x = N.x * applied_impulse_N + T.x * applied_impulse_T + B.x * applied_impulse_B;
+			finalImpulse.y = N.y * applied_impulse_N + T.y * applied_impulse_T + B.y * applied_impulse_B;
+			finalImpulse.z = N.z * applied_impulse_N + T.z * applied_impulse_T + B.z * applied_impulse_B;
+	
+			wrapper.getBody().applyImpulse(finalImpulse, R[i]);
 		}
 	}
 

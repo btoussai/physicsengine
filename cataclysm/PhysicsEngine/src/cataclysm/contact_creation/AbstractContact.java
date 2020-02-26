@@ -29,6 +29,10 @@ public abstract class AbstractContact {
 	}
 	
 	public abstract void velocityStart();
+	
+	public abstract void warmStart();
+	
+	public abstract void resetImpulses();
 
 	public abstract void solveVelocity();
 	
