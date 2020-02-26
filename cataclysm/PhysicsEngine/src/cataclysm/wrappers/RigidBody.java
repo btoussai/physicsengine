@@ -548,71 +548,124 @@ public class RigidBody extends Identifier {
 		return inertia;
 	}
 
-	public void applyImpulse(Vector3f N, Vector3f RxN, float impulse, Vector3f temp) {
+	public void applyImpulse(Vector3f N, Vector3f RxN, float impulse) {
 		float effect = impulse * inv_mass;
 		velocity.x += N.x * effect;
 		velocity.y += N.y * effect;
 		velocity.z += N.z * effect;
-
-		Matrix3f.transform(inv_Iws, RxN, temp);
-		angularVelocity.x += temp.x * effect;
-		angularVelocity.y += temp.y * effect;
-		angularVelocity.z += temp.z * effect;
+		
+		float dwx = inv_Iws.m00 * RxN.x + inv_Iws.m10 * RxN.y + inv_Iws.m20 * RxN.z;
+		float dwy = inv_Iws.m01 * RxN.x + inv_Iws.m11 * RxN.y + inv_Iws.m21 * RxN.z;
+		float dwz = inv_Iws.m02 * RxN.x + inv_Iws.m12 * RxN.y + inv_Iws.m22 * RxN.z;
+		angularVelocity.x += dwx * effect;
+		angularVelocity.y += dwy * effect;
+		angularVelocity.z += dwz * effect;
 	}
 
-	public void applyImpulse(Vector3f impulse, Vector3f R, Vector3f temp) {
-		temp.set(impulse.x * inv_mass, impulse.y * inv_mass, impulse.z * inv_mass);
-		velocity.x += temp.x;
-		velocity.y += temp.y;
-		velocity.z += temp.z;
+	public void applyImpulse(Vector3f impulse, Vector3f R) {
+		float dvx = impulse.x * inv_mass;
+		float dvy = impulse.y * inv_mass;
+		float dvz = impulse.z * inv_mass;
+		velocity.x += dvx;
+		velocity.y += dvy;
+		velocity.z += dvz;
 
-		Vector3f.cross(R, temp, temp);
-		Matrix3f.transform(inv_Iws, temp, temp);
-		angularVelocity.x += temp.x;
-		angularVelocity.y += temp.y;
-		angularVelocity.z += temp.z;
+		float Tx = R.y * dvz - R.z * dvy;
+		float Ty = R.z * dvx - R.x * dvz;
+		float Tz = R.x * dvy - R.y * dvx;
+
+		float dwx = inv_Iws.m00 * Tx + inv_Iws.m10 * Ty + inv_Iws.m20 * Tz;
+		float dwy = inv_Iws.m01 * Tx + inv_Iws.m11 * Ty + inv_Iws.m21 * Tz;
+		float dwz = inv_Iws.m02 * Tx + inv_Iws.m12 * Ty + inv_Iws.m22 * Tz;
+		angularVelocity.x += dwx;
+		angularVelocity.y += dwy;
+		angularVelocity.z += dwz;
 	}
 
-	public void applyImpulseTorque(Vector3f axis, float impulse, Vector3f temp) {
-		float effect = impulse * inv_mass;
-		Matrix3f.transform(inv_Iws, axis, temp);
-		angularVelocity.x += temp.x * effect;
-		angularVelocity.y += temp.y * effect;
-		angularVelocity.z += temp.z * effect;
+	public void applyImpulseLinear(Vector3f impulse) {
+		velocity.x += impulse.x * inv_mass;
+		velocity.y += impulse.y * inv_mass;
+		velocity.z += impulse.z * inv_mass;
 	}
 
-	public void applyPseudoImpulse(Vector3f N, Vector3f RxN, float impulse, Vector3f temp) {
+	public void applyImpulseTorque(Vector3f torque) {
+		float dwx = inv_Iws.m00 * torque.x + inv_Iws.m10 * torque.y + inv_Iws.m20 * torque.z;
+		float dwy = inv_Iws.m01 * torque.x + inv_Iws.m11 * torque.y + inv_Iws.m21 * torque.z;
+		float dwz = inv_Iws.m02 * torque.x + inv_Iws.m12 * torque.y + inv_Iws.m22 * torque.z;
+		angularVelocity.x += dwx * inv_mass;
+		angularVelocity.y += dwy * inv_mass;
+		angularVelocity.z += dwz * inv_mass;
+	}
+	
+	public void applyImpulseTorque(Vector3f axis, float torque) {
+		float effect = inv_mass * torque;
+		float dwx = inv_Iws.m00 * axis.x + inv_Iws.m10 * axis.y + inv_Iws.m20 * axis.z;
+		float dwy = inv_Iws.m01 * axis.x + inv_Iws.m11 * axis.y + inv_Iws.m21 * axis.z;
+		float dwz = inv_Iws.m02 * axis.x + inv_Iws.m12 * axis.y + inv_Iws.m22 * axis.z;
+		angularVelocity.x += dwx * effect;
+		angularVelocity.y += dwy * effect;
+		angularVelocity.z += dwz * effect;
+	}
+
+	public void applyPseudoImpulse(Vector3f N, Vector3f RxN, float impulse) {
 		float effect = impulse * inv_mass;
 		pseudoVel.x += N.x * effect;
 		pseudoVel.y += N.y * effect;
 		pseudoVel.z += N.z * effect;
-
-		Matrix3f.transform(inv_Iws, RxN, temp);
-		pseudoAngVel.x += temp.x * effect;
-		pseudoAngVel.y += temp.y * effect;
-		pseudoAngVel.z += temp.z * effect;
+		
+		float dwx = inv_Iws.m00 * RxN.x + inv_Iws.m10 * RxN.y + inv_Iws.m20 * RxN.z;
+		float dwy = inv_Iws.m01 * RxN.x + inv_Iws.m11 * RxN.y + inv_Iws.m21 * RxN.z;
+		float dwz = inv_Iws.m02 * RxN.x + inv_Iws.m12 * RxN.y + inv_Iws.m22 * RxN.z;
+		pseudoAngVel.x += dwx * effect;
+		pseudoAngVel.y += dwy * effect;
+		pseudoAngVel.z += dwz * effect;
 	}
 
-	public void applyPseudoImpulse(Vector3f impulse, Vector3f R, Vector3f temp) {
-		temp.set(impulse.x * inv_mass, impulse.y * inv_mass, impulse.z * inv_mass);
-		pseudoVel.x += temp.x;
-		pseudoVel.y += temp.y;
-		pseudoVel.z += temp.z;
+	public void applyPseudoImpulse(Vector3f impulse, Vector3f R) {
+		float dvx = impulse.x * inv_mass;
+		float dvy = impulse.y * inv_mass;
+		float dvz = impulse.z * inv_mass;
+		pseudoVel.x += dvx;
+		pseudoVel.y += dvy;
+		pseudoVel.z += dvz;
 
-		Vector3f.cross(R, temp, temp);
-		Matrix3f.transform(inv_Iws, temp, temp);
-		pseudoAngVel.x += temp.x;
-		pseudoAngVel.y += temp.y;
-		pseudoAngVel.z += temp.z;
+		float Tx = R.y * dvz - R.z * dvy;
+		float Ty = R.z * dvx - R.x * dvz;
+		float Tz = R.x * dvy - R.y * dvx;
+
+		float dwx = inv_Iws.m00 * Tx + inv_Iws.m10 * Ty + inv_Iws.m20 * Tz;
+		float dwy = inv_Iws.m01 * Tx + inv_Iws.m11 * Ty + inv_Iws.m21 * Tz;
+		float dwz = inv_Iws.m02 * Tx + inv_Iws.m12 * Ty + inv_Iws.m22 * Tz;
+		pseudoAngVel.x += dwx;
+		pseudoAngVel.y += dwy;
+		pseudoAngVel.z += dwz;
 	}
 
-	public void applyPseudoImpulseTorque(Vector3f axis, float impulse, Vector3f temp) {
-		float effect = impulse * inv_mass;
-		Matrix3f.transform(inv_Iws, axis, temp);
-		pseudoAngVel.x += temp.x * effect;
-		pseudoAngVel.y += temp.y * effect;
-		pseudoAngVel.z += temp.z * effect;
+	public void applyPseudoImpulseLinear(Vector3f impulse) {
+		pseudoVel.x += impulse.x * inv_mass;
+		pseudoVel.y += impulse.y * inv_mass;
+		pseudoVel.z += impulse.z * inv_mass;
 	}
+
+	public void applyPseudoImpulseTorque(Vector3f torque) {
+		float dwx = inv_Iws.m00 * torque.x + inv_Iws.m10 * torque.y + inv_Iws.m20 * torque.z;
+		float dwy = inv_Iws.m01 * torque.x + inv_Iws.m11 * torque.y + inv_Iws.m21 * torque.z;
+		float dwz = inv_Iws.m02 * torque.x + inv_Iws.m12 * torque.y + inv_Iws.m22 * torque.z;
+		pseudoAngVel.x += dwx * inv_mass;
+		pseudoAngVel.y += dwy * inv_mass;
+		pseudoAngVel.z += dwz * inv_mass;
+	}
+	
+	public void applyPseudoImpulseTorque(Vector3f axis, float torque) {
+		float effect = inv_mass * torque;
+		float dwx = inv_Iws.m00 * axis.x + inv_Iws.m10 * axis.y + inv_Iws.m20 * axis.z;
+		float dwy = inv_Iws.m01 * axis.x + inv_Iws.m11 * axis.y + inv_Iws.m21 * axis.z;
+		float dwz = inv_Iws.m02 * axis.x + inv_Iws.m12 * axis.y + inv_Iws.m22 * axis.z;
+		pseudoAngVel.x += dwx * effect;
+		pseudoAngVel.y += dwy * effect;
+		pseudoAngVel.z += dwz * effect;
+	}
+
 
 	/**
 	 * Calcule l'énergie cinétique de l'objet, utile pour le debug.
@@ -675,7 +728,7 @@ public class RigidBody extends Identifier {
 	public void normalToBodySpace(Vector3f wsNormal, Vector3f msNormal) {
 		bodyToWorld.invertTransformVector(wsNormal, msNormal);
 	}
-	
+
 	/**
 	 * @return La liste des wrappers de ce rigidbody. Cette liste ne doit pas être
 	 *         modifiée manuellement.
@@ -686,6 +739,7 @@ public class RigidBody extends Identifier {
 
 	/**
 	 * Ajoute un wrapper à ce rigidbody
+	 * 
 	 * @param builder
 	 * @param ID
 	 * @return
@@ -698,6 +752,7 @@ public class RigidBody extends Identifier {
 
 	/**
 	 * Supprime un wrapper de ce rigidbody
+	 * 
 	 * @param ID
 	 * @return
 	 */

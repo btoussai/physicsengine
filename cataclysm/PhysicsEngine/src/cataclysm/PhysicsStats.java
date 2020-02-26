@@ -120,7 +120,7 @@ public class PhysicsStats {
 	public int bodyToMeshContacts;
 	public int bodyToMeshActiveContacts;
 	
-	private final int smooth = 10;
+	private final int smooth = 5;
 
 	public final TimeAverage globalUpdate = new TimeAverage(TimeUnit.MILLISEC, "Global update", smooth);
 	public final TimeAverage broadAndNarrowphase = new TimeAverage(TimeUnit.MILLISEC, "Broad & Narrow phase", smooth);

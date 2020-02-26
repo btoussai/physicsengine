@@ -9,8 +9,8 @@ import math.MatrixOps;
 /**
  * Cette contrainte permet de verrouiller l'orientation relative de deux
  * solides. La position des points d'ancrage n'a pas d'importance. <br>
- * Cela signifie qu'une rotation sur un solide sera accompagnée par une rotation
- * de l'autre et réciproquement. Les translations n'auront quant à elles aucune
+ * Cela signifie qu'une rotation sur un solide sera accompagnï¿½e par une rotation
+ * de l'autre et rï¿½ciproquement. Les translations n'auront quant ï¿½ elles aucune
  * influence.
  * 
  * @author Briac
@@ -39,7 +39,7 @@ public class PinRotationConstraint extends AngularConstraint {
 	protected final Matrix3f deltaRB = new Matrix3f();
 
 	/**
-	 * La différence actuelle d'orientation entre A et B.<br>
+	 * La diffï¿½rence actuelle d'orientation entre A et B.<br>
 	 * t( deltaRA ) * deltaRB
 	 */
 	protected final Matrix3f currentDelta = new Matrix3f();
@@ -58,7 +58,7 @@ public class PinRotationConstraint extends AngularConstraint {
 	@Override
 	protected float buildVelocityJacobian(Vector3f N, Vector3f Ra, Vector3f Rb, Vector3f RaxN, Vector3f RbxN,
 			Vector3f temp) {
-		// On cherche à réduire la vitesse angulaire relative des deux solides.
+		// On cherche ï¿½ rï¿½duire la vitesse angulaire relative des deux solides.
 		N.set(0, 0, 0);
 		if (!pointA.isStatic()) {
 			Vector3f.add(N, pointA.getBody().getAngularVelocity(), N);
@@ -108,17 +108,17 @@ public class PinRotationConstraint extends AngularConstraint {
 	@Override
 	protected void applyImpulse(Vector3f N, Vector3f RaxN, Vector3f RbxN, Vector3f temp, float applied_impulse) {
 		if (!pointA.isStatic()) {
-			pointA.getBody().applyImpulseTorque(N, applied_impulse, temp);
+			pointA.getBody().applyImpulseTorque(N, applied_impulse);
 		}
 		if (!pointB.isStatic()) {
-			pointB.getBody().applyImpulseTorque(N, -applied_impulse, temp);
+			pointB.getBody().applyImpulseTorque(N, -applied_impulse);
 		}
 	}
 
 	@Override
 	protected float buildPositionJacobian(Vector3f N, Vector3f Ra, Vector3f Rb, Vector3f RaxN, Vector3f RbxN,
 			Vector3f temp) {
-		// On cherche à réduire l'erreur d'orientation entre les deux solides.
+		// On cherche ï¿½ rï¿½duire l'erreur d'orientation entre les deux solides.
 		computeRotationDelta(currentDelta);
 
 		float angle = -MatrixOps.matrixToAxisAngle(currentDelta, N);
@@ -153,10 +153,10 @@ public class PinRotationConstraint extends AngularConstraint {
 	@Override
 	protected void applyPseudoImpulse(Vector3f N, Vector3f RaxN, Vector3f RbxN, Vector3f temp, float applied_impulse) {
 		if (!pointA.isStatic()) {
-			pointA.getBody().applyPseudoImpulseTorque(N, applied_impulse, temp);
+			pointA.getBody().applyPseudoImpulseTorque(N, applied_impulse);
 		}
 		if (!pointB.isStatic()) {
-			pointB.getBody().applyPseudoImpulseTorque(N, -applied_impulse, temp);
+			pointB.getBody().applyPseudoImpulseTorque(N, -applied_impulse);
 		}
 	}
 
@@ -166,7 +166,7 @@ public class PinRotationConstraint extends AngularConstraint {
 	}
 
 	/**
-	 * Calcule la "différence" d'orientation entre le solide A et le solide B.
+	 * Calcule la "diffï¿½rence" d'orientation entre le solide A et le solide B.
 	 * 
 	 * @param dest
 	 */

@@ -1,5 +1,6 @@
 package cataclysm.contact_creation;
 
+import org.lwjgl.util.vector.Matrix3f;
 import org.lwjgl.util.vector.Vector3f;
 
 /**
@@ -26,36 +27,15 @@ public abstract class AbstractContact {
 		this.elasticity = 0.5f * (A.getElasticity() + B.getElasticity());
 		this.stickiness = 0.5f * (A.getStickiness() + B.getStickiness());
 	}
+	
+	public abstract void velocityStart();
 
-	/**
-	 * Résout les erreurs de vitesse pour le contact.
-	 * 
-	 * @param firstIteration
-	 * @param timeStep
-	 * @param temp
-	 */
-	public abstract void solveVelocity(boolean firstIteration, float timeStep, Vector3f temp);
+	public abstract void solveVelocity();
+	
+	public abstract void positionStart(float timeStep);
 
-	/**
-	 * Résout les erreurs de position pour le contact.
-	 * 
-	 * @param firstIteration
-	 * @param timeStep
-	 * @param temp
-	 */
-	public abstract void solvePosition(boolean firstIteration, float timeStep, Vector3f temp);
-
-	protected abstract void buildVelocityJacobian(int i, Vector3f temp);
-
-	protected abstract void computeVelocityInvMass(int i, Vector3f temp);
-
-	protected abstract void computeVelocityError(int i, Vector3f temp);
-
-	protected abstract void applyImpulse(int i, Vector3f temp, Vector3f finalImpulse);
-
-	protected abstract void computePositionError(int i, Vector3f temp);
-
-	protected abstract void applyPseudoImpulse(int i, Vector3f temp, float applied_impulse);
+	public abstract void solvePosition();
+	
 
 	public ContactArea getContactArea() {
 		return area;
@@ -65,6 +45,14 @@ public abstract class AbstractContact {
 		Vector3f[] array = new Vector3f[length];
 		for (int i = 0; i < array.length; i++) {
 			array[i] = new Vector3f();
+		}
+		return array;
+	}
+	
+	protected Matrix3f[] initMatrixArray(int length) {
+		Matrix3f[] array = new Matrix3f[length];
+		for (int i = 0; i < array.length; i++) {
+			array[i] = new Matrix3f();
 		}
 		return array;
 	}

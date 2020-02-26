@@ -3,7 +3,7 @@ package cataclysm.broadphase.staticmeshes;
 import org.lwjgl.util.vector.Vector3f;
 
 /**
- * Représente un triangle dans un PhysicsMesh.
+ * Reprï¿½sente un triangle dans un PhysicsMesh.
  * 
  * @author Briac
  *
@@ -14,7 +14,7 @@ public class Triangle {
 	public final Vector3f v2;
 	public final Vector3f v3;
 	public final Vector3f normal;
-	private final float plane_offset;
+	public final float plane_offset;
 
 	/**
 	 * Le maillage auquel appartient ce triangle.
@@ -127,15 +127,15 @@ public class Triangle {
 	/**
 	 * Teste si un rayon intersecte ce triangle.
 	 * 
-	 * @param start            Le point de départ du rayon.
-	 * @param dir              La direction du rayon, le vecteur doit être unitaire.
-	 * @param maxLength        La distance maximale que le rayon est autorisé à
+	 * @param start            Le point de dï¿½part du rayon.
+	 * @param dir              La direction du rayon, le vecteur doit ï¿½tre unitaire.
+	 * @param maxLength        La distance maximale que le rayon est autorisï¿½ ï¿½
 	 *                         parcourir.
 	 * @param intersectionDest Le point d'intersection entre le rayon et le
 	 *                         triangle.
 	 * @param backfaceCulling  true pour rejeter le triangle si N.dir > 0.
 	 * @return La distance au point d'intersection ou bien maxLength si le test
-	 *         échoue.
+	 *         ï¿½choue.
 	 */
 	public float rayTest(Vector3f start, Vector3f dir, float maxLength, Vector3f intersectionDest,
 			boolean backfaceCulling) {

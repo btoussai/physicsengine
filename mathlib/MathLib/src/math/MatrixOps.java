@@ -253,15 +253,19 @@ public class MatrixOps {
 		evec0.scale(1.0f / (float) Math.sqrt(d));
 	}
 
-	private static void computeOrthogonalComplement(Vector3f W, Vector3f U, Vector3f V) {
+	public static void computeOrthogonalComplement(Vector3f W, Vector3f U, Vector3f V) {
 		if (Math.abs(W.x) > Math.abs(W.y)) {
 			float inv_length = 1.0f / (float) Math.sqrt(W.x * W.x + W.z * W.z);
 			U.set(-W.z * inv_length, 0, W.x * inv_length);
+
+			V.set(W.y * U.z, U.x * W.z - U.z * W.x, -W.y * U.x);
 		} else {
 			float inv_length = 1.0f / (float) Math.sqrt(W.y * W.y + W.z * W.z);
 			U.set(0, W.z * inv_length, -W.y * inv_length);
+
+			V.set(W.y * U.z - W.z * U.y, -U.z * W.x, W.x * U.y);
 		}
-		Vector3f.cross(W, U, V);
+		// Vector3f.cross(W, U, V);
 	}
 
 	private static void computeEigenVector1(Matrix3f mat, Vector3f temp1, Vector3f temp2, Vector3f temp3,
@@ -1679,8 +1683,8 @@ public class MatrixOps {
 	 * Calcule dest = transpose(rotation) * src;
 	 * 
 	 * @param rotation
-	 * @param src 
-	 * @param dest 
+	 * @param src
+	 * @param dest
 	 */
 	public static void transformTranspose(Matrix3f rotation, Vector3f src, Vector3f dest) {
 		if (dest == null)
@@ -1695,8 +1699,8 @@ public class MatrixOps {
 	 * Calcule dest = transpose(rotation) * src;
 	 * 
 	 * @param rotation
-	 * @param src 
-	 * @param dest 
+	 * @param src
+	 * @param dest
 	 */
 	public static void transformTranspose(Matrix4f rotation, Vector3f src, Vector3f dest) {
 		if (dest == null)
@@ -1705,5 +1709,56 @@ public class MatrixOps {
 		float y = rotation.m10 * src.x + rotation.m11 * src.y + rotation.m12 * src.z;
 		float z = rotation.m20 * src.x + rotation.m21 * src.y + rotation.m22 * src.z;
 		dest.set(x, y, z);
+	}
+
+	/**
+	 * Computes v^T M v
+	 * @param mat
+	 * @param v
+	 * @return
+	 */
+	public static float sandwichDotProduct(Matrix3f mat, Vector3f v) {
+		float x = v.x;
+		float y = v.y;
+		float z = v.z;
+
+		return x * (mat.m00 * x + mat.m10 * y + mat.m20 * z) + y * (mat.m01 * x + mat.m11 * y + mat.m21 * z)
+				+ z * (mat.m02 * x + mat.m12 * y + mat.m22 * z);
+	}
+	
+	/**
+	 * Computes -vx M vx with vx denoting the cross-product / skew-symetric matrix.
+	 * @param mat
+	 * @param v
+	 * @param dest 
+	 */
+	public static void sandwichCrossProduct(Matrix3f mat, Vector3f v, Matrix3f dest) {
+		float x = v.x;
+		float y = v.y;
+		float z = v.z;
+		
+		float m00 = -z * mat.m01 + y * mat.m02;
+		float m10 = z * mat.m00 - x * mat.m02;
+		float m20 = -y * mat.m00 + x * mat.m01;
+		
+		float m01 = -z * mat.m11 + y * mat.m12;
+		float m11 = z * mat.m10 - x * mat.m12;
+		float m21 = -y * mat.m10 + x * mat.m11;
+		
+		float m02 = -z * mat.m21 + y * mat.m22;
+		float m12 = z * mat.m20 - x * mat.m22;
+		float m22 = -y * mat.m20 + x * mat.m21;
+		
+		dest.m00 = z * m01 - y * m02;
+		dest.m01 = -z * m00 + x * m02;
+		dest.m02 = y * m00 - x * m01;
+
+		dest.m10 = z * m11 - y * m12;
+		dest.m11 = -z * m10 + x * m12;
+		dest.m12 = y * m10 - x * m11;
+
+		dest.m20 = z * m21 - y * m22;
+		dest.m21 = -z * m20 + x * m22;
+		dest.m22 = y * m20 - x * m21;
 	}
 }

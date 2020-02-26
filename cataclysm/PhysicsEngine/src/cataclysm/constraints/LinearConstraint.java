@@ -4,7 +4,7 @@ import org.lwjgl.util.vector.Matrix3f;
 import org.lwjgl.util.vector.Vector3f;
 
 /**
- * Représente une contrainte sur les translations d'un solide.
+ * Reprï¿½sente une contrainte sur les translations d'un solide.
  * 
  * @author Briac
  *
@@ -32,10 +32,10 @@ public abstract class LinearConstraint extends SimpleConstraint {
 	@Override
 	protected void applyImpulse(Vector3f N, Vector3f RaxN, Vector3f RbxN, Vector3f temp, float applied_impulse) {
 		if (!pointA.isStatic()) {
-			pointA.getBody().applyImpulse(N, RaxN, applied_impulse, temp);
+			pointA.getBody().applyImpulse(N, RaxN, applied_impulse);
 		}
 		if (!pointB.isStatic()) {
-			pointB.getBody().applyImpulse(N, RbxN, -applied_impulse, temp);
+			pointB.getBody().applyImpulse(N, RbxN, -applied_impulse);
 		}
 	}
 
@@ -58,10 +58,10 @@ public abstract class LinearConstraint extends SimpleConstraint {
 	protected void applyPseudoImpulse(Vector3f N, Vector3f RaxN, Vector3f RbxN, Vector3f temp,
 			float applied_impulse) {
 		if (!pointA.isStatic()) {
-			pointA.getBody().applyPseudoImpulse(N, RaxN, applied_impulse, temp);
+			pointA.getBody().applyPseudoImpulse(N, RaxN, applied_impulse);
 		}
 		if (!pointB.isStatic()) {
-			pointB.getBody().applyPseudoImpulse(N, RbxN, -applied_impulse, temp);
+			pointB.getBody().applyPseudoImpulse(N, RbxN, -applied_impulse);
 		}
 	}
 

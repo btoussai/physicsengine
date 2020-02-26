@@ -32,9 +32,9 @@ public class SequentialImpulseSolver {
 	 * @param MAX_ITERATIONS_VELOCITY
 	 * @param MAX_ITERATIONS_POSITION
 	 */
-	public void solve(List<AbstractSingleBodyContact> activeMeshContacts, List<AbstractDoubleBodyContact> activeBodyContacts,
-			List<AbstractConstraint> constraints, float timeStep, int MAX_ITERATIONS_POSITION,
-			int MAX_ITERATIONS_VELOCITY) {
+	public void solve(List<AbstractSingleBodyContact> activeMeshContacts,
+			List<AbstractDoubleBodyContact> activeBodyContacts, List<AbstractConstraint> constraints, float timeStep,
+			int MAX_ITERATIONS_POSITION, int MAX_ITERATIONS_VELOCITY) {
 		// the velocity must be solved first, since the position correction needs data
 		// computed during the velocity step.
 		for (int i = 0; i < MAX_ITERATIONS_VELOCITY; i++) {
@@ -43,11 +43,11 @@ public class SequentialImpulseSolver {
 		}
 
 		/*
-		for (DoubleBodyContact contact : activeBodyContacts) {
-			System.out.println("Total impulse: " + contact.impulses_N[0] + " y = "
-					+ 0.5f * (contact.getWrapperA().getCentroid().y + contact.getWrapperB().getCentroid().y));
-		}
-		*/
+		 * for (DoubleBodyContact contact : activeBodyContacts) {
+		 * System.out.println("Total impulse: " + contact.impulses_N[0] + " y = " + 0.5f
+		 * * (contact.getWrapperA().getCentroid().y +
+		 * contact.getWrapperB().getCentroid().y)); }
+		 */
 
 		for (int i = 0; i < MAX_ITERATIONS_POSITION; i++) {
 			solvePosition(activeMeshContacts, activeBodyContacts, constraints, timeStep, i == 0);
@@ -63,20 +63,37 @@ public class SequentialImpulseSolver {
 	 * @param constraints
 	 * @param timeStep
 	 */
-	private void solveVelocity(List<AbstractSingleBodyContact> activeMeshContacts, List<AbstractDoubleBodyContact> activeBodyContacts,
-			List<AbstractConstraint> constraints, float timeStep, boolean firstIteration) {
+	private void solveVelocity(List<AbstractSingleBodyContact> activeMeshContacts,
+			List<AbstractDoubleBodyContact> activeBodyContacts, List<AbstractConstraint> constraints, float timeStep,
+			boolean firstIteration) {
+		if (firstIteration) {
+			for (AbstractDoubleBodyContact contact : activeBodyContacts) {
+				contact.velocityStart();
+				contact.solveVelocity();
+			}
 
-		for (AbstractDoubleBodyContact contact : activeBodyContacts) {
-			contact.solveVelocity(firstIteration, timeStep, temp);
+			for (AbstractConstraint constraint : constraints) {
+				constraint.solveVelocity(true, timeStep, temp);
+			}
+
+			for (AbstractSingleBodyContact contact : activeMeshContacts) {
+				contact.velocityStart();
+				contact.solveVelocity();
+			}
+		} else {
+			for (AbstractDoubleBodyContact contact : activeBodyContacts) {
+				contact.solveVelocity();
+			}
+
+			for (AbstractConstraint constraint : constraints) {
+				constraint.solveVelocity(false, timeStep, temp);
+			}
+
+			for (AbstractSingleBodyContact contact : activeMeshContacts) {
+				contact.solveVelocity();
+			}
 		}
 
-		for (AbstractConstraint constraint : constraints) {
-			constraint.solveVelocity(firstIteration, timeStep, temp);
-		}
-
-		for (AbstractSingleBodyContact contact : activeMeshContacts) {
-			contact.solveVelocity(firstIteration, timeStep, temp);
-		}
 	}
 
 	/**
@@ -88,20 +105,38 @@ public class SequentialImpulseSolver {
 	 * @param constraints
 	 * @param timeStep
 	 */
-	private void solvePosition(List<AbstractSingleBodyContact> activeMeshContacts, List<AbstractDoubleBodyContact> activeBodyContacts,
-			List<AbstractConstraint> constraints, float timeStep, boolean firstIteration) {
+	private void solvePosition(List<AbstractSingleBodyContact> activeMeshContacts,
+			List<AbstractDoubleBodyContact> activeBodyContacts, List<AbstractConstraint> constraints, float timeStep,
+			boolean firstIteration) {
 
-		for (AbstractDoubleBodyContact contact : activeBodyContacts) {
-			contact.solvePosition(firstIteration, timeStep, temp);
+		if (firstIteration) {
+			for (AbstractDoubleBodyContact contact : activeBodyContacts) {
+				contact.positionStart(timeStep);
+				contact.solvePosition();
+			}
+
+			for (AbstractConstraint constraint : constraints) {
+				constraint.solvePosition(true, timeStep, temp);
+			}
+
+			for (AbstractSingleBodyContact contact : activeMeshContacts) {
+				contact.positionStart(timeStep);
+				contact.solvePosition();
+			}
+		} else {
+			for (AbstractDoubleBodyContact contact : activeBodyContacts) {
+				contact.solvePosition();
+			}
+
+			for (AbstractConstraint constraint : constraints) {
+				constraint.solvePosition(false, timeStep, temp);
+			}
+
+			for (AbstractSingleBodyContact contact : activeMeshContacts) {
+				contact.solvePosition();
+			}
 		}
 
-		for (AbstractConstraint constraint : constraints) {
-			constraint.solvePosition(firstIteration, timeStep, temp);
-		}
-
-		for (AbstractSingleBodyContact contact : activeMeshContacts) {
-			contact.solvePosition(firstIteration, timeStep, temp);
-		}
 	}
 
 }

@@ -32,7 +32,7 @@ public class Epsilons {
 		 * La vitesse de rotation minimale pour laquelle on considère la rotation
 		 * négligeable.
 		 */
-		public static final float MIN_ROTATION_SPEED = 0.1f;
+		public static final float MIN_ROTATION_SPEED = 2.0f * (float)Math.PI / 10.0f;// 10 seconds per rotation
 
 		/**
 		 * La vitesse de translation minimale pour laquelle on considère le déplacement
@@ -52,7 +52,7 @@ public class Epsilons {
 	 * Si true, les impulsions précédentes sont réutilisées comme valeur initiale
 	 * pour la résolution des contraintes.
 	 */
-	public static boolean WARM_START = false;
+	public static final boolean WARM_START = false;
 
 	// ############### STATIC CONSTS BELOW ###############
 
@@ -102,10 +102,15 @@ public class Epsilons {
 	public static final float VELOCITY_ELASTICITY_LIMIT = 0.5f;
 
 	/**
+	 * L'angle considéré comme minimal
+	 */
+	private static final float MIN_ANGLE = (float)Math.toRadians(1.0);// 1 degree
+	
+	/**
 	 * Si la valeur absolue du produit scalaire entre deux vecteurs unitaires est
 	 * inf�rieure � cette limite, les vecteurs sont consid�r�s perpendiculaires.
 	 */
-	public static final float ORTHOGONAL_LIMIT = 1E-2f;
+	public static final float ORTHOGONAL_LIMIT = (float)Math.sin(MIN_ANGLE);
 
 	/**
 	 * ORTHOGONAL_LIMIT, au carré.
@@ -116,7 +121,7 @@ public class Epsilons {
 	 * Si la valeur absolue du produit scalaire entre deux vecteurs unitaires est
 	 * sup�rieure � cette limite, les vecteurs sont consid�r�s parall�les.
 	 */
-	public static final float PARALLEL_LIMIT = 1.0f - ORTHOGONAL_LIMIT;
+	public static final float PARALLEL_LIMIT = (float)Math.cos(MIN_ANGLE);
 
 	/**
 	 * PARALLEL_LIMIT, au carré.

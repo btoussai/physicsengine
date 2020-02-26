@@ -7,6 +7,7 @@ import cataclysm.Epsilons;
 import cataclysm.wrappers.RigidBody;
 import cataclysm.wrappers.Wrapper;
 import math.Clamp;
+import math.MatrixOps;
 
 /**
  * Représente un contact entre deux wrappers. Les wrappers ne se touchent pas
@@ -18,15 +19,17 @@ import math.Clamp;
 public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 
 	private enum VecData {
-		Ra, Rb, RaxN, RbxN, T, RaxT, RbxT, deltaV, END;
+		Ra, Rb, RaxN, RbxN, RaxT, RbxT, RaxB, RbxB, END;
 	}
 
 	private enum FloatData {
-		deltaV_N, deltaV_T, pseudo_deltaV, bias, pseudo_bias,
-				inv_mass_N, inv_mass_T, impulses_N, impulses_T, pseudo_impulses, END;
+		deltaV_N, deltaV_T, deltaV_B, pseudo_deltaV, bias, pseudo_bias, inv_mass_N, inv_mass_T, inv_mass_B, impulses_N,
+		impulses_T, impulses_B, pseudo_impulses, END;
 	}
 
-	private final Vector3f N = new Vector3f();
+	private final Vector3f N = new Vector3f();// normal vector
+	private final Vector3f T = new Vector3f();// tangent vector
+	private final Vector3f B = new Vector3f();// bitangent vector
 	private final Vector3f finalImpulse = new Vector3f();
 	private final float vecData[];
 	private final float floatData[];
@@ -45,61 +48,54 @@ public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 		for (int i = 0; i < super.getMaxContacts(); i++) {
 			setFloat(FloatData.impulses_N, 0, i);
 			setFloat(FloatData.impulses_T, 0, i);
+			setFloat(FloatData.impulses_B, 0, i);
 		}
 	}
 
 	@Override
-	public void solveVelocity(boolean firstIteration, float timeStep, Vector3f temp) {
-		if (firstIteration) {
-			area.getNormal().negate(N);
-			super.mixContactProperties(wrapperA.getBody().getContactProperties(),
-					wrapperB.getBody().getContactProperties());
-		}
-
-		if (firstIteration && Epsilons.WARM_START) {
-			for (int i = 0; i < super.area.getContactCount(); i++) {
-				buildVelocityJacobian(i, temp);
-				computeVelocityInvMass(i, temp);
-
-				float deltaV_N = getFloat(FloatData.deltaV_N, i);
-				if (deltaV_N < -Epsilons.VELOCITY_ELASTICITY_LIMIT) {
-					setFloat(FloatData.bias, elasticity * deltaV_N, i);
-				} else {
-					setFloat(FloatData.bias, 0, i);
-				}
-
-				float applied_impulse_N = getFloat(FloatData.impulses_N, i);
-				float applied_impulse_T = getFloat(FloatData.impulses_T, i);
-
-				getVec(VecData.T, temp, i);
-				finalImpulse.x = N.x * applied_impulse_N + temp.x * applied_impulse_T;
-				finalImpulse.y = N.y * applied_impulse_N + temp.y * applied_impulse_T;
-				finalImpulse.z = N.z * applied_impulse_N + temp.z * applied_impulse_T;
-
-				applyImpulse(i, temp, finalImpulse);
-			}
-			return;
-		}
+	public void velocityStart() {
+		super.mixContactProperties(wrapperA.getBody().getContactProperties(),
+				wrapperB.getBody().getContactProperties());
+		area.getNormal().negate(N);
+		MatrixOps.computeOrthogonalComplement(N, T, B);
 
 		for (int i = 0; i < super.area.getContactCount(); i++) {
-			if (firstIteration) {
-				setFloat(FloatData.impulses_N, 0, i);
-				setFloat(FloatData.impulses_T, 0, i);
-				buildVelocityJacobian(i, temp);
-				computeVelocityInvMass(i, temp);
-
-				float deltaV_N = getFloat(FloatData.deltaV_N, i);
-				if (deltaV_N < -Epsilons.VELOCITY_ELASTICITY_LIMIT) {
-					setFloat(FloatData.bias, elasticity * deltaV_N, i);
-				} else {
-					setFloat(FloatData.bias, 0, i);
-				}
+			buildJacobian(i);
+			computeInvMass(i);
+			computeVelocityError(i);
+			float deltaV_N = getFloat(FloatData.deltaV_N, i);
+			if (deltaV_N < -Epsilons.VELOCITY_ELASTICITY_LIMIT) {
+				setFloat(FloatData.bias, elasticity * deltaV_N, i);
 			} else {
-				// the velocity may have changed due to other constraints, we need to recompute
-				// it.
-				computeVelocityError(i, temp);
+				setFloat(FloatData.bias, 0, i);
 			}
 
+			if (Epsilons.WARM_START) {
+				float applied_impulse_N = getFloat(FloatData.impulses_N, i);
+				float applied_impulse_T = getFloat(FloatData.impulses_T, i);
+				float applied_impulse_B = getFloat(FloatData.impulses_B, i);
+				finalImpulse.x = N.x * applied_impulse_N + T.x * applied_impulse_T + B.x * applied_impulse_B;
+				finalImpulse.y = N.y * applied_impulse_N + T.y * applied_impulse_T + B.y * applied_impulse_B;
+				finalImpulse.z = N.z * applied_impulse_N + T.z * applied_impulse_T + B.z * applied_impulse_B;
+
+				applyImpulse(i, finalImpulse);
+			} else {
+				setFloat(FloatData.impulses_N, 0, i);
+				setFloat(FloatData.impulses_T, 0, i);
+				setFloat(FloatData.impulses_B, 0, i);
+			}
+		}
+	}
+
+	@Override
+	public void solveVelocity() {
+
+		for (int i = 0; i < super.area.getContactCount(); i++) {
+
+			// the velocity may have changed due to other constraints, we need to recompute
+			// it.
+			computeVelocityError(i);
+			
 			// Normal impulse
 			float prev_impulse_N = getFloat(FloatData.impulses_N, i);
 			float impulse_N = prev_impulse_N - (getFloat(FloatData.deltaV_N, i) + getFloat(FloatData.bias, i))
@@ -115,26 +111,35 @@ public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 			setFloat(FloatData.impulses_T, impulse_T, i);
 			float applied_impulse_T = impulse_T - prev_impulse_T;
 
-			getVec(VecData.T, temp, i);
-			finalImpulse.x = N.x * applied_impulse_N + temp.x * applied_impulse_T;
-			finalImpulse.y = N.y * applied_impulse_N + temp.y * applied_impulse_T;
-			finalImpulse.z = N.z * applied_impulse_N + temp.z * applied_impulse_T;
+			// Bitangent impulse
+			float prev_impulse_B = getFloat(FloatData.impulses_B, i);
+			float impulse_B = prev_impulse_B - getFloat(FloatData.deltaV_B, i) / getFloat(FloatData.inv_mass_B, i);
+			impulse_B = Clamp.clamp(impulse_B, -friction * impulse_N, friction * impulse_N);
+			setFloat(FloatData.impulses_B, impulse_B, i);
+			float applied_impulse_B = impulse_B - prev_impulse_B;
 
-			applyImpulse(i, temp, finalImpulse);
+			finalImpulse.x = N.x * applied_impulse_N + T.x * applied_impulse_T + B.x * applied_impulse_B;
+			finalImpulse.y = N.y * applied_impulse_N + T.y * applied_impulse_T + B.y * applied_impulse_B;
+			finalImpulse.z = N.z * applied_impulse_N + T.z * applied_impulse_T + B.z * applied_impulse_B;
+
+			applyImpulse(i, finalImpulse);
 		}
 	}
 
 	@Override
-	public void solvePosition(boolean firstIteration, float timeStep, Vector3f temp) {
+	public void positionStart(float timeStep) {
 		for (int i = 0; i < super.area.getContactCount(); i++) {
-			if (firstIteration) {
-				setFloat(FloatData.pseudo_impulses, 0, i);
-				float pseudo_bias = (Epsilons.PENETRATION_RECOVERY / timeStep)
-						* Math.min(0, (area.penetrations[i] + Epsilons.ALLOWED_PENETRATION));
-				setFloat(FloatData.pseudo_bias, pseudo_bias, i);
-			}
+			setFloat(FloatData.pseudo_impulses, 0, i);
+			float pseudo_bias = (Epsilons.PENETRATION_RECOVERY / timeStep)
+					* Math.min(0, (area.penetrations[i] + Epsilons.ALLOWED_PENETRATION));
+			setFloat(FloatData.pseudo_bias, pseudo_bias, i);
+		}
+	}
 
-			computePositionError(i, temp);
+	@Override
+	public void solvePosition() {
+		for (int i = 0; i < super.area.getContactCount(); i++) {
+			computePositionError(i);
 
 			float prev_impulse = getFloat(FloatData.pseudo_impulses, i);
 			float impulse = prev_impulse - (getFloat(FloatData.pseudo_deltaV, i) + getFloat(FloatData.pseudo_bias, i))
@@ -143,103 +148,129 @@ public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 			setFloat(FloatData.pseudo_impulses, impulse, i);
 			float applied_impulse = impulse - prev_impulse;
 
-			applyPseudoImpulse(i, temp, applied_impulse);
+			applyPseudoImpulse(i, applied_impulse);
 		}
 	}
 
-	@Override
-	protected void buildVelocityJacobian(int i, Vector3f temp) {
+	private final void buildJacobian(int i) {
 		RigidBody bodyA = wrapperA.getBody();
 		RigidBody bodyB = wrapperB.getBody();
-
-		area.getNormal().negate(N);
 
 		Vector3f[] contacts = area.getContactPoints();
 		sub(contacts[i], bodyA.getPosition(), VecData.Ra, i);
-		cross(VecData.Ra, N, VecData.RaxN, i);
 		sub(contacts[i], bodyB.getPosition(), VecData.Rb, i);
+
+		cross(VecData.Ra, N, VecData.RaxN, i);
 		cross(VecData.Rb, N, VecData.RbxN, i);
-
-		cross(bodyA.getAngularVelocity(), VecData.Ra, temp, i);
-		add(bodyA.getVelocity(), temp, VecData.deltaV, i);
-
-		cross(bodyB.getAngularVelocity(), VecData.Rb, temp, i);
-		Vector3f.add(bodyB.getVelocity(), temp, temp);
-		sub(VecData.deltaV, temp, VecData.deltaV, i);
-
-		float dvN = dot(VecData.deltaV, N, i);
-		float dvT = 0;
-
-		temp.set(N.x * dvN, N.y * dvN, N.z * dvN);
-		sub(VecData.deltaV, temp, temp, i);
-
-		dvT = temp.length();
-		if (dvT > Epsilons.MIN_TANGENT_SPEED) {
-			float inv = 1.0f / dvT;
-			store(temp.x * inv, temp.y * inv, temp.z * inv, VecData.T, i);
-			cross(VecData.Ra, VecData.T, VecData.RaxT, i);
-		} else {
-			store(0, 0, 0, VecData.T, i);
-			store(0, 0, 0, VecData.RaxT, i);
-		}
-
-		setFloat(FloatData.deltaV_N, dvN, i);
-		setFloat(FloatData.deltaV_T, dvT, i);
+		cross(VecData.Ra, T, VecData.RaxT, i);
+		cross(VecData.Rb, T, VecData.RbxT, i);
+		cross(VecData.Ra, B, VecData.RaxB, i);
+		cross(VecData.Rb, B, VecData.RbxB, i);
 	}
 
-	@Override
-	protected void computeVelocityInvMass(int i, Vector3f temp) {
+	private final void computeInvMass(int i) {
 		RigidBody bodyA = wrapperA.getBody();
 		RigidBody bodyB = wrapperB.getBody();
 
-		float inv_mass_N = bodyA.getInvMass() * (1.0f + sandwichProduct(bodyA.getInvIws(), VecData.RaxN, i));
-		inv_mass_N += bodyB.getInvMass() * (1.0f + sandwichProduct(bodyB.getInvIws(), VecData.RbxN, i));
+		Matrix3f IA_inv = bodyA.getInvIws();
+		Matrix3f IB_inv = bodyB.getInvIws();
+
+		float inv_mass_N = bodyA.getInvMass() * (1.0f + sandwichDotProduct(IA_inv, VecData.RaxN, i));
+		inv_mass_N += bodyB.getInvMass() * (1.0f + sandwichDotProduct(IB_inv, VecData.RbxN, i));
+
+		float inv_mass_T = bodyA.getInvMass() * (1.0f + sandwichDotProduct(IA_inv, VecData.RaxT, i));
+		inv_mass_T += bodyB.getInvMass() * (1.0f + sandwichDotProduct(IB_inv, VecData.RbxT, i));
+
+		float inv_mass_B = bodyA.getInvMass() * (1.0f + sandwichDotProduct(IA_inv, VecData.RaxB, i));
+		inv_mass_B += bodyB.getInvMass() * (1.0f + sandwichDotProduct(IB_inv, VecData.RbxB, i));
+
 		setFloat(FloatData.inv_mass_N, inv_mass_N, i);
-
-		float inv_mass_T = bodyA.getInvMass() * (1.0f + sandwichProduct(bodyA.getInvIws(), VecData.RaxT, i));
-		inv_mass_T += bodyB.getInvMass() * (1.0f + sandwichProduct(bodyB.getInvIws(), VecData.RbxT, i));
 		setFloat(FloatData.inv_mass_T, inv_mass_T, i);
+		setFloat(FloatData.inv_mass_B, inv_mass_B, i);
 	}
 
-	@Override
-	protected void computeVelocityError(int i, Vector3f temp) {
+	private final void computeVelocityError(int i) {
 		RigidBody bodyA = wrapperA.getBody();
 		RigidBody bodyB = wrapperB.getBody();
 
-		cross(bodyA.getAngularVelocity(), VecData.Ra, temp, i);
-		add(bodyA.getVelocity(), temp, VecData.deltaV, i);
+		Vector3f Va = bodyA.getVelocity();
+		Vector3f Wa = bodyA.getAngularVelocity();
 
-		cross(bodyB.getAngularVelocity(), VecData.Rb, temp, i);
-		Vector3f.add(bodyB.getVelocity(), temp, temp);
-		sub(VecData.deltaV, temp, VecData.deltaV, i);
+		int indexRa = getVecDataIndex(VecData.Ra, i);
+		float Rax = this.vecData[3 * indexRa];
+		float Ray = this.vecData[3 * indexRa + 1];
+		float Raz = this.vecData[3 * indexRa + 2];
 
-		setFloat(FloatData.deltaV_N, dot(VecData.deltaV, N, i), i);
-		setFloat(FloatData.deltaV_T, dot(VecData.deltaV, VecData.T, i), i);
+		// dv = Va + Wa x Ra
+		float dvx = Va.x + Wa.y * Raz - Wa.z * Ray;
+		float dvy = Va.y + Wa.z * Rax - Wa.x * Raz;
+		float dvz = Va.z + Wa.x * Ray - Wa.y * Rax;
+
+		Vector3f Vb = bodyB.getVelocity();
+		Vector3f Wb = bodyB.getAngularVelocity();
+
+		int indexRb = getVecDataIndex(VecData.Rb, i);
+		float Rbx = this.vecData[3 * indexRb];
+		float Rby = this.vecData[3 * indexRb + 1];
+		float Rbz = this.vecData[3 * indexRb + 2];
+
+		// dv -= Vb + Wb x Rb
+		dvx -= Vb.x + Wb.y * Rbz - Wb.z * Rby;
+		dvy -= Vb.y + Wb.z * Rbx - Wb.x * Rbz;
+		dvz -= Vb.z + Wb.x * Rby - Wb.y * Rbx;
+
+		setFloat(FloatData.deltaV_N, dvx * N.x + dvy * N.y + dvz * N.z, i);// dv . N
+		setFloat(FloatData.deltaV_T, dvx * T.x + dvy * T.y + dvz * T.z, i);// dv . T
+		setFloat(FloatData.deltaV_B, dvx * B.x + dvy * B.y + dvz * B.z, i);// dv . B
+
 	}
 
-	@Override
-	protected void applyImpulse(int i, Vector3f temp, Vector3f finalImpulse) {
+	private final void applyImpulse(int i, Vector3f finalImpulse) {
 		RigidBody bodyA = wrapperA.getBody();
 		float inv_mass = bodyA.getInvMass();
-		temp.set(finalImpulse.x * inv_mass, finalImpulse.y * inv_mass, finalImpulse.z * inv_mass);
-		bodyA.getVelocity().translate(temp);
 
-		cross(VecData.Ra, temp, temp, i);
-		Matrix3f.transform(bodyA.getInvIws(), temp, temp);
-		bodyA.getAngularVelocity().translate(temp);
+		float dvx = finalImpulse.x * inv_mass;
+		float dvy = finalImpulse.y * inv_mass;
+		float dvz = finalImpulse.z * inv_mass;
+		bodyA.getVelocity().translate(dvx, dvy, dvz);
+
+		int indexR = getVecDataIndex(VecData.Ra, i);
+		float Rx = this.vecData[3 * indexR];
+		float Ry = this.vecData[3 * indexR + 1];
+		float Rz = this.vecData[3 * indexR + 2];
+		float Tx = Ry * dvz - Rz * dvy;
+		float Ty = Rz * dvx - Rx * dvz;
+		float Tz = Rx * dvy - Ry * dvx;
+		Matrix3f inv_Iws = bodyA.getInvIws();
+		float dwx = inv_Iws.m00 * Tx + inv_Iws.m10 * Ty + inv_Iws.m20 * Tz;
+		float dwy = inv_Iws.m01 * Tx + inv_Iws.m11 * Ty + inv_Iws.m21 * Tz;
+		float dwz = inv_Iws.m02 * Tx + inv_Iws.m12 * Ty + inv_Iws.m22 * Tz;
+		bodyA.getAngularVelocity().translate(dwx, dwy, dwz);
 
 		RigidBody bodyB = wrapperB.getBody();
-		inv_mass = bodyB.getInvMass();
-		temp.set(finalImpulse.x * -inv_mass, finalImpulse.y * -inv_mass, finalImpulse.z * -inv_mass);
-		bodyB.getVelocity().translate(temp);
+		inv_mass = -bodyB.getInvMass();
 
-		cross(VecData.Rb, temp, temp, i);
-		Matrix3f.transform(bodyB.getInvIws(), temp, temp);
-		bodyB.getAngularVelocity().translate(temp);
+		dvx = finalImpulse.x * inv_mass;
+		dvy = finalImpulse.y * inv_mass;
+		dvz = finalImpulse.z * inv_mass;
+		bodyB.getVelocity().translate(dvx, dvy, dvz);
+
+		indexR = getVecDataIndex(VecData.Rb, i);
+		Rx = this.vecData[3 * indexR];
+		Ry = this.vecData[3 * indexR + 1];
+		Rz = this.vecData[3 * indexR + 2];
+		Tx = Ry * dvz - Rz * dvy;
+		Ty = Rz * dvx - Rx * dvz;
+		Tz = Rx * dvy - Ry * dvx;
+		inv_Iws = bodyB.getInvIws();
+		dwx = inv_Iws.m00 * Tx + inv_Iws.m10 * Ty + inv_Iws.m20 * Tz;
+		dwy = inv_Iws.m01 * Tx + inv_Iws.m11 * Ty + inv_Iws.m21 * Tz;
+		dwz = inv_Iws.m02 * Tx + inv_Iws.m12 * Ty + inv_Iws.m22 * Tz;
+		bodyB.getAngularVelocity().translate(dwx, dwy, dwz);
+
 	}
 
-	@Override
-	protected void computePositionError(int i, Vector3f temp) {
+	private final void computePositionError(int i) {
 		RigidBody bodyA = wrapperA.getBody();
 		RigidBody bodyB = wrapperB.getBody();
 
@@ -251,31 +282,35 @@ public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 		setFloat(FloatData.pseudo_deltaV, deltaV, i);
 	}
 
-	@Override
-	protected void applyPseudoImpulse(int i, Vector3f temp, float applied_impulse) {
+	private final void applyPseudoImpulse(int i, float applied_impulse) {
 		RigidBody bodyA = wrapperA.getBody();
-		float inv_mass = bodyA.getInvMass();
-		float effect = applied_impulse * inv_mass;
-		bodyA.getPseudoVelocity().translate(N, effect);
+		float effect = applied_impulse * bodyA.getInvMass();
 
-		transform(bodyA.getInvIws(), VecData.RaxN, temp, i);
-		bodyA.getPseudoAngularVelocity().translate(temp, effect);
+		bodyA.getPseudoVelocity().translate(N, effect);
+		Matrix3f inv_Iws = bodyA.getInvIws();
+		int indexRxN = getVecDataIndex(VecData.RaxN, i);
+		float RxNx = this.vecData[3 * indexRxN];
+		float RxNy = this.vecData[3 * indexRxN + 1];
+		float RxNz = this.vecData[3 * indexRxN + 2];
+		float dwx = inv_Iws.m00 * RxNx + inv_Iws.m10 * RxNy + inv_Iws.m20 * RxNz;
+		float dwy = inv_Iws.m01 * RxNx + inv_Iws.m11 * RxNy + inv_Iws.m21 * RxNz;
+		float dwz = inv_Iws.m02 * RxNx + inv_Iws.m12 * RxNy + inv_Iws.m22 * RxNz;
+		bodyA.getPseudoAngularVelocity().translate(dwx * effect, dwy * effect, dwz * effect);
 
 		RigidBody bodyB = wrapperB.getBody();
-		inv_mass = bodyB.getInvMass();
-		effect = -applied_impulse * inv_mass;
+		effect = -applied_impulse * bodyB.getInvMass();
+
 		bodyB.getPseudoVelocity().translate(N, effect);
+		inv_Iws = bodyB.getInvIws();
+		indexRxN = getVecDataIndex(VecData.RbxN, i);
+		RxNx = this.vecData[3 * indexRxN];
+		RxNy = this.vecData[3 * indexRxN + 1];
+		RxNz = this.vecData[3 * indexRxN + 2];
+		dwx = inv_Iws.m00 * RxNx + inv_Iws.m10 * RxNy + inv_Iws.m20 * RxNz;
+		dwy = inv_Iws.m01 * RxNx + inv_Iws.m11 * RxNy + inv_Iws.m21 * RxNz;
+		dwz = inv_Iws.m02 * RxNx + inv_Iws.m12 * RxNy + inv_Iws.m22 * RxNz;
+		bodyB.getPseudoAngularVelocity().translate(dwx * effect, dwy * effect, dwz * effect);
 
-		transform(bodyB.getInvIws(), VecData.RbxN, temp, i);
-		bodyB.getPseudoAngularVelocity().translate(temp, effect);
-	}
-
-	private final void add(Vector3f left, Vector3f right, VecData dest, int i) {
-		int iDest = getVecDataIndex(dest, i);
-
-		this.vecData[3 * iDest] = left.x + right.x;
-		this.vecData[3 * iDest + 1] = left.y + right.y;
-		this.vecData[3 * iDest + 2] = left.z + right.z;
 	}
 
 	private final void sub(Vector3f left, Vector3f right, VecData dest, int i) {
@@ -284,41 +319,6 @@ public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 		this.vecData[3 * iDest] = left.x - right.x;
 		this.vecData[3 * iDest + 1] = left.y - right.y;
 		this.vecData[3 * iDest + 2] = left.z - right.z;
-	}
-
-	private final void sub(VecData left, Vector3f right, Vector3f dest, int i) {
-		int iLeft = getVecDataIndex(left, i);
-
-		dest.x = this.vecData[3 * iLeft] - right.x;
-		dest.y = this.vecData[3 * iLeft + 1] - right.y;
-		dest.z = this.vecData[3 * iLeft + 2] - right.z;
-	}
-
-	private void sub(VecData left, Vector3f right, VecData dest, int i) {
-		int iLeft = getVecDataIndex(left, i);
-		int iDest = getVecDataIndex(dest, i);
-
-		this.vecData[3 * iDest] = this.vecData[3 * iLeft] - right.x;
-		this.vecData[3 * iDest + 1] = this.vecData[3 * iLeft + 1] - right.y;
-		this.vecData[3 * iDest + 2] = this.vecData[3 * iLeft + 2] - right.z;
-	}
-
-	public final void cross(VecData left, VecData right, VecData dest, int i) {
-		int iLeft = getVecDataIndex(left, i);
-		int iRight = getVecDataIndex(right, i);
-		int iDest = getVecDataIndex(dest, i);
-
-		float x1 = this.vecData[3 * iLeft];
-		float y1 = this.vecData[3 * iLeft + 1];
-		float z1 = this.vecData[3 * iLeft + 2];
-
-		float x2 = this.vecData[3 * iRight];
-		float y2 = this.vecData[3 * iRight + 1];
-		float z2 = this.vecData[3 * iRight + 2];
-
-		this.vecData[3 * iDest] = y1 * z2 - z1 * y2;
-		this.vecData[3 * iDest + 1] = z1 * x2 - x1 * z2;
-		this.vecData[3 * iDest + 2] = x1 * y2 - y1 * x2;
 	}
 
 	private final void cross(VecData left, Vector3f right, VecData dest, int i) {
@@ -338,67 +338,6 @@ public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 		this.vecData[3 * iDest + 2] = x1 * y2 - y1 * x2;
 	}
 
-	private final void cross(Vector3f left, VecData right, Vector3f dest, int i) {
-		int iRight = getVecDataIndex(right, i);
-
-		float x1 = left.x;
-		float y1 = left.y;
-		float z1 = left.z;
-
-		float x2 = this.vecData[3 * iRight];
-		float y2 = this.vecData[3 * iRight + 1];
-		float z2 = this.vecData[3 * iRight + 2];
-
-		dest.x = y1 * z2 - z1 * y2;
-		dest.y = z1 * x2 - x1 * z2;
-		dest.z = x1 * y2 - y1 * x2;
-	}
-
-	private final void cross(VecData left, Vector3f right, Vector3f dest, int i) {
-		int iLeft = getVecDataIndex(left, i);
-
-		float x1 = this.vecData[3 * iLeft];
-		float y1 = this.vecData[3 * iLeft + 1];
-		float z1 = this.vecData[3 * iLeft + 2];
-
-		float x2 = right.x;
-		float y2 = right.y;
-		float z2 = right.z;
-
-		dest.x = y1 * z2 - z1 * y2;
-		dest.y = z1 * x2 - x1 * z2;
-		dest.z = x1 * y2 - y1 * x2;
-	}
-
-	public final float dot(VecData left, VecData right, int i) {
-		int iLeft = getVecDataIndex(left, i);
-		int iRight = getVecDataIndex(right, i);
-
-		float x1 = this.vecData[3 * iLeft];
-		float y1 = this.vecData[3 * iLeft + 1];
-		float z1 = this.vecData[3 * iLeft + 2];
-
-		float x2 = this.vecData[3 * iRight];
-		float y2 = this.vecData[3 * iRight + 1];
-		float z2 = this.vecData[3 * iRight + 2];
-
-		return x1 * x2 + y1 * y2 + z1 * z2;
-	}
-
-	private final float dot(VecData left, Vector3f right, int i) {
-		int iLeft = getVecDataIndex(left, i);
-
-		float x1 = this.vecData[3 * iLeft];
-		float y1 = this.vecData[3 * iLeft + 1];
-		float z1 = this.vecData[3 * iLeft + 2];
-
-		float x2 = right.x;
-		float y2 = right.y;
-		float z2 = right.z;
-
-		return x1 * x2 + y1 * y2 + z1 * z2;
-	}
-
 	private final float dot(Vector3f left, VecData right, int i) {
 		int iRight = getVecDataIndex(right, i);
 
@@ -413,19 +352,7 @@ public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 		return x1 * x2 + y1 * y2 + z1 * z2;
 	}
 
-	private final void transform(Matrix3f mat, VecData vec, Vector3f dest, int i) {
-		int iVec = getVecDataIndex(vec, i);
-
-		float x = this.vecData[3 * iVec];
-		float y = this.vecData[3 * iVec + 1];
-		float z = this.vecData[3 * iVec + 2];
-
-		dest.x = mat.m00 * x + mat.m10 * y + mat.m20 * z;
-		dest.y = mat.m01 * x + mat.m11 * y + mat.m21 * z;
-		dest.z = mat.m02 * x + mat.m12 * y + mat.m22 * z;
-	}
-
-	private final float sandwichProduct(Matrix3f mat, VecData vec, int i) {
+	private final float sandwichDotProduct(Matrix3f mat, VecData vec, int i) {
 		int iVec = getVecDataIndex(vec, i);
 
 		float x = this.vecData[3 * iVec];
@@ -434,14 +361,6 @@ public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 
 		return x * (mat.m00 * x + mat.m10 * y + mat.m20 * z) + y * (mat.m01 * x + mat.m11 * y + mat.m21 * z)
 				+ z * (mat.m02 * x + mat.m12 * y + mat.m22 * z);
-	}
-
-	private final void store(float x, float y, float z, VecData dest, int i) {
-		int iDest = getVecDataIndex(dest, i);
-
-		this.vecData[3 * iDest] = x;
-		this.vecData[3 * iDest + 1] = y;
-		this.vecData[3 * iDest + 2] = z;
 	}
 
 	public final float getFloat(FloatData data, int i) {
