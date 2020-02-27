@@ -1,10 +1,10 @@
 package cataclysm.constraints;
 
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Vector3f;
 
 /**
- * Cette contrainte restreint la position relative des solides à un plan. Ce
- * plan est défini dans le repère local (model-space) du solide de référence.
+ * Cette contrainte restreint la position relative des solides ï¿½ un plan. Ce
+ * plan est dï¿½fini dans le repï¿½re local (model-space) du solide de rï¿½fï¿½rence.
  * 
  * @author Briac
  *
@@ -14,8 +14,8 @@ public class PlaneConstraint extends LinearConstraint {
 	private final Vector3f planeNormal = new Vector3f();
 
 	/**
-	 * Cette contrainte restreint la position relative des solides à un plan. Ce
-	 * plan est défini dans le repère local (model-space) du solide de référence.
+	 * Cette contrainte restreint la position relative des solides ï¿½ un plan. Ce
+	 * plan est dï¿½fini dans le repï¿½re local (model-space) du solide de rï¿½fï¿½rence.
 	 * 
 	 * @param referencePoint
 	 * @param constrainedPoint
@@ -36,7 +36,7 @@ public class PlaneConstraint extends LinearConstraint {
 
 		Ra.set(pointA.getWorldSpacePosition());
 		Rb.set(pointB.getWorldSpacePosition());
-		planeNormal.negate(N);
+		Vector3f.negate(planeNormal, N);
 		if (!pointA.isStatic()) {
 			super.pointA.getBody().normalToWorldSpace(N, N);
 		}
@@ -76,7 +76,7 @@ public class PlaneConstraint extends LinearConstraint {
 			Vector3f temp) {
 		Ra.set(pointA.getWorldSpacePosition());
 		Rb.set(pointB.getWorldSpacePosition());
-		planeNormal.negate(N);
+		Vector3f.negate(planeNormal, N);
 		if (!pointA.isStatic()) {
 			super.pointA.getBody().normalToWorldSpace(N, N);
 		}
@@ -108,14 +108,14 @@ public class PlaneConstraint extends LinearConstraint {
 	}
 
 	/**
-	 * Calcule le projeté orthogonal de point sur le plan défini par base et normal.
-	 * Le résultat est stocké dans dest.
+	 * Calcule le projetï¿½ orthogonal de point sur le plan dï¿½fini par base et normal.
+	 * Le rï¿½sultat est stockï¿½ dans dest.
 	 * 
 	 * @param base
 	 * @param normal
 	 * @param point
 	 * @param dest
-	 * @return La distance signée entre point et le plan.
+	 * @return La distance signï¿½e entre point et le plan.
 	 */
 	private float closestToPlane(Vector3f base, Vector3f normal, Vector3f point, Vector3f dest) {
 		float x = point.x - base.x;

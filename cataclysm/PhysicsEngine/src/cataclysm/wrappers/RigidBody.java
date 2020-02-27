@@ -2,10 +2,6 @@ package cataclysm.wrappers;
 
 import java.util.ArrayList;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.DefaultCollisionFilter;
 import cataclysm.DefaultParameters;
 import cataclysm.Epsilons.Sleep;
@@ -14,6 +10,9 @@ import cataclysm.contact_creation.ContactProperties;
 import cataclysm.datastructures.IDGenerator;
 import cataclysm.datastructures.Identifier;
 import math.MatrixOps;
+import math.vector.Matrix3f;
+import math.vector.Matrix4f;
+import math.vector.Vector3f;
 
 /**
  * Représente un corps rigide.
@@ -132,7 +131,7 @@ public class RigidBody extends Identifier {
 	 *                  rigidbody et de ses wrappers.
 	 * @param builders  Les enveloppes permettant de calculer les collisions.
 	 */
-	RigidBody(Matrix4f transform, DefaultParameters params, IDGenerator generator, WrapperBuilder... builders) {
+	RigidBody(Matrix4f transform, DefaultParameters params, IDGenerator generator, PolyhedralMassProperties poly, WrapperBuilder... builders) {
 		super(generator.nextID());
 		this.bodyToWorld = new Transform(transform);
 		this.wrappers = new ArrayList<Wrapper>(builders.length);
@@ -142,7 +141,7 @@ public class RigidBody extends Identifier {
 			this.wrappers.add(builders[i].build(this, generator.nextID()));
 		}
 
-		computeMassProperties();
+		computeMassProperties(poly);
 
 		updateTransform(new Transform());
 
@@ -191,8 +190,10 @@ public class RigidBody extends Identifier {
 	 * d'échelle) il faut appeler cette fonction pour mettre à jour l'objet.
 	 * L'addition ou la suppression d'une enveloppe modifie également la répartition
 	 * des masses, il faut donc également appeler cette fonction dans ce cas.
+	 * 
+	 * @param poly Permet de calculer les propriétés massiques de l'objet
 	 */
-	public void computeMassProperties() {
+	public void computeMassProperties(PolyhedralMassProperties poly) {
 		float mass = 0;
 		Matrix3f bodyInertia = new Matrix3f();
 		bodyInertia.setZero();
@@ -200,7 +201,7 @@ public class RigidBody extends Identifier {
 		Matrix3f wrapperInertia = new Matrix3f();
 		Vector3f wrapperCenterOfMass = new Vector3f();
 		for (Wrapper wrapper : wrappers) {
-			float wrapperMass = wrapper.computeInertia(wrapperCenterOfMass, wrapperInertia);
+			float wrapperMass = wrapper.computeInertia(wrapperCenterOfMass, wrapperInertia, poly);
 			bodyCenterOfMass.translate(wrapperMass * wrapperCenterOfMass.x, wrapperMass * wrapperCenterOfMass.y,
 					wrapperMass * wrapperCenterOfMass.z);
 			Matrix3f.add(bodyInertia, wrapperInertia, bodyInertia);
@@ -222,7 +223,7 @@ public class RigidBody extends Identifier {
 	/**
 	 * Applique un changement d'échelle sur ce rigidbody. Le changement d'echelle
 	 * est appliqué au niveau du centre de masse et concerne tous les wrappers. Il
-	 * n'est pas nécessaire d'appeler {@link #computeMassProperties()} après cette
+	 * n'est pas nécessaire d'appeler {@link #computeMassProperties(PolyhedralMassProperties poly)} après cette
 	 * fonction.<br>
 	 * <br>
 	 * 

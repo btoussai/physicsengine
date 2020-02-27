@@ -1,8 +1,7 @@
 package cataclysm.broadphase;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import math.VectorOps;
+import math.vector.Vector3f;
 
 /**
  * Repr�sente une bo�te align�e sur les axes xyz.

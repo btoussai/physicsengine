@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
 import cataclysm.contact_creation.ContactFeature.FeatureType;
 import cataclysm.wrappers.ConvexHullWrapper;
 import cataclysm.wrappers.ConvexHullWrapperFace;
 import cataclysm.wrappers.ConvexHullWrapperHalfEdge;
+import math.vector.Vector3f;
 
 /**
  * 
@@ -24,18 +23,18 @@ import cataclysm.wrappers.ConvexHullWrapperHalfEdge;
  */
 class SAT {
 
-	private static final ContactFeature onA = new ContactFeature();
-	private static final ContactFeature onB = new ContactFeature();
+	private final ContactFeature onA = new ContactFeature();
+	private final ContactFeature onB = new ContactFeature();
 
 	private static final boolean DEBUG = false;
-
+	
 	/**
 	 * Teste l'intersection de deux enveloppes convexes.
 	 * 
 	 * @param hullA
 	 * @param hullB
 	 */
-	static void overlapTest(ConvexHullWrapper hullA, ConvexHullWrapper hullB, ContactArea contact) {
+	void overlapTest(ConvexHullWrapper hullA, ConvexHullWrapper hullB, ContactArea contact) {
 
 		if (DEBUG) {
 			System.out.println("##	SAT:");
@@ -146,7 +145,7 @@ class SAT {
 	 * @param contact
 	 * @return true si une sortie rapide de l'algo est possible.
 	 */
-	private static boolean failFastCheck(ConvexHullWrapper hullA, ConvexHullWrapper hullB, ContactArea contact) {
+	private boolean failFastCheck(ConvexHullWrapper hullA, ConvexHullWrapper hullB, ContactArea contact) {
 		if (DEBUG) {
 			System.out.println("Fail fast check: previous distance:" + contact.getPenetrationDepth());
 			System.out.println("ContactFeature sur A:" + contact.getFeatureOnA().getType());
@@ -231,7 +230,7 @@ class SAT {
 	 * @param hullB
 	 * @param refFaceInHullA indique si la face de reference est dans A ou dans B.
 	 */
-	private static void createFaceContact(ContactArea contact, ConvexHullWrapper hullA, ConvexHullWrapper hullB,
+	private void createFaceContact(ContactArea contact, ConvexHullWrapper hullA, ConvexHullWrapper hullB,
 			boolean refFaceInHullA) {
 
 		ConvexHullWrapperFace incidentFace = (refFaceInHullA ? hullB : hullA)
@@ -305,14 +304,14 @@ class SAT {
 	//
 	// Quelques variables pour createEdgeContact
 	//
-	private static final Vector3f A = new Vector3f();
-	private static final Vector3f B = new Vector3f();
-	private static final Vector3f C = new Vector3f();
-	private static final Vector3f D = new Vector3f();
+	private final Vector3f A = new Vector3f();
+	private final Vector3f B = new Vector3f();
+	private final Vector3f C = new Vector3f();
+	private final Vector3f D = new Vector3f();
 
-	private static final Vector3f AB = new Vector3f();
-	private static final Vector3f CD = new Vector3f();
-	private static final Vector3f AC = new Vector3f();
+	private final Vector3f AB = new Vector3f();
+	private final Vector3f CD = new Vector3f();
+	private final Vector3f AC = new Vector3f();
 
 	/**
 	 * Construit le point de contact, il minimise la distance entre les deux arr�tes
@@ -322,7 +321,7 @@ class SAT {
 	 * @param hullA
 	 * @param hullB
 	 */
-	private static void createEdgeContact(ContactArea contact, ConvexHullWrapper hullA, ConvexHullWrapper hullB) {
+	private void createEdgeContact(ContactArea contact, ConvexHullWrapper hullA, ConvexHullWrapper hullB) {
 
 		if (DEBUG) {
 			System.out.println("createFaceContact");
@@ -375,9 +374,9 @@ class SAT {
 	}
 
 	// Quelques variables pour face check.
-	private static float penetrationDepth;
-	private static ConvexHullWrapperFace referenceFace;
-	private static final Vector3f supportPoint = new Vector3f();
+	private float penetrationDepth;
+	private ConvexHullWrapperFace referenceFace;
+	private final Vector3f supportPoint = new Vector3f();
 
 	/**
 	 * Recherche un axe de s�paration entre les deux solides. Cet axe est la normale
@@ -386,7 +385,7 @@ class SAT {
 	 * @param hull1
 	 * @param hull2
 	 */
-	private static void faceCheck(ConvexHullWrapper hull1, ConvexHullWrapper hull2) {
+	private void faceCheck(ConvexHullWrapper hull1, ConvexHullWrapper hull2) {
 		penetrationDepth = Float.NEGATIVE_INFINITY;
 
 		for (ConvexHullWrapperFace face : hull1.getFaces()) {
@@ -409,14 +408,14 @@ class SAT {
 	//
 	// Quelques variables pour edgeCheck
 	//
-	private static final Vector3f centroidA = new Vector3f();
-	private static ConvexHullWrapperHalfEdge contactEdgeA;
-	private static final Vector3f vecEdgeA = new Vector3f();
-	private static ConvexHullWrapperHalfEdge contactEdgeB;
-	private static final Vector3f vecEdgeB = new Vector3f();
-	private static final Vector3f edgeAxEdgeB = new Vector3f();
-	private static final Vector3f temp = new Vector3f();
-	private static final Vector3f normal = new Vector3f();
+	private final Vector3f centroidA = new Vector3f();
+	private ConvexHullWrapperHalfEdge contactEdgeA;
+	private final Vector3f vecEdgeA = new Vector3f();
+	private ConvexHullWrapperHalfEdge contactEdgeB;
+	private final Vector3f vecEdgeB = new Vector3f();
+	private final Vector3f edgeAxEdgeB = new Vector3f();
+	private final Vector3f temp = new Vector3f();
+	private final Vector3f normal = new Vector3f();
 
 	/**
 	 * Recherche un axe de s�paration entre les deux solides. Cet axe est le produit
@@ -425,7 +424,7 @@ class SAT {
 	 * @param A
 	 * @param B
 	 */
-	private static void edgeCheck(ConvexHullWrapper A, ConvexHullWrapper B) {
+	private void edgeCheck(ConvexHullWrapper A, ConvexHullWrapper B) {
 		penetrationDepth = Float.NEGATIVE_INFINITY;
 		centroidA.set(A.getCentroid());
 
@@ -471,7 +470,7 @@ class SAT {
 	 * @param edgeB
 	 * @return
 	 */
-	private static float edgeDistance(ConvexHullWrapperHalfEdge edgeA, ConvexHullWrapperHalfEdge edgeB) {
+	private float edgeDistance(ConvexHullWrapperHalfEdge edgeA, ConvexHullWrapperHalfEdge edgeB) {
 		Vector3f.cross(vecEdgeA, vecEdgeB, edgeAxEdgeB);
 		float length2 = edgeAxEdgeB.lengthSquared();
 
@@ -507,7 +506,7 @@ class SAT {
 	 * @param vecEdgeB
 	 * @return true si la s�paration est possible pour ce couple d'arr�te.
 	 */
-	private static boolean isMinkowskiFace(ConvexHullWrapperHalfEdge edgeA, Vector3f vecEdgeA,
+	private boolean isMinkowskiFace(ConvexHullWrapperHalfEdge edgeA, Vector3f vecEdgeA,
 			ConvexHullWrapperHalfEdge edgeB, Vector3f vecEdgeB) {
 
 		float CBA = Vector3f.dot(edgeB.getFaceNormal(), vecEdgeA);

@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.wrappers.ConvexHullWrapperFace;
 import cataclysm.wrappers.ConvexHullWrapperHalfEdge;
+import math.vector.Vector3f;
 
 /**
- * Représente une face d'une structure half edge.
+ * Reprï¿½sente une face d'une structure half edge.
  * 
  * @author Briac
  *
@@ -23,7 +22,7 @@ public class Face {
 	private float area;
 	
 	/**
-	 * Une réference vers une arrête de cette face.
+	 * Une rï¿½ference vers une arrï¿½te de cette face.
 	 */
 	private HalfEdge edge;
 
@@ -33,7 +32,7 @@ public class Face {
 	 */
 	private List<Vector3f> conflictList = new ArrayList<Vector3f>();
 	/**
-	 * Le point appartenant à la {@link #conflictList} étant le plus éloigné du
+	 * Le point appartenant ï¿½ la {@link #conflictList} ï¿½tant le plus ï¿½loignï¿½ du
 	 * plan.
 	 */
 	private Vector3f furthest;
@@ -43,14 +42,14 @@ public class Face {
 	private float furthestDistance = 0;
 
 	/**
-	 * Indique si la face a déjà été visitée lors du calcul de l'horizon. voir
+	 * Indique si la face a dï¿½jï¿½ ï¿½tï¿½ visitï¿½e lors du calcul de l'horizon. voir
 	 * {@link #computeHorizon}
 	 */
 	private boolean visited = false;
 
 	/**
-	 * Le constructeur à partir de trois arrêtes données en ordre CCW. Les 3 arrêtes
-	 * sont soudées les unes au autres pendant l'appel.
+	 * Le constructeur ï¿½ partir de trois arrï¿½tes donnï¿½es en ordre CCW. Les 3 arrï¿½tes
+	 * sont soudï¿½es les unes au autres pendant l'appel.
 	 * 
 	 * @param A
 	 * @param B
@@ -76,7 +75,7 @@ public class Face {
 	}
 
 	/**
-	 * Le constructeur standard, on suppose que les sommets sont données CCW.
+	 * Le constructeur standard, on suppose que les sommets sont donnï¿½es CCW.
 	 * 
 	 * @param A
 	 * @param B
@@ -100,8 +99,8 @@ public class Face {
 	 */
 	public Face(Vertex A, Vertex B, Vertex C, Vector3f normalDir) {
 
-		Vector3f AB = Vector3f.sub(B.getPosition(), A.getPosition(), null);
-		Vector3f AC = Vector3f.sub(C.getPosition(), A.getPosition(), null);
+		Vector3f AB = Vector3f.sub(B.getPosition(), A.getPosition());
+		Vector3f AC = Vector3f.sub(C.getPosition(), A.getPosition());
 		Vector3f.cross(AB, AC, normal);
 
 		if (Vector3f.dot(normalDir, normal) > 0) {
@@ -143,14 +142,15 @@ public class Face {
 	}
 
 	/**
-	 * Calcule l'horizon pour un point donné. Il s'agit des arrêtes délimitant les
+	 * Calcule l'horizon pour un point donnï¿½. Il s'agit des arrï¿½tes dï¿½limitant les
 	 * faces visibles depuis ce point.
 	 * 
 	 * @param eyePos
 	 * @param startEdge
 	 * @param horizon
+	 * @param epsilon 
 	 */
-	public void computeHorizon(Vector3f eyePos, HalfEdge startEdge, List<HalfEdge> horizon) {
+	public void computeHorizon(Vector3f eyePos, HalfEdge startEdge, List<HalfEdge> horizon, float epsilon) {
 
 		visited = true;
 		HalfEdge currentEdge = startEdge;
@@ -162,9 +162,9 @@ public class Face {
 
 			if (!neighborFace.visited) {
 
-				boolean visible = neighborFace.signedDistance(eyePos) > QuickHull.epsilon;
+				boolean visible = neighborFace.signedDistance(eyePos) > epsilon;
 				if (visible) {// continue the search in the neighbor face
-					neighborFace.computeHorizon(eyePos, twinEdge.getNext(), horizon);
+					neighborFace.computeHorizon(eyePos, twinEdge.getNext(), horizon, epsilon);
 				} else {
 					// neighborFace.setVisited(true);// visit neighbor
 					horizon.add(currentEdge);
@@ -209,7 +209,7 @@ public class Face {
 
 		center.scale(1.0f / n);
 
-		normal.normalise(normal);
+		normal.normalise();
 		d_equ = -Vector3f.dot(center, normal);
 
 		computeArea();
@@ -284,8 +284,8 @@ public class Face {
 			edge = edge.next;
 			AB = BC;
 			Vector3f.sub(edge.getTail().getPosition(), edge.prev.getTail().getPosition(), BC);
-
-			area += Vector3f.dot(normal, Vector3f.cross(AB, BC, cross));
+			Vector3f.cross(AB, BC, cross);
+			area += Vector3f.dot(normal, cross);
 
 		} while (edge != this.edge);
 

@@ -3,12 +3,11 @@ package cataclysm.broadphase.staticmeshes;
 import java.util.HashSet;
 import java.util.List;
 
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.DefaultParameters;
 import cataclysm.broadphase.AABB;
 import cataclysm.datastructures.BufferedManager;
+import math.vector.Matrix4f;
+import math.vector.Vector3f;
 
 /**
  * Repr�sente une structure de donn�es contenant tous les StaticMesh.

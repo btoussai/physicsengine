@@ -2,11 +2,10 @@ package cataclysm.wrappers;
 
 import java.util.List;
 
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.quickHull.ConvexHull;
 import cataclysm.quickHull.QuickHull;
+import math.vector.Matrix4f;
+import math.vector.Vector3f;
 
 /**
  * Cette classe permet d'instancier des enveloppes pour un objet.
@@ -19,29 +18,30 @@ import cataclysm.quickHull.QuickHull;
  */
 public class WrapperFactory {
 
-	private static Matrix4f identity = new Matrix4f();
+	private final Matrix4f identity = new Matrix4f();
+	private final QuickHull qhull = new QuickHull();
 
-	public static WrapperBuilder newSphere(float radius) {
+	public WrapperBuilder newSphere(float radius) {
 		return new SphereBuilder(identity, radius);
 	}
 
-	public static WrapperBuilder newSphere(Matrix4f transform, float radius) {
+	public WrapperBuilder newSphere(Matrix4f transform, float radius) {
 		return new SphereBuilder(transform, radius);
 	}
 
-	public static WrapperBuilder newCapsule(float radius, float halfLength) {
+	public WrapperBuilder newCapsule(float radius, float halfLength) {
 		return new CapsuleBuilder(identity, radius, halfLength);
 	}
 
-	public static WrapperBuilder newCapsule(Matrix4f transform, float radius, float halfLength) {
+	public WrapperBuilder newCapsule(Matrix4f transform, float radius, float halfLength) {
 		return new CapsuleBuilder(transform, radius, halfLength);
 	}
 
-	public static WrapperBuilder newBox(float sizeX, float sizeY, float sizeZ) {
+	public WrapperBuilder newBox(float sizeX, float sizeY, float sizeZ) {
 		return newBox(sizeX, sizeY, sizeZ, null, null);
 	}
 
-	public static WrapperBuilder newBox(float sizeX, float sizeY, float sizeZ, List<Integer> indices,
+	public WrapperBuilder newBox(float sizeX, float sizeY, float sizeZ, List<Integer> indices,
 			List<Vector3f> vertices) {
 
 		sizeX = 0.5f * sizeX;
@@ -63,11 +63,11 @@ public class WrapperFactory {
 		return newHull(verticesTab, indices, vertices);
 	}
 
-	public static WrapperBuilder newCone(float radius, float height, int sides) {
+	public WrapperBuilder newCone(float radius, float height, int sides) {
 		return newCone(radius, height, sides, null, null);
 	}
 
-	public static WrapperBuilder newCone(float radius, float height, int sides, List<Integer> indices,
+	public WrapperBuilder newCone(float radius, float height, int sides, List<Integer> indices,
 			List<Vector3f> vertices) {
 		if (sides < 3) {
 			throw new IllegalArgumentException("Le nombre de c�t�s d'un c�ne doit �tre >= 3, valeur:" + sides);
@@ -85,11 +85,11 @@ public class WrapperFactory {
 		return newHull(verticesTab, indices, vertices);
 	}
 
-	public static WrapperBuilder newCylinder(float radius, float height, int sides) {
+	public WrapperBuilder newCylinder(float radius, float height, int sides) {
 		return newCylinder(radius, height, sides, null, null);
 	}
 
-	public static WrapperBuilder newCylinder(float radius, float height, int sides, List<Integer> indices,
+	public WrapperBuilder newCylinder(float radius, float height, int sides, List<Integer> indices,
 			List<Vector3f> vertices) {
 		if (sides < 3) {
 			throw new IllegalArgumentException("Le nombre de c�t�s d'un cylindre doit �tre >= 3, valeur:" + sides);
@@ -107,17 +107,17 @@ public class WrapperFactory {
 		return newHull(verticesTab, indices, vertices);
 	}
 
-	public static WrapperBuilder newHull(Vector3f[] verticesTab) {
+	public WrapperBuilder newHull(Vector3f[] verticesTab) {
 		return newHull(verticesTab, null, null);
 	}
 
-	public static WrapperBuilder newHull(Vector3f[] verticesTab, List<Integer> indices, List<Vector3f> vertices) {
+	public WrapperBuilder newHull(Vector3f[] verticesTab, List<Integer> indices, List<Vector3f> vertices) {
 		return newHull(verticesTab, indices, vertices, verticesTab.length);
 	}
 
-	public static WrapperBuilder newHull(Vector3f[] verticesTab, List<Integer> indices, List<Vector3f> vertices,
+	public WrapperBuilder newHull(Vector3f[] verticesTab, List<Integer> indices, List<Vector3f> vertices,
 			int max_points) {
-		ConvexHull hull = QuickHull.buildConvexHull(verticesTab, max_points);
+		ConvexHull hull = qhull.buildConvexHull(verticesTab, max_points);
 		ConvexHullWrapperData data = hull.convertToWrapperData();
 
 		if (indices != null && vertices != null) {

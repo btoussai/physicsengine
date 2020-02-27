@@ -1,10 +1,10 @@
 package cataclysm.wrappers;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Matrix3f;
+import math.vector.Vector3f;
 
 /**
- * Représente une enveloppe convexe pour les collisions.
+ * Reprï¿½sente une enveloppe convexe pour les collisions.
  * 
  * @author Briac
  *
@@ -12,7 +12,7 @@ import org.lwjgl.util.vector.Vector3f;
 public class ConvexHullWrapper extends Wrapper {
 
 	/**
-	 * Les données géométriques nécessaires à la construction de l'enveloppe.
+	 * Les donnï¿½es gï¿½omï¿½triques nï¿½cessaires ï¿½ la construction de l'enveloppe.
 	 */
 	private final ConvexHullWrapperData data;
 
@@ -29,7 +29,7 @@ public class ConvexHullWrapper extends Wrapper {
 	
 
 	/**
-	 * Ce constructeur ne doit être utilisé que par {@link TriangleAsHull}
+	 * Ce constructeur ne doit ï¿½tre utilisï¿½ que par {@link TriangleAsHull}
 	 */
 	protected ConvexHullWrapper(ConvexHullWrapperData data) {
 		super();
@@ -128,10 +128,10 @@ public class ConvexHullWrapper extends Wrapper {
 
 
 	@Override
-	public float computeInertia(Vector3f centerOfMass, Matrix3f inertia) {
+	public float computeInertia(Vector3f centerOfMass, Matrix3f inertia, PolyhedralMassProperties poly) {
 		this.transform(wrapperToBody);
 		
-		float mass = PolyhedralMassProperties.computeProperties(this, centerOfMass, inertia);
+		float mass = poly.computeProperties(this, centerOfMass, inertia);
 		
 		Vector3f wrapperCenterOfMass = new Vector3f();
 		wrapperToBody.invertTransformVertex(centerOfMass, wrapperCenterOfMass);

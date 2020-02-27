@@ -2,7 +2,7 @@ package math;
 
 import java.util.Random;
 
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Vector3f;
 
 /**
  * Cette classe permet de g�n�rer des nombres al�atoires dans un certain
@@ -33,7 +33,7 @@ public class RandGen {
 
 	public static Vector3f newUnitVector3f() {
 		Vector3f vector = new Vector3f(nextFloat(-1, 1), nextFloat(-1, 1), nextFloat(-1, 1));
-		return vector.normalise(vector);
+		return vector.normalise();
 	}
 
 	public static Vector3f nextVector3f(float minLength, float maxLength) {

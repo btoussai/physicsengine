@@ -1,7 +1,7 @@
 package cataclysm.constraints;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Matrix3f;
+import math.vector.Vector3f;
 
 /**
  * Repr�sente une contrainte sur les translations d'un solide.

@@ -1,8 +1,7 @@
 package cataclysm.integrators;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.wrappers.RigidBody;
+import math.vector.Vector3f;
 
 /**
  * Cet objet permet de simuler une gravit� constante selon une direction.

@@ -1,6 +1,6 @@
 package cataclysm.broadphase.staticmeshes;
 
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Vector3f;
 
 /**
  * Repr�sente un triangle dans un PhysicsMesh.
@@ -26,7 +26,7 @@ public class Triangle {
 		this.v2 = p2;
 		this.v3 = p3;
 
-		normal = Vector3f.cross(Vector3f.sub(p2, p1, null), Vector3f.sub(p3, p1, null), null);
+		normal = Vector3f.cross(Vector3f.sub(p2, p1), Vector3f.sub(p3, p1));
 		float length = normal.length();
 		if (length < 1E-6f) {
 			throw new ArithmeticException("Error, degenerate triangle. Normal length is zero.");

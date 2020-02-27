@@ -1,10 +1,10 @@
 package cataclysm.broadphase.staticmeshes;
 
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Matrix4f;
+import math.vector.Vector3f;
 
 /**
- * Représente les données géométriques d'un staticmesh.
+ * Reprï¿½sente les donnï¿½es gï¿½omï¿½triques d'un staticmesh.
  * @author Briac
  *
  */
@@ -15,7 +15,7 @@ public class StaticMeshData {
 	
 	/**
 	 * Permet de construire un {@link StaticMesh}.
-	 * Les données géométriques doivent être celles d'un maillage triangulaire.
+	 * Les donnï¿½es gï¿½omï¿½triques doivent ï¿½tre celles d'un maillage triangulaire.
 	 * 
 	 * @param indices La liste d'indices permettant de construire les triangles du maillage.
 	 * @param vertices Les sommets constituant le maillage.
@@ -27,9 +27,9 @@ public class StaticMeshData {
 	
 	/**
 	 * Construit les triangles du maillage.
-	 * @param max Un vecteur dans lequel stocker les coordonnées max du maillage.
-	 * @param min Un vecteur dans lequel stocker les coordonnées min du maillage.
-	 * @param transformation Une matrice de transformation appliquée aux sommets.
+	 * @param max Un vecteur dans lequel stocker les coordonnï¿½es max du maillage.
+	 * @param min Un vecteur dans lequel stocker les coordonnï¿½es min du maillage.
+	 * @param transformation Une matrice de transformation appliquï¿½e aux sommets.
 	 * @return
 	 */
 	Triangle[] buildTriangles(StaticMesh mesh, Matrix4f transform, Vector3f min, Vector3f max) {

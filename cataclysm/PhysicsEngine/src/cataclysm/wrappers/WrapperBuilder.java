@@ -1,6 +1,6 @@
 package cataclysm.wrappers;
 
-import org.lwjgl.util.vector.Matrix4f;
+import math.vector.Matrix4f;
 
 /**
  * Cette classe permet d'instancier une enveloppe de collision pour un

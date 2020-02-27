@@ -1,13 +1,12 @@
 package cataclysm.wrappers;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.broadphase.staticmeshes.Triangle;
+import math.vector.Vector3f;
 
 /**
- * Représente un triangle sous forme d'une enveloppe convexe.
+ * Reprï¿½sente un triangle sous forme d'une enveloppe convexe.
  * Ceci permet de calculer les collisions entre les wrappers et les triangles
- * en réutilisant les fonctions de collision contre une enveloppe convexe.
+ * en rï¿½utilisant les fonctions de collision contre une enveloppe convexe.
  * @author Briac
  *
  */
@@ -103,7 +102,7 @@ public class TriangleAsHull extends ConvexHullWrapper {
 		super.getData().vertices[2] = triangle.v3;
 
 		super.getData().faceNormals[0].set(triangle.normal);
-		triangle.normal.negate(super.getData().faceNormals[1]);
+		Vector3f.negate(triangle.normal, super.getData().faceNormals[1]);
 
 		super.getData().planeOffsets[0] = Vector3f.dot(triangle.v1, triangle.normal);
 		super.getData().planeOffsets[1] = -super.getData().planeOffsets[0];

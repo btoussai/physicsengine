@@ -1,10 +1,9 @@
 package cataclysm.wrappers;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
-
 import math.MatrixOps;
+import math.vector.Matrix3f;
+import math.vector.Matrix4f;
+import math.vector.Vector3f;
 
 /**
  * Représente une transformation d'un repère vers un autre.

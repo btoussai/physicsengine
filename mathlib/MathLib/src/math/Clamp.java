@@ -1,6 +1,6 @@
 package math;
 
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Vector3f;
 
 /**
  * Permet de restreindre une valeur entre deux bornes.
@@ -13,8 +13,8 @@ public class Clamp {
 	/**
 	 * Restreint la valeur entre 0.0f et 1.0f.
 	 * 
-	 * @param value La valeur à restreindre.
-	 * @return La valeur restreinte à l'intervalle [0.0f, 1.0f].
+	 * @param value La valeur ï¿½ restreindre.
+	 * @return La valeur restreinte ï¿½ l'intervalle [0.0f, 1.0f].
 	 */
 	public static float clamp(float value) {
 		if (value < 0.0f)
@@ -27,10 +27,10 @@ public class Clamp {
 	/**
 	 * Restreint la valeur dans l'intervalle [minValue, maxValue].
 	 * 
-	 * @param value    La valeur à restreindre.
-	 * @param minValue La borne inférieure de l'intervalle.
-	 * @param maxValue La borne supérieure de l'intervalle.
-	 * @return La valeur restreinte à l'intervalle [minValue, maxValue].
+	 * @param value    La valeur ï¿½ restreindre.
+	 * @param minValue La borne infï¿½rieure de l'intervalle.
+	 * @param maxValue La borne supï¿½rieure de l'intervalle.
+	 * @return La valeur restreinte ï¿½ l'intervalle [minValue, maxValue].
 	 */
 	public static float clamp(float value, float minValue, float maxValue) {
 		if (value < minValue)
@@ -43,10 +43,10 @@ public class Clamp {
 	/**
 	 * Restreint la valeur dans l'intervalle [minValue, maxValue].
 	 * 
-	 * @param value    La valeur à restreindre.
-	 * @param minValue La borne inférieure de l'intervalle.
-	 * @param maxValue La borne supérieure de l'intervalle.
-	 * @return La valeur restreinte à l'intervalle [minValue, maxValue].
+	 * @param value    La valeur ï¿½ restreindre.
+	 * @param minValue La borne infï¿½rieure de l'intervalle.
+	 * @param maxValue La borne supï¿½rieure de l'intervalle.
+	 * @return La valeur restreinte ï¿½ l'intervalle [minValue, maxValue].
 	 */
 	public static int clamp(int value, int minValue, int maxValue) {
 		if (value < minValue)
@@ -59,8 +59,8 @@ public class Clamp {
 	/**
 	 * Restreint la valeur dans l'intervalle [-1.0f, 1.0f].
 	 * 
-	 * @param value La valeur à restreindre.
-	 * @return La valeur restreinte à l'intervalle [-1.0f, 1.0f].
+	 * @param value La valeur ï¿½ restreindre.
+	 * @return La valeur restreinte ï¿½ l'intervalle [-1.0f, 1.0f].
 	 */
 	public static float symetricClamp(float value) {
 		if (value < -1.0f)
@@ -73,8 +73,8 @@ public class Clamp {
 	/**
 	 * Restreint les composantes du vecteur dans l'intervalle [minValue, maxValue].
 	 * @param vector 
-	 * @param minValue La borne inférieure de l'intervalle.
-	 * @param maxValue La borne supérieure de l'intervalle.
+	 * @param minValue La borne infï¿½rieure de l'intervalle.
+	 * @param maxValue La borne supï¿½rieure de l'intervalle.
 	 */
 	public static void clamp(Vector3f vector, float minValue, float maxValue) {
 		vector.set(clamp(vector.x, minValue, maxValue), clamp(vector.y, minValue, maxValue),
@@ -84,9 +84,9 @@ public class Clamp {
 	/**
 	 * Restreint la valeur dans l'intervalle [-maxValue, maxValue].
 	 * 
-	 * @param value    La valeur à restreindre.
+	 * @param value    La valeur ï¿½ restreindre.
 	 * @param maxValue La valeur maximale en valeur absolue de l'intervalle.
-	 * @return La valeur restreinte à l'intervalle [-maxValue, maxValue].
+	 * @return La valeur restreinte ï¿½ l'intervalle [-maxValue, maxValue].
 	 */
 	public static float symetricClamp(float value, float maxValue) {
 		if (value < -maxValue)

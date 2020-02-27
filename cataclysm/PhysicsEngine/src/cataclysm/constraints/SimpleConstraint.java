@@ -1,75 +1,74 @@
 package cataclysm.constraints;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
 import math.Clamp;
+import math.vector.Vector3f;
 
 /**
- * Définit une contrainte simple, en opposition à {@link CompoundConstraint}.
+ * Dï¿½finit une contrainte simple, en opposition ï¿½ {@link CompoundConstraint}.
  * <br>
  * Quelques explications:<br>
  * Notations:<br>
- * X^T est la transposée de X. <br>
- * X[i] est la ième composante de X. <br>
+ * X^T est la transposï¿½e de X. <br>
+ * X[i] est la iï¿½me composante de X. <br>
  * <br>
  * 
- * Conceptuellement, une contrainte s'écrit ainsi:<br>
+ * Conceptuellement, une contrainte s'ï¿½crit ainsi:<br>
  * <br>
  * C(x) est l'erreur de position (vecteur colonne), avec x = (position,
- * orientation). On cherche généralement à résoudre C(x) = 0. <br>
- * En dérivant par rapport au temps:<br>
+ * orientation). On cherche gï¿½nï¿½ralement ï¿½ rï¿½soudre C(x) = 0. <br>
+ * En dï¿½rivant par rapport au temps:<br>
  * Cdot(x) = J*V + b = 0 <br>
  * J est la matrice jacobienne de la contrainte, V la vitesse et b le 'bias'.
  * <br>
  * Dans le cas d'une contrainte entre deux solides, on aura par exemple V = [ va
  * wa -vb -wb ]^T. <br>
  * <br>
- * V correspond à la vitesse satisfaisant la contrainte, on a donc: <br>
+ * V correspond ï¿½ la vitesse satisfaisant la contrainte, on a donc: <br>
  * V = V0 + M^-1 * J^T * lambda<br>
  * Avec V0 la vitesse avant correction et M la matrice dite 'de masse'. Lambda
- * est un vecteur contenant la valeur des impulsions appliquées aux solides.<br>
- * Plus précisément, M est une matrice 12x12: <br>
+ * est un vecteur contenant la valeur des impulsions appliquï¿½es aux solides.<br>
+ * Plus prï¿½cisï¿½ment, M est une matrice 12x12: <br>
  * [__I*ma__0____0_____0__]<br>
  * [__0_____Ia___0_____0__]<br>
  * [__0_____0____I*mb__0__]<br>
  * [__0_____0____0_____Ib_]<br>
  * 
  * <br>
- * Avec I la matrice identitée 3x3, ma et mb la masse des solides et Ia et Ib
+ * Avec I la matrice identitï¿½e 3x3, ma et mb la masse des solides et Ia et Ib
  * leur tenseur d'inertie en world-space. <br>
  * 
  * <br>
- * En développant: <br>
+ * En dï¿½veloppant: <br>
  * <br>
  * Cdot(x) = J * V0 + J * M^-1 * J^T * lambda + beta / h * C(x) + gamma / h *
  * lambda = 0 <br>
- * On cherche donc à résoudre cette équation pour lambda.<br>
+ * On cherche donc ï¿½ rï¿½soudre cette ï¿½quation pour lambda.<br>
  * h est le pas de temps, typiquement 1/60 s.<br>
  * beta et gamma sont des facteurs d'amortissement, ils permettent de moduler le
  * comportemnt de la contrainte (comme un ressort +/- rigide). <br>
- * Le fait d'injecter C(x) dans l'équation de Cdot(x) participe à la modulation
+ * Le fait d'injecter C(x) dans l'ï¿½quation de Cdot(x) participe ï¿½ la modulation
  * du comportement de la contrainte. <br>
  * <br>
- * Pour simplifier la résolution, on définit quelques termes utiles:<br>
+ * Pour simplifier la rï¿½solution, on dï¿½finit quelques termes utiles:<br>
  * J*V0 est l'erreur de vitesse. inv_mass = J * M^-1 * J^T est 'la masse
  * inverse'. Elle s'exprime en kg^-1.<br>
  * <br>
- * On définit également omega la fréquence angulaire en [rad.s^-1] et zeta le
- * facteur d'ammortissement [sans unité]. <br>
+ * On dï¿½finit ï¿½galement omega la frï¿½quence angulaire en [rad.s^-1] et zeta le
+ * facteur d'ammortissement [sans unitï¿½]. <br>
  * <br>
- * k = omega² / inv_mass[i]<br>
+ * k = omegaï¿½ / inv_mass[i]<br>
  * c = 2*zeta*omega / inv_mass[i]<br>
  * <br>
  * beta = h * k / (c + h*k)<br>
  * gamma = 1 / (c + h*k)<br>
  * 
  * <br>
- * Une résolution directe pour obtenir lambda serait envisageable, cependant
- * lambda doit satisfaire des inégaltés du type a_i < lambda[i] < b_i. 
+ * Une rï¿½solution directe pour obtenir lambda serait envisageable, cependant
+ * lambda doit satisfaire des inï¿½galtï¿½s du type a_i < lambda[i] < b_i. 
  * <br>
- * On résout donc le système itérativement par la méthode des impulsions
- * séquentielles.
+ * On rï¿½sout donc le systï¿½me itï¿½rativement par la mï¿½thode des impulsions
+ * sï¿½quentielles.
  * 
  * 
  * @author Briac
@@ -78,13 +77,13 @@ import math.Clamp;
 public abstract class SimpleConstraint extends AbstractConstraint {
 
 	/**
-	 * Une borne inférieure sur les impulsions appliquées pour satisfaire la
+	 * Une borne infï¿½rieure sur les impulsions appliquï¿½es pour satisfaire la
 	 * contrainte.
 	 */
 	private float lowerForceLimit = Float.NEGATIVE_INFINITY;
 
 	/**
-	 * Une borne supérieure sur les impulsions appliquées pour satisfaire la
+	 * Une borne supï¿½rieure sur les impulsions appliquï¿½es pour satisfaire la
 	 * contrainte.
 	 */
 	private float upperForceLimit = Float.POSITIVE_INFINITY;
@@ -162,23 +161,23 @@ public abstract class SimpleConstraint extends AbstractConstraint {
 	}
 
 	/**
-	 * Calcule la i-ème ligne de la matrice jacobienne de la contrainte. Puisqu'il
-	 * est trop coûteux de calculer l'ensemble de la matrice et de l'inverser, on ne
-	 * calcule que les éléments non nuls. Le système est résolu itérativement en
-	 * appliquant des impulsions. Les arguments sont destinés a être remplis. Des
-	 * arguments inutiles peuvent tout à fait être ignorés. <br>
+	 * Calcule la i-ï¿½me ligne de la matrice jacobienne de la contrainte. Puisqu'il
+	 * est trop coï¿½teux de calculer l'ensemble de la matrice et de l'inverser, on ne
+	 * calcule que les ï¿½lï¿½ments non nuls. Le systï¿½me est rï¿½solu itï¿½rativement en
+	 * appliquant des impulsions. Les arguments sont destinï¿½s a ï¿½tre remplis. Des
+	 * arguments inutiles peuvent tout ï¿½ fait ï¿½tre ignorï¿½s. <br>
 	 * Par exemple, certaintes contraintes ne portent que sur la vitesse angulaire
-	 * du solide, les impulsions correspondent alors à des couples selon la
+	 * du solide, les impulsions correspondent alors ï¿½ des couples selon la
 	 * direction N et les vecteurs Ra, Rb, Raxn et Rbxn sont inutiles.
 	 * 
 	 * @param N              Le vecteur indiquant la direction d'application de
 	 *                       l'impulsion.
 	 * @param Ra             Le vecteur indiquant le point d'appliquation de
-	 *                       l'impulsion sur le solide A. Ce point est exprimé en
+	 *                       l'impulsion sur le solide A. Ce point est exprimï¿½ en
 	 *                       world-space, mais est relatif au centre de masse du
 	 *                       solide.
 	 * @param Rb             Le vecteur indiquant le point d'appliquation de
-	 *                       l'impulsion sur le solide B. Ce point est exprimé en
+	 *                       l'impulsion sur le solide B. Ce point est exprimï¿½ en
 	 *                       world-space, mais est relatif au centre de masse du
 	 *                       solide.
 	 * @param RaxN           Le produit vectoriel entre Ra et N.
@@ -186,14 +185,14 @@ public abstract class SimpleConstraint extends AbstractConstraint {
 	 * @param velocity_error Un scalaire indiquant l'erreur de vitesse. Par exemple,
 	 *                       dans le cas d'une contrainte de distance, il s'agira de
 	 *                       la vitesse selon la normale N.
-	 * @param temp           Un vecteur servant de variable intermédiaire pour les
+	 * @param temp           Un vecteur servant de variable intermï¿½diaire pour les
 	 *                       calculs.
 	 */
 	protected abstract float buildVelocityJacobian(Vector3f N, Vector3f Ra, Vector3f Rb, Vector3f RaxN, Vector3f RbxN,
 			Vector3f temp);
 
 	/**
-	 * Calcule la masse inverse pour la ième ligne de la matrice jacobienne: <br>
+	 * Calcule la masse inverse pour la iï¿½me ligne de la matrice jacobienne: <br>
 	 * inv_mass[i] = J[i] * M^-1 * J[i]^T
 	 * 
 	 * @param N
@@ -208,7 +207,7 @@ public abstract class SimpleConstraint extends AbstractConstraint {
 			Vector3f temp);
 
 	/**
-	 * Calcule la ième erreur de vitesse corresondant à la ième ligne de la matrice
+	 * Calcule la iï¿½me erreur de vitesse corresondant ï¿½ la iï¿½me ligne de la matrice
 	 * jacobienne: <br>
 	 * speed[i] = J[i] * V0
 	 * 
@@ -222,7 +221,7 @@ public abstract class SimpleConstraint extends AbstractConstraint {
 	protected abstract float computeVelocityError(Vector3f N, Vector3f RaxN, Vector3f RbxN, Vector3f temp);
 
 	/**
-	 * Applique l'impulsion correspondant à la ième ligne de la matrice jacobienne:
+	 * Applique l'impulsion correspondant ï¿½ la iï¿½me ligne de la matrice jacobienne:
 	 * <br>
 	 * V = V0 + M^-1 * J[i]^T * applied_impulse
 	 * 
@@ -230,16 +229,16 @@ public abstract class SimpleConstraint extends AbstractConstraint {
 	 * @param RaxN
 	 * @param RbxN
 	 * @param temp
-	 * @param applied_impulse L'impulsion appliquée, i.e. lambda[i] - lambda_prec[i]
-	 *                        où lambda_prec correspond à l'impulsion de l'itération
-	 *                        précédente.
+	 * @param applied_impulse L'impulsion appliquï¿½e, i.e. lambda[i] - lambda_prec[i]
+	 *                        oï¿½ lambda_prec correspond ï¿½ l'impulsion de l'itï¿½ration
+	 *                        prï¿½cï¿½dente.
 	 * @param i
 	 */
 	protected abstract void applyImpulse(Vector3f N, Vector3f RaxN, Vector3f RbxN, Vector3f temp,
 			float applied_impulse);
 
 	/**
-	 * L'équivalent de
+	 * L'ï¿½quivalent de
 	 * {@link #buildVelocityJacobian(Vector3f, Vector3f, Vector3f, Vector3f, Vector3f)}
 	 * pour la position.
 	 * 
@@ -254,7 +253,7 @@ public abstract class SimpleConstraint extends AbstractConstraint {
 			Vector3f temp);
 
 	/**
-	 * L'équivalent de
+	 * L'ï¿½quivalent de
 	 * {@link #computeVelocityInvMass(Vector3f, Vector3f, Vector3f, Vector3f, Vector3f, Vector3f)}
 	 * pour la position.
 	 * 
@@ -269,7 +268,7 @@ public abstract class SimpleConstraint extends AbstractConstraint {
 			Vector3f temp);
 
 	/**
-	 * L'équivalent de
+	 * L'ï¿½quivalent de
 	 * {@link #computeVelocityError(Vector3f[], Vector3f[], Vector3f[], float[], Vector3f, int)}
 	 * pour la position.
 	 * 
@@ -281,7 +280,7 @@ public abstract class SimpleConstraint extends AbstractConstraint {
 	protected abstract float computePositionError(Vector3f N, Vector3f RaxN, Vector3f RbxN, Vector3f temp);
 
 	/**
-	 * L'équivalent de {@link #applyImpulse(Vector3f, Vector3f, Vector3f, Vector3f)}
+	 * L'ï¿½quivalent de {@link #applyImpulse(Vector3f, Vector3f, Vector3f, Vector3f)}
 	 * pour la position.
 	 * 
 	 * @param N
@@ -315,7 +314,7 @@ public abstract class SimpleConstraint extends AbstractConstraint {
 	}
 	
 	/**
-	 * @return L'impulsion appliquée lors de la résolution.
+	 * @return L'impulsion appliquï¿½e lors de la rï¿½solution.
 	 */
 	public float getImpulse() {
 		return impulse;

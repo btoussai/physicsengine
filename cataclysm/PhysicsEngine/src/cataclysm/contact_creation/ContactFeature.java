@@ -1,9 +1,8 @@
 package cataclysm.contact_creation;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.wrappers.ConvexHullWrapperFace;
 import cataclysm.wrappers.ConvexHullWrapperHalfEdge;
+import math.vector.Vector3f;
 
 
 /**

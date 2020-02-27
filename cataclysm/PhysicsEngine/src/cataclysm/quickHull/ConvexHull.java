@@ -6,14 +6,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.wrappers.ConvexHullWrapperData;
 import cataclysm.wrappers.ConvexHullWrapperFace;
 import cataclysm.wrappers.ConvexHullWrapperHalfEdge;
+import math.vector.Vector3f;
 
 /**
- * Représente un ensemble convexe de points.
+ * Reprï¿½sente un ensemble convexe de points.
  * 
  * @author Briac
  *
@@ -34,7 +33,7 @@ public class ConvexHull {
 		initialVertices = points;
 	}
 
-	void initFromTetrahedron(int[] indicesTetra, Vector3f[] verticesTetra, List<Vector3f> points) {
+	void initFromTetrahedron(int[] indicesTetra, Vector3f[] verticesTetra, List<Vector3f> points, float epsilon) {
 		faces = new ArrayList<Face>(4);
 
 		Vertex A = new Vertex(verticesTetra[0]);
@@ -61,7 +60,7 @@ public class ConvexHull {
 			}
 
 			Vector3f point = points.get(i);
-			assignToConflictList(point, faces);
+			assignToConflictList(point, faces, epsilon);
 
 		}
 
@@ -77,15 +76,16 @@ public class ConvexHull {
 	}
 
 	/**
-	 * Assigne un point à laliste de conflit d'une des faces. Cette face est la plus
-	 * éloignée du point.
+	 * Assigne un point ï¿½ laliste de conflit d'une des faces. Cette face est la plus
+	 * ï¿½loignï¿½e du point.
 	 * 
 	 * @param point
 	 * @param faces
+	 * @param epsilon 
 	 */
-	public void assignToConflictList(Vector3f point, List<Face> faces) {
+	public void assignToConflictList(Vector3f point, List<Face> faces, float epsilon) {
 
-		float maxDistance = QuickHull.epsilon;
+		float maxDistance = epsilon;
 		Face maxFace = null;
 		for (int j = 0; j < faces.size(); j++) {
 			Face face = faces.get(j);
@@ -108,7 +108,7 @@ public class ConvexHull {
 
 	private Face createFace(Vertex A, Vertex B, Vertex C, Vertex opposite) {
 
-		Vector3f normalDir = Vector3f.sub(A.getPosition(), opposite.getPosition(), null);
+		Vector3f normalDir = Vector3f.sub(A.getPosition(), opposite.getPosition());
 
 		Face face = new Face(A, B, C, normalDir);
 		faces.add(face);
@@ -141,7 +141,7 @@ public class ConvexHull {
 	}
 
 	/**
-	 * Construit une représentation graphique non optimisée de l'enveloppe convexe,
+	 * Construit une reprï¿½sentation graphique non optimisï¿½e de l'enveloppe convexe,
 	 * sous forme de faces triangulaires.
 	 * 
 	 * @param indices  La liste dans laquelle stocker les indices des sommets
@@ -181,7 +181,7 @@ public class ConvexHull {
 	}
 
 	/**
-	 * Recupère les arêtes de l'enveloppe convexe.
+	 * Recupï¿½re les arï¿½tes de l'enveloppe convexe.
 	 * 
 	 * @param vertices La liste dans laquelle stocker les sommets.
 	 */
@@ -205,7 +205,7 @@ public class ConvexHull {
 	}
 
 	/**
-	 * Recupère les sommets de l'enveloppe convexe.
+	 * Recupï¿½re les sommets de l'enveloppe convexe.
 	 * 
 	 * @param vertices La liste dans laquelle stocker les sommets.
 	 */

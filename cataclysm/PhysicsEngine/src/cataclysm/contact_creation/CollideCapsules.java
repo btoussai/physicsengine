@@ -1,9 +1,8 @@
 package cataclysm.contact_creation;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
 import cataclysm.wrappers.CapsuleWrapper;
+import math.vector.Vector3f;
 
 /**
  * Permet de tester la collision entre deux capsules.
@@ -14,31 +13,31 @@ class CollideCapsules {
 	
 	private static final boolean DEBUG = false;
 
-	private static final Vector3f normal = new Vector3f();
+	private final Vector3f normal = new Vector3f();
 	
-	private static final ContactFeature onA = new ContactFeature();
-	private static final ContactFeature onB = new ContactFeature();
+	private final ContactFeature onA = new ContactFeature();
+	private final ContactFeature onB = new ContactFeature();
 
 	/**
-	 * Les deux extrémités de la capsule2, après clipping contre AB.
+	 * Les deux extrï¿½mitï¿½s de la capsule2, aprï¿½s clipping contre AB.
 	 */
-	private static final Vector3f Cprime = new Vector3f();
-	private static final Vector3f Dprime = new Vector3f();
+	private final Vector3f Cprime = new Vector3f();
+	private final Vector3f Dprime = new Vector3f();
 
-	private static final Vector3f AB = new Vector3f();
-	private static final Vector3f CD = new Vector3f();
-	private static final Vector3f AC = new Vector3f();
-	private static final Vector3f AD = new Vector3f();
+	private final Vector3f AB = new Vector3f();
+	private final Vector3f CD = new Vector3f();
+	private final Vector3f AC = new Vector3f();
+	private final Vector3f AD = new Vector3f();
 
 	/**
 	 * Les points minimisant la distance entre les deux capsules.
 	 */
-	private static final Vector3f C1 = new Vector3f();
-	private static final Vector3f C2 = new Vector3f();
+	private final Vector3f C1 = new Vector3f();
+	private final Vector3f C2 = new Vector3f();
 
-	private static final Vector3f C1C2 = new Vector3f();
+	private final Vector3f C1C2 = new Vector3f();
 
-	static void test(CapsuleWrapper capsule1, CapsuleWrapper capsule2, ContactArea contact) {
+	void test(CapsuleWrapper capsule1, CapsuleWrapper capsule2, ContactArea contact) {
 
 		Vector3f A = capsule1.getCenter1();
 		Vector3f B = capsule1.getCenter2();
@@ -60,13 +59,13 @@ class CollideCapsules {
 		float det = AB2 * CD2 - ABCD * ABCD;
 
 		if (det < (1.0f-Epsilons.PARALLEL_LIMIT_2) * AB2 * CD2) {// the capsules are parallel.
-			if(DEBUG)System.out.println("Les capsules sont parallèles.");
+			if(DEBUG)System.out.println("Les capsules sont parallï¿½les.");
 
 			Vector3f.sub(D, A, AD);
 			float ABAD = Vector3f.dot(AB, AD);
 
 			if (ABAC < 0.0f && ABAD < 0.0f) {// capsule2 is below capsule1
-				if(DEBUG)System.out.println("Les capsules sont décalées.");
+				if(DEBUG)System.out.println("Les capsules sont dï¿½calï¿½es.");
 
 				C1.set(A);
 				if (ABAC > ABAD) {
@@ -77,7 +76,7 @@ class CollideCapsules {
 				sphereTest(capsule1, capsule2, contact);
 
 			} else if (ABAC > AB2 && ABAD > AB2) {// capsule1 is below capsule2
-				if(DEBUG)System.out.println("Les capsules sont décalées.");
+				if(DEBUG)System.out.println("Les capsules sont dï¿½calï¿½es.");
 
 				C1.set(B);
 				if (ABAC > ABAD) {
@@ -88,7 +87,7 @@ class CollideCapsules {
 				sphereTest(capsule1, capsule2, contact);
 
 			} else {// the capsules are next to each other
-				if(DEBUG)System.out.println("Les capsules sont empilées.");
+				if(DEBUG)System.out.println("Les capsules sont empilï¿½es.");
 
 				// clip C against AB:
 				float offset = 0;
@@ -171,7 +170,7 @@ class CollideCapsules {
 			}
 
 		} else {// the capsules are antiparallel enough.
-			if(DEBUG)System.out.println("Les capsules ne sont pas parallèles.");
+			if(DEBUG)System.out.println("Les capsules ne sont pas parallï¿½les.");
 			
 			float one_over_det = 1.0f / det;
 
@@ -214,7 +213,7 @@ class CollideCapsules {
 
 	}
 
-	private static void sphereTest(CapsuleWrapper capsule1, CapsuleWrapper capsule2, ContactArea contact) {
+	private void sphereTest(CapsuleWrapper capsule1, CapsuleWrapper capsule2, ContactArea contact) {
 		Vector3f.sub(C2, C1, C1C2);
 
 		float distance2 = C1C2.lengthSquared();

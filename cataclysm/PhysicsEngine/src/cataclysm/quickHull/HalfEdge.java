@@ -2,7 +2,7 @@ package cataclysm.quickHull;
 
 /**
  * 
- * Représente une arète d'une structure half edge.
+ * Reprï¿½sente une arï¿½te d'une structure half edge.
  * 
  * @author Briac
  *
@@ -10,27 +10,27 @@ package cataclysm.quickHull;
 public class HalfEdge {
 
 	/**
-	 * Une référence vers le sommet de départ de l'arrête.
+	 * Une rï¿½fï¿½rence vers le sommet de dï¿½part de l'arrï¿½te.
 	 */
 	private Vertex tail;
 
 	/**
-	 * L'arête suivante de la face.
+	 * L'arï¿½te suivante de la face.
 	 */
 	HalfEdge next;
 
 	/**
-	 * L'arête précédente de la face.
+	 * L'arï¿½te prï¿½cï¿½dente de la face.
 	 */
 	HalfEdge prev;
 
 	/**
-	 * L'arête equivalente appartenant à la face adjacente à cette arête.
+	 * L'arï¿½te equivalente appartenant ï¿½ la face adjacente ï¿½ cette arï¿½te.
 	 */
 	HalfEdge twin;
 
 	/**
-	 * La face possédant cette arête.
+	 * La face possï¿½dant cette arï¿½te.
 	 */
 	private Face face;
 
@@ -90,19 +90,20 @@ public class HalfEdge {
 	}
 
 	/**
-	 * Teste si les deux faces adjacentes de cette arrêtes sont considérées comme
+	 * Teste si les deux faces adjacentes de cette arrï¿½tes sont considï¿½rï¿½es comme
 	 * convexes.
+	 * @param epsilon 
 	 * 
 	 * @return
 	 */
-	public boolean isCoplanar() {
+	public boolean isCoplanar(float epsilon) {
 		Face f1 = face;
 		Face f2 = twin.face;
 
 		float d1 = f1.signedDistance(f2.getCenter());
 		float d2 = f2.signedDistance(f1.getCenter());
 
-		if (Math.abs(d1) < QuickHull.epsilon && Math.abs(d2) < QuickHull.epsilon) {
+		if (Math.abs(d1) < epsilon && Math.abs(d2) < epsilon) {
 			return true;
 		}
 
@@ -110,23 +111,23 @@ public class HalfEdge {
 	}
 
 	/**
-	 * Fusionne la face de l'arète voisine dans la face de cette
-	 * arète.
+	 * Fusionne la face de l'arï¿½te voisine dans la face de cette
+	 * arï¿½te.
 	 */
 	public void absorbNeighborFace() {
 
 		twin.face.setVisited(true);// mark old face as deleted
 
-		face.setEdge(prev);// change la référence de la face car cette arrête (this) sera supprimée.
+		face.setEdge(prev);// change la rï¿½fï¿½rence de la face car cette arrï¿½te (this) sera supprimï¿½e.
 
-		// indique aux arrêtes de la face voisine qu'elles appartiennent à cette face.
+		// indique aux arrï¿½tes de la face voisine qu'elles appartiennent ï¿½ cette face.
 		HalfEdge it = twin.next;
 		do {
 			it.setFace(face);
 			it = it.next;
 		} while (it != twin);
 
-		// lie les arrêtes entre elles.
+		// lie les arrï¿½tes entre elles.
 		prev.next = twin.next;
 		next.prev = twin.prev;
 
@@ -147,7 +148,7 @@ public class HalfEdge {
 	private void fixTopology(HalfEdge in, HalfEdge out) {
 
 		if (in.twin.face == out.twin.face) {
-			// problème: le sommet entre in et out n'a que deux faces adjacentes.
+			// problï¿½me: le sommet entre in et out n'a que deux faces adjacentes.
 
 			Face neighbor = in.twin.face;
 			if (neighbor.isTriangle()) {

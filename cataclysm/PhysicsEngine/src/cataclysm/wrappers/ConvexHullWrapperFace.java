@@ -2,10 +2,10 @@ package cataclysm.wrappers;
 
 import java.util.Iterator;
 
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Vector3f;
 
 /**
- * Représente une face d'une enveloppe convexe pour les collision.
+ * Reprï¿½sente une face d'une enveloppe convexe pour les collision.
  * 
  * @author Briac
  *

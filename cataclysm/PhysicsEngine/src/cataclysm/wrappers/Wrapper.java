@@ -2,15 +2,14 @@ package cataclysm.wrappers;
 
 import java.util.ArrayList;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
 import cataclysm.broadphase.AABB;
 import cataclysm.broadphase.BroadPhaseNode;
 import cataclysm.contact_creation.AbstractDoubleBodyContact;
 import cataclysm.contact_creation.AbstractSingleBodyContact;
 import cataclysm.datastructures.Identifier;
+import math.vector.Matrix3f;
+import math.vector.Vector3f;
 
 /**
  * Représente une enveloppe générale pour un objet convexe. Un objet peut
@@ -122,7 +121,7 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	/**
 	 * Change la position du centre de masse de l'enveloppe (en wrapper-space). <br>
 	 * Cette fonction est appel�e par
-	 * {@link ConvexHullWrapper#computeInertia(Vector3f, Matrix3f)} car la position
+	 * {@link ConvexHullWrapper#computeInertia(Vector3f, Matrix3f, PolyhedralMassProperties)} car la position
 	 * du centre de masse de l'enveloppe n'est pas connue à l'avance.
 	 * 
 	 * @param centroid le centre de masse de l'enveloppe en wrapper-space.
@@ -243,10 +242,10 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	 * 
 	 * @param centerOfMass un vecteur de destination pour le centre de masse.
 	 * @param inertia      une matrice de destination pour le tenseur d'inertie.
-	 * 
+	 * @param poly TODO
 	 * @return la masse de l'enveloppe.
 	 */
-	public abstract float computeInertia(Vector3f centerOfMass, Matrix3f inertia);
+	abstract float computeInertia(Vector3f centerOfMass, Matrix3f inertia, PolyhedralMassProperties poly);
 
 	/**
 	 * @return la masse, le volume, etc... de cette enveloppe.

@@ -1,8 +1,7 @@
 package cataclysm.contact_creation;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.wrappers.SphereWrapper;
+import math.vector.Vector3f;
 
 /**
  * Permet de tester la collision entre deux spheres.
@@ -11,13 +10,13 @@ import cataclysm.wrappers.SphereWrapper;
  */
 class CollideSpheres {
 
-	private static final Vector3f AB = new Vector3f();
-	private static final Vector3f normal = new Vector3f();
+	private final Vector3f AB = new Vector3f();
+	private final Vector3f normal = new Vector3f();
 
-	private static final ContactFeature onA = new ContactFeature();
-	private static final ContactFeature onB = new ContactFeature();
+	private final ContactFeature onA = new ContactFeature();
+	private final ContactFeature onB = new ContactFeature();
 
-	static void test(SphereWrapper A, SphereWrapper B, ContactArea contact) {
+	void test(SphereWrapper A, SphereWrapper B, ContactArea contact) {
 
 		Vector3f.sub(B.getCentroid(), A.getCentroid(), AB);
 

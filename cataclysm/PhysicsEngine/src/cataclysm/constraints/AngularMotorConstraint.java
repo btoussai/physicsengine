@@ -1,9 +1,8 @@
 package cataclysm.constraints;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Vector3f;
-
 import math.MatrixOps;
+import math.vector.Matrix3f;
+import math.vector.Vector3f;
 
 /**
  * Cette contrainte permet d'appliquer un couple entre deux solides selon un axe.
@@ -13,21 +12,21 @@ import math.MatrixOps;
 public class AngularMotorConstraint extends AxisConstraint{
 	
 	/**
-	 * Définit le comportement du moteur.
+	 * Dï¿½finit le comportement du moteur.
 	 * 
 	 * @author Briac
 	 *
 	 */
 	public enum MotionMode {
 		/**
-		 * Le moteur essaie de tourner pour atteindre un angle spécifié par {@link AngularMotorConstraint#setTargetAngle(float)}. <br>
-		 * Sa vitesse est égale à
+		 * Le moteur essaie de tourner pour atteindre un angle spï¿½cifiï¿½ par {@link AngularMotorConstraint#setTargetAngle(float)}. <br>
+		 * Sa vitesse est ï¿½gale ï¿½
 		 * {@code targetSpeed = gain * (targetAngle - currentAngle)}
 		 */
 		TrackAngle,
 
 		/**
-		 * Le moteur essaie d'atteindre la vitesse spécifiée par
+		 * Le moteur essaie d'atteindre la vitesse spï¿½cifiï¿½e par
 		 * {@link AngularMotorConstraint#setTargetSpeed(float)}
 		 */
 		TrackSpeed;
@@ -39,7 +38,7 @@ public class AngularMotorConstraint extends AxisConstraint{
 	private float currentSpeed = 0;
 
 	/**
-	 * La vitesse de rotation souhaitée.
+	 * La vitesse de rotation souhaitï¿½e.
 	 */
 	private float targetSpeed = 0;
 
@@ -49,13 +48,13 @@ public class AngularMotorConstraint extends AxisConstraint{
 	private float currentAngle;
 
 	/**
-	 * L'angle souhaité du moteur.
+	 * L'angle souhaitï¿½ du moteur.
 	 */
 	private float targetAngle;
 
 	/**
-	 * La vitesse à laquelle le moteur cherche à modifier sa vitesse de rotation pour atteindre
-	 * l'angle voulu. Plus précisément:
+	 * La vitesse ï¿½ laquelle le moteur cherche ï¿½ modifier sa vitesse de rotation pour atteindre
+	 * l'angle voulu. Plus prï¿½cisï¿½ment:
 	 * {@code targetSpeed = gain * (targetAngle - currentAngle)}
 	 */
 	private float gain = 30.0f;

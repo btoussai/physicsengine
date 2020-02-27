@@ -1,7 +1,7 @@
 package cataclysm.contact_creation;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Matrix3f;
+import math.vector.Vector3f;
 
 /**
  * Représente un contact entre deux solides. Les solides ne se touchent pas

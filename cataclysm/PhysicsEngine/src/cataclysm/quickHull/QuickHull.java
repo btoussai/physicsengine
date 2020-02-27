@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Vector3f;
 
 /**
  * Cette classe permet de construire l'enveloppe convexe en 3D d'un nuage de
@@ -25,33 +25,35 @@ public class QuickHull {
 	 * Repr�sente la pr�cision pour l'enveloppe convexe en cours de construction.
 	 * Celle-ci est proportionnelle � la taille de l'enveloppe (spatialement)
 	 */
-	public static float epsilon = 0;
+	private float epsilon = 0;
 
 	/**
 	 * Repr�sente une borne sup�rieure au nombre d'it�rations.
 	 */
-	private static int MAX_ITERATIONS;
+	private int maxIteration;
 
 	/**
 	 * Le nombre d'it�ration pour l'enveloppe convexe en cours de calcul.
 	 */
-	public static int iterations = 0;
+	private int iterations = 0;
+	
+	private final Tetrahedron tetrahedron = new Tetrahedron(this);
 
 	public static final boolean DEBUG = false;
 
-	public static ConvexHull buildConvexHull(Vector3f[] points, int max_points) {
+	public ConvexHull buildConvexHull(Vector3f[] points, int max_points) {
 		return buildConvexHull(Arrays.asList(points), max_points);
 	}
 
-	public static ConvexHull buildConvexHull(List<Vector3f> points, int max_points) {
+	public ConvexHull buildConvexHull(List<Vector3f> points, int max_points) {
 
-		MAX_ITERATIONS = Math.min(max_points, points.size());
-		if (MAX_ITERATIONS < 4) {
+		maxIteration = Math.min(max_points, points.size());
+		if (maxIteration < 4) {
 			throw new IllegalArgumentException("Error, at least 4 points are needed to build a convex hull");
 		}
 
 		ConvexHull hull = new ConvexHull(points);
-		if (!Tetrahedron.buildInitialHull(hull, points)) {
+		if (!tetrahedron.buildInitialHull(hull, points)) {
 			throw new IllegalArgumentException("Error while building the convex hull. The points are coplanar");
 		}
 
@@ -61,7 +63,7 @@ public class QuickHull {
 
 		Vector3f vertex = new Vector3f();
 		Face conflictFace = nextConflictVertex(hull, vertex);
-		while (conflictFace != null && conflictFace.getFurthestDistance() > epsilon && iterations < MAX_ITERATIONS) {
+		while (conflictFace != null && conflictFace.getFurthestDistance() > epsilon && iterations < maxIteration) {
 
 			iterations++;
 
@@ -94,7 +96,7 @@ public class QuickHull {
 	 * @param vertex
 	 * @return la face contenant le sommet � ajouter.
 	 */
-	private static Face nextConflictVertex(ConvexHull hull, Vector3f vertex) {
+	private Face nextConflictVertex(ConvexHull hull, Vector3f vertex) {
 
 		float maxDistance = epsilon;
 		Vector3f furthest = null;
@@ -128,7 +130,7 @@ public class QuickHull {
 	 * @parma conflictFace La face dont le sommet est le plus proche.
 	 * @param hull
 	 */
-	private static void addVertexToHull(Vector3f vertex, Face conflictFace, ConvexHull hull) {
+	private void addVertexToHull(Vector3f vertex, Face conflictFace, ConvexHull hull) {
 
 		List<HalfEdge> horizon = buildhorizon(vertex, conflictFace, hull);
 
@@ -147,11 +149,11 @@ public class QuickHull {
 	 * @param hull
 	 * @return
 	 */
-	private static List<HalfEdge> buildhorizon(Vector3f vertex, Face conflictFace, ConvexHull hull) {
+	private List<HalfEdge> buildhorizon(Vector3f vertex, Face conflictFace, ConvexHull hull) {
 
 		List<HalfEdge> horizon = new ArrayList<HalfEdge>();
 
-		conflictFace.computeHorizon(vertex, conflictFace.getEdge(), horizon);
+		conflictFace.computeHorizon(vertex, conflictFace.getEdge(), horizon, epsilon);
 
 		if (DEBUG) {
 			System.out.println("Horizon: ");
@@ -181,7 +183,7 @@ public class QuickHull {
 	 * @param horizon
 	 * @param hull
 	 */
-	private static void buildNewFaces(List<HalfEdge> horizon, Vector3f eyePos, ConvexHull hull) {
+	private void buildNewFaces(List<HalfEdge> horizon, Vector3f eyePos, ConvexHull hull) {
 
 		Vertex newVertex = new Vertex(new Vector3f(eyePos));
 		List<Face> newFaces = new ArrayList<Face>(horizon.size());
@@ -225,7 +227,7 @@ public class QuickHull {
 	 * 
 	 * @return La liste des sommets en cours de traitement.
 	 */
-	private static List<Vector3f> getOrphans(ConvexHull hull) {
+	private List<Vector3f> getOrphans(ConvexHull hull) {
 
 		List<Vector3f> orphans = new ArrayList<Vector3f>();
 		Iterator<Face> it = hull.faces.iterator();
@@ -250,7 +252,7 @@ public class QuickHull {
 	 * @param hull
 	 * @param orphans
 	 */
-	private static void mergeFaces(List<Face> newFaces, ConvexHull hull) {
+	private void mergeFaces(List<Face> newFaces, ConvexHull hull) {
 
 		for (Face face : newFaces) {
 			if (face.isVisited()) {
@@ -274,14 +276,14 @@ public class QuickHull {
 	 * @param face
 	 * @return true si il y a eu fusion.
 	 */
-	private static boolean adjacentMerge(Face face) {
+	private boolean adjacentMerge(Face face) {
 
 		HalfEdge first = face.getEdge();
 		HalfEdge edge = first;
 
 		do {
 
-			if (edge.isCoplanar()) {
+			if (edge.isCoplanar(epsilon)) {
 				// merge !
 
 				if (DEBUG) {
@@ -310,20 +312,20 @@ public class QuickHull {
 	 * @param newFaces
 	 * @param hull
 	 */
-	private static void resolveOrphans(List<Face> newFaces, ConvexHull hull, List<Vector3f> orphans) {
+	private void resolveOrphans(List<Face> newFaces, ConvexHull hull, List<Vector3f> orphans) {
 
 		for (Vector3f point : orphans) {
-			hull.assignToConflictList(point, newFaces);
+			hull.assignToConflictList(point, newFaces, epsilon);
 		}
 
 	}
 
-	public static int getMAX_ITERATIONS() {
-		return MAX_ITERATIONS;
+	float getEpsilon() {
+		return epsilon;
 	}
 
-	public static void setMAX_ITERATIONS(int mAX_ITERATIONS) {
-		MAX_ITERATIONS = mAX_ITERATIONS;
+	void setEpsilon(float epsilon) {
+		this.epsilon = epsilon;
 	}
 
 }

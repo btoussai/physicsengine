@@ -1,23 +1,23 @@
 package cataclysm.wrappers;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Matrix3f;
+import math.vector.Vector3f;
 
 /**
- * Cette classe fournit une implémentation de l'algorithme de B. Mirtich pour le
- * calcul des propriétés massiques d'un solide polygonal. D'après l'article
+ * Cette classe fournit une implï¿½mentation de l'algorithme de B. Mirtich pour le
+ * calcul des propriï¿½tï¿½s massiques d'un solide polygonal. D'aprï¿½s l'article
  * "Fast and Accurate Computation of Polyhedral Mass Properties".
  * 
- * Un ajout personnel permet de traiter le cas d'un solide creux, où la matière
+ * Un ajout personnel permet de traiter le cas d'un solide creux, oï¿½ la matiï¿½re
  * se concentre sur la surface.
  * 
  * @author Briac
  *
  */
-class PolyhedralMassProperties {
+public class PolyhedralMassProperties {
 
 	/**
-	 * Représente le plan de projection utilisé pour calculer les intégrales
+	 * Reprï¿½sente le plan de projection utilisï¿½ pour calculer les intï¿½grales
 	 * surfaciques sur une face. La projection maximise l'aire de la face sur le
 	 * plan de projection.
 	 * 
@@ -31,21 +31,21 @@ class PolyhedralMassProperties {
 	/**
 	 * La plan de projection actuel.
 	 */
-	private static Projection projection;
+	private Projection projection;
 
 	/**
 	 * Calcule le volume, la position du centre de masse et le tenseur d'inertie du
-	 * solide. On suppose le solide de densité uniforme.
+	 * solide. On suppose le solide de densitï¿½ uniforme.
 	 * 
-	 * @param hull    Le solide dont on souhaite caculer les propriétés.
-	 * @param CM      Le vecteur dans lequel stocker les coordonnées du centre de
+	 * @param hull    Le solide dont on souhaite caculer les propriï¿½tï¿½s.
+	 * @param CM      Le vecteur dans lequel stocker les coordonnï¿½es du centre de
 	 *                masse.
-	 * @param inertia La matrice dans laquelle stocker les coordonnées du tenseur
-	 *                d'inertie. Le tenseur d'inertie est exprimé par rapport à
-	 *                l'origine du repère.
+	 * @param inertia La matrice dans laquelle stocker les coordonnï¿½es du tenseur
+	 *                d'inertie. Le tenseur d'inertie est exprimï¿½ par rapport ï¿½
+	 *                l'origine du repï¿½re.
 	 * @return la masse du solide.
 	 */
-	public static float computeProperties(ConvexHullWrapper hull, Vector3f CM, Matrix3f inertia) {
+	public float computeProperties(ConvexHullWrapper hull, Vector3f CM, Matrix3f inertia) {
 
 		computeVolumeIntegrals(hull.getData());
 
@@ -102,20 +102,20 @@ class PolyhedralMassProperties {
 		return mass;
 	}
 
-	// U<x> --> intégrale sur la surface de <x>.
-	private static float U1, Ux, Uy, Uz, Ux2, Uy2, Uz2, Uxy, Uyz, Uzx;
-	// T<x> --> inégrale sur le volume de <x>.
-	private static float T1, Tx, Ty, Tz, Tx2, Ty2, Tz2, Txy, Tyz, Tzx;
-	// F<x> --> intégrale sur la surface de <x>
-	private static float F1, Fa, Fb, Fc, Fab, Fbc, Fca, Fa2, Fb2, Fc2, Fa3, Fb3, Fc3, Fa2b, Fb2c, Fc2a;
+	// U<x> --> intï¿½grale sur la surface de <x>.
+	private float U1, Ux, Uy, Uz, Ux2, Uy2, Uz2, Uxy, Uyz, Uzx;
+	// T<x> --> inï¿½grale sur le volume de <x>.
+	private float T1, Tx, Ty, Tz, Tx2, Ty2, Tz2, Txy, Tyz, Tzx;
+	// F<x> --> intï¿½grale sur la surface de <x>
+	private float F1, Fa, Fb, Fc, Fab, Fbc, Fca, Fa2, Fb2, Fc2, Fa3, Fb3, Fc3, Fa2b, Fb2c, Fc2a;
 	// Composantes de la normale d'une face
-	private static float na, nb, nc;
-	// PI<x> --> intégrale sur le contour d'une face de <x>
-	private static float pi_1, pi_a, pi_b, pi_a2, pi_b2, pi_a3, pi_b3;
-	private static float pi_ab, pi_a2b, pi_ab2;
-	private static float a0, a1, b0, b1;
+	private float na, nb, nc;
+	// PI<x> --> intï¿½grale sur le contour d'une face de <x>
+	private float pi_1, pi_a, pi_b, pi_a2, pi_b2, pi_a3, pi_b3;
+	private float pi_ab, pi_a2b, pi_ab2;
+	private float a0, a1, b0, b1;
 
-	private static void computeVolumeIntegrals(ConvexHullWrapperData data) {
+	private void computeVolumeIntegrals(ConvexHullWrapperData data) {
 
 		T1 = Tx = Ty = Tz = Tx2 = Ty2 = Tz2 = Txy = Tyz = Tzx = 0;
 		U1 = Ux = Uy = Uz = Ux2 = Uy2 = Uz2 = Uxy = Uyz = Uzx = 0;
@@ -228,7 +228,7 @@ class PolyhedralMassProperties {
 		Tzx /= 2f;
 	}
 
-	private static void computeFaceIntegrals(ConvexHullWrapperFace face) {
+	private void computeFaceIntegrals(ConvexHullWrapperFace face) {
 
 		Vector3f normal = face.getNormal();
 		chooseProjection(normal);
@@ -273,7 +273,7 @@ class PolyhedralMassProperties {
 				+ w2 * pi_a);
 	}
 
-	private static void computeProjectionIntegrals(ConvexHullWrapperFace face) {
+	private void computeProjectionIntegrals(ConvexHullWrapperFace face) {
 		pi_1 = pi_a = pi_b = pi_a2 = pi_b2 = pi_a3 = pi_b3 = pi_ab = pi_a2b = pi_ab2 = 0;
 
 		for (ConvexHullWrapperHalfEdge edge : face) {
@@ -335,7 +335,7 @@ class PolyhedralMassProperties {
 
 	}
 
-	private static void loadCoords(ConvexHullWrapperHalfEdge edge) {
+	private void loadCoords(ConvexHullWrapperHalfEdge edge) {
 		// load a0, a1, b0, b1 from edge's end points
 		Vector3f start = edge.getTail();
 		Vector3f end = edge.getHead();
@@ -361,7 +361,7 @@ class PolyhedralMassProperties {
 		}
 	}
 
-	private static void chooseProjection(Vector3f normal) {
+	private void chooseProjection(Vector3f normal) {
 
 		float absX = Math.abs(normal.x);
 		float absY = Math.abs(normal.y);
@@ -396,11 +396,11 @@ class PolyhedralMassProperties {
 	}
 
 	/**
-	 * Exprime le tenseur d'inertie après une translation de l'objet.
+	 * Exprime le tenseur d'inertie aprï¿½s une translation de l'objet.
 	 * 
-	 * @param inertia     Le tenseur d'inertie exprimé par rapport au centre de
+	 * @param inertia     Le tenseur d'inertie exprimï¿½ par rapport au centre de
 	 *                    masse de l'objet.
-	 * @param translation La transation à appliquer.
+	 * @param translation La transation ï¿½ appliquer.
 	 * @param mass        La masse de l'objet.
 	 */
 	static void translateInertia(Matrix3f inertia, Vector3f translation, float mass) {

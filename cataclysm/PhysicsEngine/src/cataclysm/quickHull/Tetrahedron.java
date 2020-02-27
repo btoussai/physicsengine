@@ -3,34 +3,40 @@ package cataclysm.quickHull;
 import java.util.Arrays;
 import java.util.List;
 
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Vector3f;
 
 /**
- * Contient une méthode static pour générer le tétrahèdre le plus grand possible
- * à partir d'un nuage de points.
+ * Contient une mï¿½thode static pour gï¿½nï¿½rer le tï¿½trahï¿½dre le plus grand possible
+ * ï¿½ partir d'un nuage de points.
  * 
  * @author Briac
  *
  */
 final class Tetrahedron {
+	
+	private final QuickHull qhull;
+	
+	public Tetrahedron(QuickHull qhull) {
+		this.qhull = qhull;
+	}
 
 	/**
-	 * Construit un tétrahèdre le plus grand possible à partir de la liste de
+	 * Construit un tï¿½trahï¿½dre le plus grand possible ï¿½ partir de la liste de
 	 * sommets.
 	 * 
-	 * @param hull   L'enveloppe convexe à construire.
+	 * @param hull   L'enveloppe convexe ï¿½ construire.
 	 * @param points La liste des sommets.
-	 * @return False si le tétrahèdre n'a pas pu être construit.
+	 * @return False si le tï¿½trahï¿½dre n'a pas pu ï¿½tre construit.
 	 */
-	static boolean buildInitialHull(ConvexHull hull, List<Vector3f> points) {
+	boolean buildInitialHull(ConvexHull hull, List<Vector3f> points) {
 
 		if (points.size() < 4) {
 			return false;
 		}
 
-		// Les indices des 4 sommets du tétrahèdre.
+		// Les indices des 4 sommets du tï¿½trahï¿½dre.
 		int[] indicesTetra = { -1, -1, -1, -1 };
-		// Les sommets du tétrahèdre.
+		// Les sommets du tï¿½trahï¿½dre.
 		Vector3f[] verticesTetra = new Vector3f[4];
 
 		Vector3f[] boxVertices = new Vector3f[6];
@@ -53,12 +59,12 @@ final class Tetrahedron {
 			return false;
 		}
 
-		hull.initFromTetrahedron(indicesTetra, verticesTetra, points);
+		hull.initFromTetrahedron(indicesTetra, verticesTetra, points, qhull.getEpsilon());
 
 		return true;
 	}
 
-	private static void makeBiggestBox(List<Vector3f> points, int[] boxIndices, Vector3f[] boxVertices) {
+	private void makeBiggestBox(List<Vector3f> points, int[] boxIndices, Vector3f[] boxVertices) {
 		for (int i = 0; i < points.size(); i++) {
 			Vector3f point = points.get(i);
 
@@ -89,11 +95,11 @@ final class Tetrahedron {
 		}
 	}
 
-	private static boolean makeBiggestTetrahedron(List<Vector3f> points, int[] indicesTetra, Vector3f[] verticesTetra) {
+	private boolean makeBiggestTetrahedron(List<Vector3f> points, int[] indicesTetra, Vector3f[] verticesTetra) {
 
-		Vector3f AB = Vector3f.sub(verticesTetra[1], verticesTetra[0], null);
-		Vector3f AC = Vector3f.sub(verticesTetra[2], verticesTetra[0], null);
-		Vector3f normal = Vector3f.cross(AB, AC, null);
+		Vector3f AB = Vector3f.sub(verticesTetra[1], verticesTetra[0]);
+		Vector3f AC = Vector3f.sub(verticesTetra[2], verticesTetra[0]);
+		Vector3f normal = Vector3f.cross(AB, AC);
 
 		float maxDistance = -1;
 		Vector3f AD = new Vector3f();
@@ -119,10 +125,10 @@ final class Tetrahedron {
 		return true;
 	}
 
-	private static boolean makeBiggestTriangle(List<Vector3f> points, int[] indicesTetra, Vector3f[] verticesTetra) {
+	private boolean makeBiggestTriangle(List<Vector3f> points, int[] indicesTetra, Vector3f[] verticesTetra) {
 		float maxArea = -1;
 
-		Vector3f AB = Vector3f.sub(verticesTetra[1], verticesTetra[0], null);
+		Vector3f AB = Vector3f.sub(verticesTetra[1], verticesTetra[0]);
 		Vector3f AC = new Vector3f();
 		Vector3f normal = new Vector3f();
 		for (int i = 0; i < points.size(); i++) {
@@ -147,7 +153,7 @@ final class Tetrahedron {
 		return true;
 	}
 
-	private static boolean makeLongestLine(List<Vector3f> points, int[] boxIndices, Vector3f[] box, int[] indicesTetra,
+	private boolean makeLongestLine(List<Vector3f> points, int[] boxIndices, Vector3f[] box, int[] indicesTetra,
 			Vector3f[] verticesTetra) {
 		float maxDistance = 0;
 		Vector3f AB = new Vector3f();
@@ -179,12 +185,12 @@ final class Tetrahedron {
 	}
 
 	/**
-	 * Calcule la valeur de la constante de précision à partir des coordonnées
+	 * Calcule la valeur de la constante de prï¿½cision ï¿½ partir des coordonnï¿½es
 	 * maximales du nuage de point.
 	 * 
 	 * @param box
 	 */
-	private static void computeEpsilon(Vector3f[] box) {
+	private void computeEpsilon(Vector3f[] box) {
 
 		float maxX = 0f, maxY = 0f, maxZ = 0f;
 
@@ -194,10 +200,10 @@ final class Tetrahedron {
 			maxZ = Math.max(maxZ, Math.abs(vertex.z));
 		}
 
-		QuickHull.epsilon = 3.0f * (maxX + maxY + maxZ) * QuickHull.FLT_EPSILON;
+		qhull.setEpsilon(3.0f * (maxX + maxY + maxZ) * QuickHull.FLT_EPSILON);
 
 		if (QuickHull.DEBUG) {
-			System.out.println("Epsilon: " + QuickHull.epsilon);
+			System.out.println("Epsilon: " + qhull.getEpsilon());
 		}
 	}
 

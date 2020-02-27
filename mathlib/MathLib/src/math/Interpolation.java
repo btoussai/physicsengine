@@ -1,8 +1,8 @@
 package math;
 
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
+import math.vector.Vector2f;
+import math.vector.Vector3f;
+import math.vector.Vector4f;
 
 /**
  * Cette classe rassemble des fonctions pour calculer l'interpolation entre deux
@@ -14,7 +14,7 @@ import org.lwjgl.util.vector.Vector4f;
 public class Interpolation {
 
 	/**
-	 * Calcule l'interpolation linéaire entre deux valeurs.
+	 * Calcule l'interpolation linï¿½aire entre deux valeurs.
 	 * 
 	 * @param a
 	 * @param b
@@ -26,7 +26,7 @@ public class Interpolation {
 	}
 
 	/**
-	 * Calcule l'interpolation linéaire entre deux valeurs.
+	 * Calcule l'interpolation linï¿½aire entre deux valeurs.
 	 * 
 	 * @param a
 	 * @param b
@@ -38,14 +38,14 @@ public class Interpolation {
 	}
 
 	/**
-	 * Calcule l'interpolation linéaire entre deux vecteurs.
+	 * Calcule l'interpolation linï¿½aire entre deux vecteurs.
 	 * 
 	 * @param a
 	 * @param b
-	 * @param dest   Le vecteur dans lequel stocker le résultat ou null si un
-	 *               vecteur doit être créé.
+	 * @param dest   Le vecteur dans lequel stocker le rï¿½sultat ou null si un
+	 *               vecteur doit ï¿½tre crï¿½ï¿½.
 	 * @param amount
-	 * @return Le résultat de l'interpolation.
+	 * @return Le rï¿½sultat de l'interpolation.
 	 */
 	public static Vector4f linearInterpolation(Vector4f a, Vector4f b, Vector4f dest, float amount) {
 		if (dest == null) {
@@ -57,14 +57,14 @@ public class Interpolation {
 	}
 
 	/**
-	 * Calcule l'interpolation linéaire entre deux vecteurs.
+	 * Calcule l'interpolation linï¿½aire entre deux vecteurs.
 	 * 
 	 * @param a
 	 * @param b
-	 * @param dest   Le vecteur dans lequel stocker le résultat ou null si un
-	 *               vecteur doit être créé.
+	 * @param dest   Le vecteur dans lequel stocker le rï¿½sultat ou null si un
+	 *               vecteur doit ï¿½tre crï¿½ï¿½.
 	 * @param amount
-	 * @return Le résultat de l'interpolation.
+	 * @return Le rï¿½sultat de l'interpolation.
 	 */
 	public static Vector3f linearInterpolation(Vector3f a, Vector3f b, Vector3f dest, float amount) {
 		if (dest == null) {
@@ -76,14 +76,14 @@ public class Interpolation {
 	}
 
 	/**
-	 * Calcule l'interpolation linéaire entre deux vecteurs.
+	 * Calcule l'interpolation linï¿½aire entre deux vecteurs.
 	 * 
 	 * @param a
 	 * @param b
-	 * @param dest   Le vecteur dans lequel stocker le résultat ou null si un
-	 *               vecteur doit être créé.
+	 * @param dest   Le vecteur dans lequel stocker le rï¿½sultat ou null si un
+	 *               vecteur doit ï¿½tre crï¿½ï¿½.
 	 * @param amount
-	 * @return Le résultat de l'interpolation.
+	 * @return Le rï¿½sultat de l'interpolation.
 	 */
 	public static Vector2f linearInterpolation(Vector2f a, Vector2f b, Vector2f dest, float amount) {
 		if (dest == null) {
@@ -124,10 +124,10 @@ public class Interpolation {
 	 * 
 	 * @param a
 	 * @param b
-	 * @param dest   Le vecteur dans lequel stocker le résultat ou null si un
-	 *               vecteur doit être créé.
+	 * @param dest   Le vecteur dans lequel stocker le rï¿½sultat ou null si un
+	 *               vecteur doit ï¿½tre crï¿½ï¿½.
 	 * @param amount
-	 * @return Le résultat de l'interpolation.
+	 * @return Le rï¿½sultat de l'interpolation.
 	 */
 	public static Vector4f cubicInterpolation(Vector4f a, Vector4f b, Vector4f dest, float amount) {
 		if (dest == null) {
@@ -143,10 +143,10 @@ public class Interpolation {
 	 * 
 	 * @param a
 	 * @param b
-	 * @param dest   Le vecteur dans lequel stocker le résultat ou null si un
-	 *               vecteur doit être créé.
+	 * @param dest   Le vecteur dans lequel stocker le rï¿½sultat ou null si un
+	 *               vecteur doit ï¿½tre crï¿½ï¿½.
 	 * @param amount
-	 * @return Le résultat de l'interpolation.
+	 * @return Le rï¿½sultat de l'interpolation.
 	 */
 	public static Vector3f cubicInterpolation(Vector3f a, Vector3f b, Vector3f dest, float amount) {
 		if (dest == null) {
@@ -162,10 +162,10 @@ public class Interpolation {
 	 * 
 	 * @param a
 	 * @param b
-	 * @param dest   Le vecteur dans lequel stocker le résultat ou null si un
-	 *               vecteur doit être créé.
+	 * @param dest   Le vecteur dans lequel stocker le rï¿½sultat ou null si un
+	 *               vecteur doit ï¿½tre crï¿½ï¿½.
 	 * @param amount
-	 * @return Le résultat de l'interpolation.
+	 * @return Le rï¿½sultat de l'interpolation.
 	 */
 	public static Vector2f cubicInterpolation(Vector2f a, Vector2f b, Vector2f dest, float amount) {
 		if (dest == null) {
@@ -176,13 +176,13 @@ public class Interpolation {
 	}
 
 	/**
-	 * Calcule l'interpolation entre deux angles en degrés.
+	 * Calcule l'interpolation entre deux angles en degrï¿½s.
 	 * 
-	 * @param a      -l'angle a en degrés
-	 * @param b      -l'angle b en degrés
+	 * @param a      -l'angle a en degrï¿½s
+	 * @param b      -l'angle b en degrï¿½s
 	 * @param amount -le montant d'interpolation entre a et b compris entre 0.0f et
 	 *               1.0f.
-	 * @return l'angle résultat compris entre 0 et 360;
+	 * @return l'angle rï¿½sultat compris entre 0 et 360;
 	 */
 	public static float angularInterpolation(float a, float b, float amount) {
 
@@ -211,14 +211,14 @@ public class Interpolation {
 	}
 
 	/**
-	 * Attribue un poids à chaque sommet du triangle en fonction de la position du
+	 * Attribue un poids ï¿½ chaque sommet du triangle en fonction de la position du
 	 * point d'interpolation. La somme des poids vaut toujours 1.
 	 * 
 	 * @param P1
 	 * @param P2
 	 * @param P3
 	 * @param coord
-	 * @return un vecteur à trois composantes contenant les poids respectifs des
+	 * @return un vecteur ï¿½ trois composantes contenant les poids respectifs des
 	 *         sommets.
 	 */
 	public static Vector3f interpolationTriangulaire(Vector2f P1, Vector2f P2, Vector2f P3, Vector2f coord) {

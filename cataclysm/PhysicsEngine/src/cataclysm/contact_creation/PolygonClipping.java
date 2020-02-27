@@ -3,11 +3,10 @@ package cataclysm.contact_creation;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
 import cataclysm.wrappers.ConvexHullWrapperFace;
 import cataclysm.wrappers.ConvexHullWrapperHalfEdge;
+import math.vector.Vector3f;
 
 class PolygonClipping {
 

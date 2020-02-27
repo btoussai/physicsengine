@@ -1,13 +1,12 @@
 package cataclysm.constraints;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.constraints.LinearMotorConstraint.MotionMode;
+import math.vector.Vector3f;
 
 /**
- * Cette contrainte représente un piston par l'association d'un
+ * Cette contrainte reprï¿½sente un piston par l'association d'un
  * {@link LinearMotorConstraint} et d'un {@link LineConstraint}. La direction du
- * piston est fixe dans le repère du solide A, sa longueur peut varier.
+ * piston est fixe dans le repï¿½re du solide A, sa longueur peut varier.
  * 
  * 
  * @author Briac
@@ -19,10 +18,10 @@ public class PistonConstraint extends CompoundConstraint {
 	private final LineConstraint line;
 
 	/**
-	 * Cette contrainte représente un piston par l'association d'un
+	 * Cette contrainte reprï¿½sente un piston par l'association d'un
 	 * {@link LinearMotorConstraint} et d'un {@link LineConstraint}. La direction du
-	 * piston est fixe dans le repère du solide A, sa longueur peut varier.
-	 * La direction du piston est déduite de la position des points d'ancrage.
+	 * piston est fixe dans le repï¿½re du solide A, sa longueur peut varier.
+	 * La direction du piston est dï¿½duite de la position des points d'ancrage.
 	 * 
 	 * @param pointA
 	 * @param pointB
@@ -35,9 +34,9 @@ public class PistonConstraint extends CompoundConstraint {
 	}
 
 	/**
-	 *  Cette contrainte représente un piston par l'association d'un
+	 *  Cette contrainte reprï¿½sente un piston par l'association d'un
 	 * {@link LinearMotorConstraint} et d'un {@link LineConstraint}. La direction du
-	 * piston est fixe dans le repère du solide A, sa longueur peut varier.
+	 * piston est fixe dans le repï¿½re du solide A, sa longueur peut varier.
 	 * 
 	 * @param pointA
 	 * @param pointB

@@ -1,12 +1,11 @@
 package cataclysm.wrappers;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Vector3f;
-
 import math.MatrixOps;
+import math.vector.Matrix3f;
+import math.vector.Vector3f;
 
 /**
- * Représente une enveloppe allongée pour les collisions. Utile pour représenter
+ * Reprï¿½sente une enveloppe allongï¿½e pour les collisions. Utile pour reprï¿½senter
  * les membres d'un ragdoll.
  * 
  * @author Briac
@@ -25,10 +24,10 @@ public class CapsuleWrapper extends Wrapper {
 	/**
 	 * Construit une enveloppe en forme de capsule.
 	 * 
-	 * @param body               Le corps rigide possédant cette enveloppe.
+	 * @param body               Le corps rigide possï¿½dant cette enveloppe.
 	 * @param wrapperToBody La matrice de transformation indiquant la
 	 *                           positionet l'orientation de l'enveloppe dans le
-	 *                           repère ducorps rigide.
+	 *                           repï¿½re ducorps rigide.
 	 * @param radius             Le rayon de la capsule.
 	 * @param halfLength         La demi-longueur de la partie cylindrique.
 	 */
@@ -93,7 +92,7 @@ public class CapsuleWrapper extends Wrapper {
 	}
 
 	@Override
-	public float computeInertia(Vector3f centerOfMass, Matrix3f inertia) {
+	public float computeInertia(Vector3f centerOfMass, Matrix3f inertia, PolyhedralMassProperties poly) {
 		inertia.setIdentity();
 
 		float r_plus_h = radius + halfLength;

@@ -1,10 +1,10 @@
 package cataclysm.broadphase.staticmeshes;
 
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Vector2f;
+import math.vector.Vector3f;
 
 /**
- * Représente une cellule de base d'un octree.
+ * Reprï¿½sente une cellule de base d'un octree.
  * 
  * @author Briac
  *
@@ -41,17 +41,17 @@ class OctreeBase {
 	}
 
 	/**
-	 * Détermine les coordonnées de la prochaine cellule dans la direction du rayon.
+	 * Dï¿½termine les coordonnï¿½es de la prochaine cellule dans la direction du rayon.
 	 * 
-	 * @param start            Le point de départ du rayon
-	 * @param dir              La direction du rayon, le vecteur doit être unitaire
+	 * @param start            Le point de dï¿½part du rayon
+	 * @param dir              La direction du rayon, le vecteur doit ï¿½tre unitaire
 	 * @param maxLength        La distance maximale que la rayon peut parcourir
 	 * @param cellSize         La taille d'une cellule
-	 * @param current          Les coordonnées de la cellule actuelle
-	 * @param dest             Les coordonnées de la prochaine cellule
+	 * @param current          Les coordonnï¿½es de la cellule actuelle
+	 * @param dest             Les coordonnï¿½es de la prochaine cellule
 	 * @param intersectionTime Les distances d'intersection min/max du rayon et de
 	 *                         la cellule.
-	 * @return false si la prochaine cellule est trop loin pour être atteinte par le
+	 * @return false si la prochaine cellule est trop loin pour ï¿½tre atteinte par le
 	 *         rayon.
 	 */
 	static boolean nextCell(Vector3f start, Vector3f dir, float maxLength, float cellSize, Coord current, Coord dest,

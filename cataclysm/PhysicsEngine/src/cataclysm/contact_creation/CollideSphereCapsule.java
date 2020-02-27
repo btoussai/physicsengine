@@ -1,9 +1,8 @@
 package cataclysm.contact_creation;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.wrappers.CapsuleWrapper;
 import cataclysm.wrappers.SphereWrapper;
+import math.vector.Vector3f;
 
 /**
  * Permet de tester la collision entre une sphere et une capsule.
@@ -12,16 +11,16 @@ import cataclysm.wrappers.SphereWrapper;
  */
 class CollideSphereCapsule {
 
-	private static final Vector3f axis = new Vector3f();
-	private static final Vector3f toSphere = new Vector3f();
-	private static final Vector3f normal = new Vector3f();
-	private static final Vector3f closestToSphere = new Vector3f();
-	private static final Vector3f AB = new Vector3f();
+	private final Vector3f axis = new Vector3f();
+	private final Vector3f toSphere = new Vector3f();
+	private final Vector3f normal = new Vector3f();
+	private final Vector3f closestToSphere = new Vector3f();
+	private final Vector3f AB = new Vector3f();
 	
-	private static final ContactFeature onA = new ContactFeature();
-	private static final ContactFeature onB = new ContactFeature();
+	private final ContactFeature onA = new ContactFeature();
+	private final ContactFeature onB = new ContactFeature();
 
-	static void test(SphereWrapper sphere, CapsuleWrapper capsule, ContactArea contact) {
+	void test(SphereWrapper sphere, CapsuleWrapper capsule, ContactArea contact) {
 
 		Vector3f.sub(capsule.getCenter2(), capsule.getCenter1(), axis);
 		Vector3f.sub(sphere.getCentroid(), capsule.getCenter1(), toSphere);

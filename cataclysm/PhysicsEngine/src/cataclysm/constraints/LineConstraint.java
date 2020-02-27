@@ -1,12 +1,11 @@
 package cataclysm.constraints;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
+import math.vector.Vector3f;
 
 /**
  * Cette contrainte force les translations des solides selon un axe. Cet axe est
- * défini dans le repère local (model-space) du solide de référence. On peut
+ * dï¿½fini dans le repï¿½re local (model-space) du solide de rï¿½fï¿½rence. On peut
  * s'en servir pour guider un objet selon une direction fixe.
  * 
  * @author Briac
@@ -19,15 +18,15 @@ public class LineConstraint extends LinearConstraint {
 	/**
 	 * Cette contrainte force les translations des solides selon un axe reliant
 	 * initialement les deux points d'ancrage. Cet axe est ensuite converti dans le
-	 * repère local (model-space) du solide de réference. Une rotation ultérieure du
-	 * solide de réference entrainera donc une rotation de l'axe. <br>
-	 * Ce type de contrainte peut être utilisé pour modéliser une grue (solide de
-	 * réference) et sa charge (solide contraint). La charge se déplace le long de
-	 * la grue, sans restriction particulière sur sa rotation. La grue peut se
-	 * déplacer et tourner sur elle-même, entraînant la charge dans son mouvement.
+	 * repï¿½re local (model-space) du solide de rï¿½ference. Une rotation ultï¿½rieure du
+	 * solide de rï¿½ference entrainera donc une rotation de l'axe. <br>
+	 * Ce type de contrainte peut ï¿½tre utilisï¿½ pour modï¿½liser une grue (solide de
+	 * rï¿½ference) et sa charge (solide contraint). La charge se dï¿½place le long de
+	 * la grue, sans restriction particuliï¿½re sur sa rotation. La grue peut se
+	 * dï¿½placer et tourner sur elle-mï¿½me, entraï¿½nant la charge dans son mouvement.
 	 * <br>
 	 * 
-	 * La direction de la ligne est déduite de la position des points d'ancrage.
+	 * La direction de la ligne est dï¿½duite de la position des points d'ancrage.
 	 * 
 	 * @param referencePoint
 	 * @param constrainedPoint
@@ -53,17 +52,17 @@ public class LineConstraint extends LinearConstraint {
 	/**
 	 * Cette contrainte force les translations des solides selon un axe reliant
 	 * initialement les deux points d'ancrage. Cet axe est ensuite converti dans le
-	 * repère local (model-space) du solide de réference. Une rotation ultérieure du
-	 * solide de réference entrainera donc une rotation de l'axe. <br>
-	 * Ce type de contrainte peut être utilisé pour modéliser une grue (solide de
-	 * réference) et sa charge (solide contraint). La charge se déplace le long de
-	 * la grue, sans restriction particulière sur sa rotation. La grue peut se
-	 * déplacer et tourner sur elle-même, entraînant la charge dans son mouvement.
+	 * repï¿½re local (model-space) du solide de rï¿½ference. Une rotation ultï¿½rieure du
+	 * solide de rï¿½ference entrainera donc une rotation de l'axe. <br>
+	 * Ce type de contrainte peut ï¿½tre utilisï¿½ pour modï¿½liser une grue (solide de
+	 * rï¿½ference) et sa charge (solide contraint). La charge se dï¿½place le long de
+	 * la grue, sans restriction particuliï¿½re sur sa rotation. La grue peut se
+	 * dï¿½placer et tourner sur elle-mï¿½me, entraï¿½nant la charge dans son mouvement.
 	 * 
 	 * @param referencePoint
 	 * @param constrainedPoint
 	 * @param axis             La direction de l'axe en world-space. Le vecteur doit
-	 *                         être unitaire.
+	 *                         ï¿½tre unitaire.
 	 */
 	public LineConstraint(AnchorPoint referencePoint, AnchorPoint constrainedPoint, Vector3f axis) {
 		super(referencePoint, constrainedPoint);
@@ -168,13 +167,13 @@ public class LineConstraint extends LinearConstraint {
 	}
 
 	/**
-	 * Calcule la position du projeté orthogonal de point sur le segment formé par
-	 * base et axis. La position est ramenée dans l'intervalle [minDistance,
+	 * Calcule la position du projetï¿½ orthogonal de point sur le segment formï¿½ par
+	 * base et axis. La position est ramenï¿½e dans l'intervalle [minDistance,
 	 * maxDistance] sur le segment.
 	 * 
 	 * @param base  La base du segment.
 	 * @param axis  Le vecteur directeur, unitaire, du segment.
-	 * @param point Le point dont on cherche le projeté orthogonal.
+	 * @param point Le point dont on cherche le projetï¿½ orthogonal.
 	 * @param dest  Le vecteur de destination
 	 */
 	private void closestToLine(Vector3f base, Vector3f axis, Vector3f point, Vector3f dest) {

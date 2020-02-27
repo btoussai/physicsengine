@@ -5,8 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.CataclysmCallbacks;
 import cataclysm.broadphase.staticmeshes.Triangle;
 import cataclysm.wrappers.CapsuleWrapper;
@@ -15,6 +13,7 @@ import cataclysm.wrappers.ConvexHullWrapperHalfEdge;
 import cataclysm.wrappers.SphereWrapper;
 import cataclysm.wrappers.TriangleAsHull;
 import cataclysm.wrappers.Wrapper;
+import math.vector.Vector3f;
 
 /**
  * Permet de tester la collision entre un wrapper et un ensemble de triangles.
@@ -75,6 +74,10 @@ class CollideWrapperTriangle {
 	 * Permet de transformer les triangles en enveloppe convexe.
 	 */
 	private final TriangleAsHull triangleHull = TriangleAsHull.buildNew();
+	
+	private final CollideSphereHull collideSphereHull = new CollideSphereHull();
+	private final CollideCapsuleHull collideCapsuleHull = new CollideCapsuleHull();
+	private final CollideHulls collideHulls = new CollideHulls();
 
 	/**
 	 * Teste la collision entre une enveloppe convexe et un ensemble de triangles.
@@ -152,13 +155,13 @@ class CollideWrapperTriangle {
 		final Consumer<ContactArea> collisionTest;
 		switch (wrapper.getType()) {
 		case Sphere:
-			collisionTest = (ContactArea contact) -> CollideSphereHull.test((SphereWrapper)wrapper, triangleHull, contact);
+			collisionTest = (ContactArea contact) -> collideSphereHull.test((SphereWrapper)wrapper, triangleHull, contact);
 			break;
 		case Capsule:
-			collisionTest = (ContactArea contact) -> CollideCapsuleHull.test((CapsuleWrapper)wrapper, triangleHull, contact);
+			collisionTest = (ContactArea contact) -> collideCapsuleHull.test((CapsuleWrapper)wrapper, triangleHull, contact);
 			break;
 		case ConvexHull:
-			collisionTest = (ContactArea contact) -> CollideHulls.test((ConvexHullWrapper)wrapper, triangleHull, contact);
+			collisionTest = (ContactArea contact) -> collideHulls.test((ConvexHullWrapper)wrapper, triangleHull, contact);
 			break;
 		default:
 			collisionTest = null;

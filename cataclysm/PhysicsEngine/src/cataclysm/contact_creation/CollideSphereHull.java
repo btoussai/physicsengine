@@ -1,10 +1,9 @@
 package cataclysm.contact_creation;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.wrappers.ConvexHullWrapper;
 import cataclysm.wrappers.ConvexHullWrapperFace;
 import cataclysm.wrappers.SphereWrapper;
+import math.vector.Vector3f;
 
 /**
  * Permet de tester la collision entre une sphere et une enveloppe convexe ou un triangle.
@@ -13,15 +12,17 @@ import cataclysm.wrappers.SphereWrapper;
  */
 class CollideSphereHull {
 
-	private static final Vector3f closest = new Vector3f();
-	private static final Vector3f normal = new Vector3f();
+	private final Vector3f closest = new Vector3f();
+	private final Vector3f normal = new Vector3f();
 	
-	private static final ContactFeature onA = new ContactFeature();
-	private static final ContactFeature onB = new ContactFeature();
+	private final ContactFeature onA = new ContactFeature();
+	private final ContactFeature onB = new ContactFeature();
+	
+	private final GJK gjk = new GJK();
 
-	static void test(SphereWrapper sphere, ConvexHullWrapper hull, ContactArea contact) {
+	void test(SphereWrapper sphere, ConvexHullWrapper hull, ContactArea contact) {
 
-		float distance = GJK.distance(sphere, hull, null, closest);
+		float distance = gjk.distance(sphere, hull, null, closest);
 		
 		//System.out.println("Distance:" + distance);
 		//System.out.println("closest:" + closest);
@@ -33,7 +34,7 @@ class CollideSphereHull {
 				Vector3f.sub(closest, sphere.getCentroid(), normal);
 				normal.scale(1.0f / distance);
 				
-				GJK.getClosestFeatureOnB(onB);
+				gjk.getClosestFeatureOnB(onB);
 
 			} else {
 

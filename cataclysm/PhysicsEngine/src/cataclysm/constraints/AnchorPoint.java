@@ -1,13 +1,12 @@
 package cataclysm.constraints;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.wrappers.RigidBody;
+import math.vector.Vector3f;
 
 /**
- * Représente un point d'ancrage d'une contrainte. Un point d'ancrage peut être
- * une coordonnée sur un RigidBody exprimée en model-space ou bien une
- * coordonnée fixe en world-space. Un point d'ancrage ne peut appartenir qu'à
+ * Reprï¿½sente un point d'ancrage d'une contrainte. Un point d'ancrage peut ï¿½tre
+ * une coordonnï¿½e sur un RigidBody exprimï¿½e en model-space ou bien une
+ * coordonnï¿½e fixe en world-space. Un point d'ancrage ne peut appartenir qu'ï¿½
  * une seule contrainte.
  * 
  * @author Briac
@@ -23,8 +22,8 @@ public class AnchorPoint {
 
 	/**
 	 * Construit un nouveau point d'ancrage pour une contrainte. <br>
-	 * Ce point d'ancrage est considéré comme statique, c'est à dire qu'il ne peut
-	 * pas bouger et la position doit être exprimée en world-space.
+	 * Ce point d'ancrage est considï¿½rï¿½ comme statique, c'est ï¿½ dire qu'il ne peut
+	 * pas bouger et la position doit ï¿½tre exprimï¿½e en world-space.
 	 * 
 	 * @param position
 	 */
@@ -37,8 +36,8 @@ public class AnchorPoint {
 
 	/**
 	 * Construit un nouveau point d'ancrage pour une contrainte. <br>
-	 * Ce point d'ancrage est fixe dans le repère du solide, mais le solide peut
-	 * très bien se déplacer. La position doit être exprimée en model-space.
+	 * Ce point d'ancrage est fixe dans le repï¿½re du solide, mais le solide peut
+	 * trï¿½s bien se dï¿½placer. La position doit ï¿½tre exprimï¿½e en model-space.
 	 * 
 	 * @param position
 	 * @param body
@@ -50,7 +49,7 @@ public class AnchorPoint {
 
 		if (body == null) {
 			throw new NullPointerException(
-					"Erreur, création d'un point d'ancrage dynamique avec un solide valant null.");
+					"Erreur, crï¿½ation d'un point d'ancrage dynamique avec un solide valant null.");
 		}
 
 		body.vertexToWorldSpace(bodySpacePos, worldSpacePos);
@@ -58,8 +57,8 @@ public class AnchorPoint {
 
 	/**
 	 * Ce constructeur permet de dupliquer un point d'ancrage. Ceci permet de
-	 * construire une nouvelle contrainte ayant un point d'ancrage localisé au même
-	 * endroit qu'un contrainte construite précédemment.
+	 * construire une nouvelle contrainte ayant un point d'ancrage localisï¿½ au mï¿½me
+	 * endroit qu'un contrainte construite prï¿½cï¿½demment.
 	 * 
 	 * @param other
 	 */
@@ -117,17 +116,17 @@ public class AnchorPoint {
 	}
 
 	/**
-	 * @return La contrainte à laquelle ce point d'ancrage appartient.
+	 * @return La contrainte ï¿½ laquelle ce point d'ancrage appartient.
 	 */
 	public AbstractConstraint getConstraint() {
 		return constraint;
 	}
 
 	/**
-	 * Définit l'unique constrainte possédant ce point d'ancrage.
+	 * Dï¿½finit l'unique constrainte possï¿½dant ce point d'ancrage.
 	 * 
 	 * @param constraint
-	 * @throws IllegalStateException si ce point d'ancrage appartient déjà à une
+	 * @throws IllegalStateException si ce point d'ancrage appartient dï¿½jï¿½ ï¿½ une
 	 *                               contrainte.
 	 * 
 	 * @see #AnchorPoint(AnchorPoint) pour dupliquer un point d'ancrage.
@@ -136,7 +135,7 @@ public class AnchorPoint {
 		if (this.constraint == null) {
 			this.constraint = constraint;
 		} else if (!(this.constraint instanceof CompoundConstraint)) {
-			throw new IllegalStateException("Erreur, ce point d'ancrage appartient déjà à une contrainte.");
+			throw new IllegalStateException("Erreur, ce point d'ancrage appartient dï¿½jï¿½ ï¿½ une contrainte.");
 
 		}
 	}

@@ -1,9 +1,8 @@
 package cataclysm.integrators;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
 import cataclysm.wrappers.RigidBody;
+import math.vector.Vector3f;
 
 /**
  * Cet objet permet d'appliquer une force d'attraction d�croissant comme

@@ -1,6 +1,6 @@
 package cataclysm.wrappers;
 
-import org.lwjgl.util.vector.Matrix4f;
+import math.vector.Matrix4f;
 
 class SphereBuilder extends WrapperBuilder {
 	

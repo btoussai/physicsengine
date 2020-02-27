@@ -4,19 +4,16 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.broadphase.AABB;
+import math.vector.Vector3f;
 
 /**
- * Représente un noeud dans l'octree.
+ * Reprï¿½sente un noeud dans l'octree.
  * 
  * @author Briac
  *
  */
 public class OctreeCell {
-
-	public static long rayTestCalls = 0;
 
 	private final Vector3f center;
 	private final float size;
@@ -24,7 +21,7 @@ public class OctreeCell {
 
 	/**
 	 * La profondeur de la cellule dans l'arbre de l'octree. La cellule a une
-	 * profondeur valant 0 si c'est une feuille, supérieure à zéro sinon.
+	 * profondeur valant 0 si c'est une feuille, supï¿½rieure ï¿½ zï¿½ro sinon.
 	 */
 	private final int depth;
 
@@ -124,7 +121,7 @@ public class OctreeCell {
 	}
 
 	/**
-	 * Récupère l'ensemble des triangles en intersection avec l'AABB
+	 * Rï¿½cupï¿½re l'ensemble des triangles en intersection avec l'AABB
 	 * 
 	 * @param box
 	 * @param dest
@@ -153,9 +150,9 @@ public class OctreeCell {
 	/**
 	 * Effectue un test de lancer de rayon.
 	 * 
-	 * @param start           Le point de départ du rayon.
-	 * @param dir             La direction du rayon, le vecteur doit être unitaire.
-	 * @param maxLength       La distance maximale que le rayon est autorisé à
+	 * @param start           Le point de dï¿½part du rayon.
+	 * @param dir             La direction du rayon, le vecteur doit ï¿½tre unitaire.
+	 * @param maxLength       La distance maximale que le rayon est autorisï¿½ ï¿½
 	 *                        parcourir.
 	 * @param t0              La distance min d'intersection entre le rayon et la
 	 *                        cellule
@@ -164,11 +161,10 @@ public class OctreeCell {
 	 * @param backfaceCulling true pour rejeter le triangle si N.dir > 0.
 	 * @param normalDest      Permet de stocker la normale du point d'intersection.
 	 * @return La distance au point d'intersection ou bien maxLength si le test
-	 *         échoue.
+	 *         ï¿½choue.
 	 */
 	float rayTest(Vector3f start, Vector3f dir, float maxLength, float t0, float t1, boolean backfaceCulling,
 			Vector3f normalDest) {
-		rayTestCalls++;
 
 		if (depth == 0 && triangles != null) {
 			for (Triangle triangle : triangles) {
@@ -231,7 +227,7 @@ public class OctreeCell {
 	 * Calcule un code binaire correspondant au noeud fils dans lequel se situe le
 	 * point 'start + t * dir'.
 	 * 
-	 * @param start Le point de départ du rayon
+	 * @param start Le point de dï¿½part du rayon
 	 * @param dir   La direction du rayon
 	 * @param t     L'avancement sur le rayon
 	 * @return l'indice du noeud fils
@@ -254,7 +250,7 @@ public class OctreeCell {
 	}
 
 	/**
-	 * Calcule un code binaire permettant de déterminer les noeuds fils que l'AABB intersecte.
+	 * Calcule un code binaire permettant de dï¿½terminer les noeuds fils que l'AABB intersecte.
 	 * 
 	 * @param min
 	 * @param max
@@ -290,7 +286,7 @@ public class OctreeCell {
 	 * @param triangle
 	 * @param min
 	 * @param max
-	 * @return false si le triangle est à l'extérieur.
+	 * @return false si le triangle est ï¿½ l'extï¿½rieur.
 	 */
 	private boolean intersectsTriangle(Triangle triangle, Vector3f min, Vector3f max, Vector3f[] edges, Vector3f axis) {
 
@@ -316,10 +312,10 @@ public class OctreeCell {
 			return false;
 		}
 
-		// On teste avec les normales aux arêtes du triangle
-		// et avec les produits vectoriels des arêtes du triangle et des axes XYZ
+		// On teste avec les normales aux arï¿½tes du triangle
+		// et avec les produits vectoriels des arï¿½tes du triangle et des axes XYZ
 
-		// Vector3f.sub(center, triangle.p1, toCenter); //Déjà calculé plus haut.
+		// Vector3f.sub(center, triangle.p1, toCenter); //Dï¿½jï¿½ calculï¿½ plus haut.
 		// edge12 ^ n
 		Vector3f.cross(edges[0], n, axis);
 		if (axisTest(axis, toCenter)) {
@@ -350,13 +346,13 @@ public class OctreeCell {
 			return false;
 		}
 
-		// On a pas trouvé d'axe de séparation, la triangle est en intersection avec la
+		// On a pas trouvï¿½ d'axe de sï¿½paration, la triangle est en intersection avec la
 		// cellule.
 		return true;
 	}
 
 	/**
-	 * Teste si le sommet est à l'intérieur de la cellule.
+	 * Teste si le sommet est ï¿½ l'intï¿½rieur de la cellule.
 	 * 
 	 * @param vertex
 	 * @return
@@ -374,14 +370,14 @@ public class OctreeCell {
 	}
 
 	/**
-	 * Cherche un axe de séparation parmi les produits vectoriels entre edge et les
+	 * Cherche un axe de sï¿½paration parmi les produits vectoriels entre edge et les
 	 * axes XYZ.
 	 * 
 	 * @param toCenter
 	 * @param edge
 	 * @param edgePrev
 	 * @param axis
-	 * @return true si un axe de séparation à été trouvé.
+	 * @return true si un axe de sï¿½paration ï¿½ ï¿½tï¿½ trouvï¿½.
 	 */
 	private boolean edgeTest(Vector3f toCenter, Vector3f edge, Vector3f edgePrev, Vector3f axis) {
 		// edge ^ X
@@ -415,11 +411,11 @@ public class OctreeCell {
 	}
 
 	/**
-	 * Teste si la normale du triangle est un axe de séparation.
+	 * Teste si la normale du triangle est un axe de sï¿½paration.
 	 * 
 	 * @param normal
 	 * @param toCenter
-	 * @return true si normal est un axe de séparation.
+	 * @return true si normal est un axe de sï¿½paration.
 	 */
 	private boolean normalTest(Vector3f normal, Vector3f toCenter) {
 		float proj = half_size * (Math.abs(normal.x) + Math.abs(normal.y) + Math.abs(normal.z));
@@ -428,11 +424,11 @@ public class OctreeCell {
 	}
 
 	/**
-	 * Teste si axis est un axe de séparation.
+	 * Teste si axis est un axe de sï¿½paration.
 	 * 
 	 * @param axis
 	 * @param toCenter
-	 * @return true si axis est un axe de séparation.
+	 * @return true si axis est un axe de sï¿½paration.
 	 */
 	private boolean axisTest(Vector3f axis, Vector3f toCenter) {
 		float offset = Vector3f.dot(axis, toCenter);
@@ -441,8 +437,8 @@ public class OctreeCell {
 	}
 
 	/**
-	 * Explore l'octree et ajoute une boite affichable dans la liste boxes à chaque
-	 * cellule rencontrée.
+	 * Explore l'octree et ajoute une boite affichable dans la liste boxes ï¿½ chaque
+	 * cellule rencontrï¿½e.
 	 * 
 	 * @param boxes        La liste dans laquelle ranger les boites affichables.
 	 * @param maxDepth     La profondeur maximale d'exploration.

@@ -2,9 +2,8 @@ package cataclysm.contact_creation;
 
 import java.util.List;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
+import math.vector.Vector3f;
 
 class ReduceManifold {
 

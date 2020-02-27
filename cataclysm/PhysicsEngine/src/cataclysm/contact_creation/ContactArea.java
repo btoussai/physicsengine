@@ -1,6 +1,6 @@
 package cataclysm.contact_creation;
 
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Vector3f;
 
 /**
  * Représente une zone de contact.

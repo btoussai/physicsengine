@@ -1,14 +1,13 @@
 package cataclysm.integrators;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
 import cataclysm.wrappers.RigidBody;
+import math.vector.Matrix3f;
+import math.vector.Vector3f;
 
 /**
- * Permet d'intégrer le terme gyroscopique (W x Ib * W) dans l'équation
- * différentielle portant sur la rotation d'un objet.
+ * Permet d'intï¿½grer le terme gyroscopique (W x Ib * W) dans l'ï¿½quation
+ * diffï¿½rentielle portant sur la rotation d'un objet.
  * 
  * @author Briac
  *
@@ -22,8 +21,8 @@ public class GyroscopicIntegrator {
 	private Matrix3f invJ = new Matrix3f();
 
 	/**
-	 * Effectue une itération de la méthode de Newton pour résoudre l'équation
-	 * différentielle sur la rotation, incluant le terme gyroscopique.
+	 * Effectue une itï¿½ration de la mï¿½thode de Newton pour rï¿½soudre l'ï¿½quation
+	 * diffï¿½rentielle sur la rotation, incluant le terme gyroscopique.
 	 * 
 	 * @param timeStep
 	 * @param body
@@ -34,7 +33,7 @@ public class GyroscopicIntegrator {
 
 	/**
 	 * @param timeStep Le pas de temps.
-	 * @param rotation La rotation du repère barycentrique.
+	 * @param rotation La rotation du repï¿½re barycentrique.
 	 * @param inertia Les moments principaux d'inertie.
 	 * @param angularVelocity La vitesse angulaire en world-space.
 	 */

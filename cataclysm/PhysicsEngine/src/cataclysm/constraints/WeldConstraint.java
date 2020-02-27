@@ -1,10 +1,10 @@
 package cataclysm.constraints;
 
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Vector3f;
 
 /**
- * Représente une soudure entre deux rigidbody. Leur translation et leur
- * rotation deviennent liées.
+ * Reprï¿½sente une soudure entre deux rigidbody. Leur translation et leur
+ * rotation deviennent liï¿½es.
  * 
  * @author Briac
  *
@@ -15,8 +15,8 @@ public class WeldConstraint extends CompoundConstraint {
 	private final PinRotationConstraint pinRotation;
 
 	/**
-	 * Représente une soudure entre deux rigidbody. Leur translation et leur
-	 * rotation deviennent liées.
+	 * Reprï¿½sente une soudure entre deux rigidbody. Leur translation et leur
+	 * rotation deviennent liï¿½es.
 	 * 
 	 * @param pointA
 	 * @param pointB

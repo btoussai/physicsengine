@@ -1,9 +1,9 @@
 package cataclysm.wrappers;
 
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Vector3f;
 
 /**
- * Représente un ensemble de deux {@link Vector3f} représentant un même vecteur dans deux repères.
+ * Reprï¿½sente un ensemble de deux {@link Vector3f} reprï¿½sentant un mï¿½me vecteur dans deux repï¿½res.
  * 
  * @author Briac
  *

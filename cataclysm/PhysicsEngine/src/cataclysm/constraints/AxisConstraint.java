@@ -1,14 +1,13 @@
 package cataclysm.constraints;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
 import math.Clamp;
+import math.vector.Matrix3f;
+import math.vector.Vector3f;
 
 /**
- * Cette contrainte permet de forcer deux solides à tourner autour d'un axe. La
- * translation n'est pas influencée.
+ * Cette contrainte permet de forcer deux solides ï¿½ tourner autour d'un axe. La
+ * translation n'est pas influencï¿½e.
  * 
  * @author Briac
  *

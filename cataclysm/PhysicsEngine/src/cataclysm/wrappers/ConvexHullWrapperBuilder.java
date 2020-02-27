@@ -1,7 +1,7 @@
 package cataclysm.wrappers;
 
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Matrix4f;
+import math.vector.Vector3f;
 
 class ConvexHullWrapperBuilder extends WrapperBuilder {
 

@@ -1,11 +1,10 @@
 package cataclysm.constraints;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
+import math.vector.Vector3f;
 
 /**
- * Représente un contrainte de distance entre deux solides.
+ * Reprï¿½sente un contrainte de distance entre deux solides.
  * 
  * @author Briac
  *
@@ -19,8 +18,8 @@ public class DistanceConstraint extends LinearConstraint {
 	}
 	
 	/**
-	 * Construit une nouvelle contrainte de distance. La distance est calculé
-	 * d'après la position des points d'ancrages. Cette distance est complétement
+	 * Construit une nouvelle contrainte de distance. La distance est calculï¿½
+	 * d'aprï¿½s la position des points d'ancrages. Cette distance est complï¿½tement
 	 * rigide.
 	 * 
 	 * @param pointA
@@ -32,8 +31,8 @@ public class DistanceConstraint extends LinearConstraint {
 	}
 
 	/**
-	 * Construit une nouvelle contrainte de distance. La distance est calculé
-	 * d'après la position des points d'ancrages. Cette distance est complétement
+	 * Construit une nouvelle contrainte de distance. La distance est calculï¿½
+	 * d'aprï¿½s la position des points d'ancrages. Cette distance est complï¿½tement
 	 * rigide.
 	 * 
 	 * @param pointA

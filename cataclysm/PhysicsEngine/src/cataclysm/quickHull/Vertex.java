@@ -1,9 +1,9 @@
 package cataclysm.quickHull;
 
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Vector3f;
 
 /**
- * Représente un sommet d'une structure half edge
+ * Reprï¿½sente un sommet d'une structure half edge
  * 
  * @author Briac
  *

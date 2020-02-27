@@ -1,12 +1,11 @@
 package cataclysm.constraints;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Vector3f;
-
 import math.MatrixOps;
+import math.vector.Matrix3f;
+import math.vector.Vector3f;
 
 /**
- * Représente une contrainte pour simuler une roue.
+ * Reprï¿½sente une contrainte pour simuler une roue.
  * 
  * @author Briac
  *

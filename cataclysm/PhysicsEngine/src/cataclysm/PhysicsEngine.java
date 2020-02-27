@@ -2,9 +2,6 @@ package cataclysm;
 
 import java.util.List;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.broadphase.staticmeshes.StaticMeshManager;
 import cataclysm.constraints.AbstractConstraint;
 import cataclysm.constraints.SequentialImpulseSolver;
@@ -14,6 +11,8 @@ import cataclysm.wrappers.RigidBody;
 import cataclysm.wrappers.RigidBodyManager;
 import cataclysm.wrappers.Transform;
 import math.MatrixOps;
+import math.vector.Matrix3f;
+import math.vector.Vector3f;
 
 /**
  * Permet de simuler les intéractions entre les objets.

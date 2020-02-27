@@ -1,9 +1,9 @@
 package cataclysm.broadphase.staticmeshes;
 
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Vector3f;
 
 /**
- * Représente une boite affichable permettant de visualiser une cellule de l'octree.
+ * Reprï¿½sente une boite affichable permettant de visualiser une cellule de l'octree.
  * @author Briac
  *
  */

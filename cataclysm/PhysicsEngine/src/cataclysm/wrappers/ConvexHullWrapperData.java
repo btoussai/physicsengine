@@ -1,9 +1,9 @@
 package cataclysm.wrappers;
 
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Vector3f;
 
 /**
- * Représente les données nécessaires à une enveloppe convexe pour les
+ * Reprï¿½sente les donnï¿½es nï¿½cessaires ï¿½ une enveloppe convexe pour les
  * collisions.
  * 
  * @author Briac
@@ -17,8 +17,8 @@ public class ConvexHullWrapperData {
 	protected final ConvexHullWrapperFace[] faces;
 
 	/**
-	 * L'ensemble des arrêtes de l'enveloppe convexe. Les arrêtes sont stockées avec
-	 * leur jumelle juste à côté.
+	 * L'ensemble des arrï¿½tes de l'enveloppe convexe. Les arrï¿½tes sont stockï¿½es avec
+	 * leur jumelle juste ï¿½ cï¿½tï¿½.
 	 */
 	protected final ConvexHullWrapperHalfEdge[] edges;
 
@@ -33,12 +33,12 @@ public class ConvexHullWrapperData {
 	protected final Vector3f[] faceNormals;
 
 	/**
-	 * L'ensemble des centres géométriques des faces.
+	 * L'ensemble des centres gï¿½omï¿½triques des faces.
 	 */
 	protected final Vector3f[] faceCentroids;
 
 	/**
-	 * L'ensemble des offsets dans les équations des plans des faces.
+	 * L'ensemble des offsets dans les ï¿½quations des plans des faces.
 	 */
 	protected final float[] planeOffsets;
 
@@ -48,7 +48,7 @@ public class ConvexHullWrapperData {
 	protected float maxRadius;
 	
 	/**
-	 * Le facteur d'échelle entre l'enveloppe et son modèle.
+	 * Le facteur d'ï¿½chelle entre l'enveloppe et son modï¿½le.
 	 */
 	protected float scale = 1;
 
@@ -147,15 +147,15 @@ public class ConvexHullWrapperData {
 	}
 
 	/**
-	 * Applique un changement d'échelle sur les sommets en wrapper-space.
+	 * Applique un changement d'ï¿½chelle sur les sommets en wrapper-space.
 	 * 
 	 * @param scaleFactor
 	 * @param origin      Le point servant d'origine pour appliquer le changement
-	 *                    d'échelle.
+	 *                    d'ï¿½chelle.
 	 */
 	void scale(float scaleFactor, Vector3f origin) {
 
-		// On applique le changement d'échelle aux sommets.
+		// On applique le changement d'ï¿½chelle aux sommets.
 		for (int i = 0; i < backupVertices.length; i++) {
 			Vector3f v = backupVertices[i];
 			v.x = origin.x + (v.x - origin.x) * scaleFactor;
@@ -176,7 +176,7 @@ public class ConvexHullWrapperData {
 	}
 
 	void translate(float x, float y, float z) {
-		// On applique le changement d'échelle aux sommets.
+		// On applique le changement d'ï¿½chelle aux sommets.
 		for (int i = 0; i < backupVertices.length; i++) {
 			backupVertices[i].translate(x, y, z);
 		}
@@ -188,7 +188,7 @@ public class ConvexHullWrapperData {
 	}
 
 	/**
-	 * @return Le facteur d'echelle entre le modèle et les sommets de l'enveloppe.
+	 * @return Le facteur d'echelle entre le modï¿½le et les sommets de l'enveloppe.
 	 */
 	public float getScale() {
 		return scale;

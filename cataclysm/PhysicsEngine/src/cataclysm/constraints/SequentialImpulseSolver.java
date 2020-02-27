@@ -2,11 +2,10 @@ package cataclysm.constraints;
 
 import java.util.List;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
 import cataclysm.contact_creation.AbstractDoubleBodyContact;
 import cataclysm.contact_creation.AbstractSingleBodyContact;
+import math.vector.Vector3f;
 
 /**
  * Applique des impulsions sur les corps jusqu'� satisfaction des contraintes et

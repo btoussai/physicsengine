@@ -1,108 +1,26 @@
-/*
- * Copyright (c) 2002-2008 LWJGL Project
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *
- * * Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
- *
- * * Neither the name of 'LWJGL' nor the names of
- *   its contributors may be used to endorse or promote products derived
- *   from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
- * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-package org.lwjgl.util.vector;
 
-/**
- *
- * Quaternions for LWJGL!
- *
- * @author fbi
- * @version $Revision$
- * $Id$
- */
+package math.vector;
 
+import java.io.Serializable;
 import java.nio.FloatBuffer;
 
-public class Quaternion extends Vector implements ReadableVector4f {
+public final class Quaternion implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	public float x, y, z, w;
 
-	/**
-	 * C'tor. The quaternion will be initialized to the identity.
-	 */
 	public Quaternion() {
-		super();
 		setIdentity();
 	}
 
-	/**
-	 * C'tor
-	 *
-	 * @param src
-	 */
-	public Quaternion(ReadableVector4f src) {
+	public Quaternion(Quaternion src) {
 		set(src);
 	}
 
-	/**
-	 * C'tor
-	 * @param x 
-	 * @param y 
-	 * @param z 
-	 * @param w 
-	 *
-	 */
 	public Quaternion(float x, float y, float z, float w) {
 		set(x, y, z, w);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.lwjgl.util.vector.WritableVector2f#set(float, float)
-	 */
-	public void set(float x, float y) {
-		this.x = x;
-		this.y = y;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.lwjgl.util.vector.WritableVector3f#set(float, float, float)
-	 */
-	public void set(float x, float y, float z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.lwjgl.util.vector.WritableVector4f#set(float, float, float,
-	 *      float)
-	 */
 	public void set(float x, float y, float z, float w) {
 		this.x = x;
 		this.y = y;
@@ -110,34 +28,18 @@ public class Quaternion extends Vector implements ReadableVector4f {
 		this.w = w;
 	}
 
-	/**
-	 * Load from another Vector4f
-	 *
-	 * @param src
-	 *            The source vector
-	 * @return this
-	 */
-	public Quaternion set(ReadableVector4f src) {
-		x = src.getX();
-		y = src.getY();
-		z = src.getZ();
-		w = src.getW();
+	public Quaternion set(Quaternion src) {
+		x = src.x;
+		y = src.y;
+		z = src.z;
+		w = src.w;
 		return this;
 	}
 
-	/**
-	 * Set this quaternion to the multiplication identity.
-	 * @return this
-	 */
 	public Quaternion setIdentity() {
 		return setIdentity(this);
 	}
 
-	/**
-	 * Set the given quaternion to the multiplication identity.
-	 * @param q The quaternion
-	 * @return q
-	 */
 	public static Quaternion setIdentity(Quaternion q) {
 		q.x = 0;
 		q.y = 0;
@@ -145,10 +47,11 @@ public class Quaternion extends Vector implements ReadableVector4f {
 		q.w = 1;
 		return q;
 	}
-
-	/**
-	 * @return the length squared of the quaternion
-	 */
+	
+	public float length() {
+		return (float) Math.sqrt(lengthSquared());
+	}
+	
 	public float lengthSquared() {
 		return x * x + y * y + z * z + w * w;
 	}
@@ -200,65 +103,34 @@ public class Quaternion extends Vector implements ReadableVector4f {
 				* right.w;
 	}
 
-	/**
-	 * Calculate the conjugate of this quaternion and put it into the given one
-	 *
-	 * @param dest
-	 *            The quaternion which should be set to the conjugate of this
-	 *            quaternion
-	 * @return 
-	 */
-	public Quaternion negate(Quaternion dest) {
-		return negate(this, dest);
+	public Quaternion conjugate(Quaternion dest) {
+		return conjugate(this, dest);
 	}
 
-	/**
-	 * Calculate the conjugate of this quaternion and put it into the given one
-	 *
-	 * @param src
-	 *            The source quaternion
-	 * @param dest
-	 *            The quaternion which should be set to the conjugate of this
-	 *            quaternion
-	 * @return 
-	 */
-	public static Quaternion negate(Quaternion src, Quaternion dest) {
+	public static Quaternion conjugate(Quaternion src, Quaternion dest) {
 		if (dest == null)
 			dest = new Quaternion();
-
 		dest.x = -src.x;
 		dest.y = -src.y;
 		dest.z = -src.z;
 		dest.w = src.w;
-
 		return dest;
 	}
 
-	/**
-	 * Calculate the conjugate of this quaternion
-	 */
-	public Vector negate() {
-		return negate(this, this);
+	public Quaternion conjugate() {
+		return conjugate(this, this);
+	}
+	
+	public Quaternion scale(float scale) {
+		return scale(scale, this, this);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.lwjgl.util.vector.Vector#load(java.nio.FloatBuffer)
-	 */
-	public Vector load(FloatBuffer buf) {
+	public Quaternion load(FloatBuffer buf) {
 		x = buf.get();
 		y = buf.get();
 		z = buf.get();
 		w = buf.get();
 		return this;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.lwjgl.vector.Vector#scale(float)
-	 */
-	public Vector scale(float scale) {
-		return scale(scale, this, this);
 	}
 
 	/**
@@ -278,84 +150,12 @@ public class Quaternion extends Vector implements ReadableVector4f {
 		return dest;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.lwjgl.util.vector.ReadableVector#store(java.nio.FloatBuffer)
-	 */
-	public Vector store(FloatBuffer buf) {
+	public Quaternion store(FloatBuffer buf) {
 		buf.put(x);
 		buf.put(y);
 		buf.put(z);
 		buf.put(w);
-
 		return this;
-	}
-
-	/**
-	 * @return x
-	 */
-	public final float getX() {
-		return x;
-	}
-
-	/**
-	 * @return y
-	 */
-	public final float getY() {
-		return y;
-	}
-
-	/**
-	 * Set X
-	 *
-	 * @param x
-	 */
-	public final void setX(float x) {
-		this.x = x;
-	}
-
-	/**
-	 * Set Y
-	 *
-	 * @param y
-	 */
-	public final void setY(float y) {
-		this.y = y;
-	}
-
-	/**
-	 * Set Z
-	 *
-	 * @param z
-	 */
-	public void setZ(float z) {
-		this.z = z;
-	}
-
-	/*
-	 * (Overrides)
-	 *
-	 * @see org.lwjgl.vector.ReadableVector3f#getZ()
-	 */
-	public float getZ() {
-		return z;
-	}
-
-	/**
-	 * Set W
-	 *
-	 * @param w
-	 */
-	public void setW(float w) {
-		this.w = w;
-	}
-
-	/*
-	 * (Overrides)
-	 *
-	 * @see org.lwjgl.vector.ReadableVector3f#getW()
-	 */
-	public float getW() {
-		return w;
 	}
 
 	public String toString() {

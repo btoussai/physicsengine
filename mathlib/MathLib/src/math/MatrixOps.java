@@ -1,9 +1,9 @@
 package math;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Matrix3f;
+import math.vector.Matrix4f;
+import math.vector.Vector2f;
+import math.vector.Vector3f;
 
 /**
  * Cette classe permet de cr�er diff�rents types de matrices: transformation,
@@ -620,7 +620,7 @@ public class MatrixOps {
 			dest.setIdentity();
 		}
 
-		Vector3f normal = Vector3f.cross(direction, finalDirection, null);
+		Vector3f normal = Vector3f.cross(direction, finalDirection);
 		float length = normal.length();
 		float angle = 0;
 		if (length == 0.0f) {
@@ -658,7 +658,7 @@ public class MatrixOps {
 			dest.setIdentity();
 		}
 
-		Vector3f normal = Vector3f.cross(direction, finalDirection, null);
+		Vector3f normal = Vector3f.cross(direction, finalDirection);
 		float length = normal.length();
 		float angle = 0;
 		if (length == 0.0f) {
@@ -907,9 +907,9 @@ public class MatrixOps {
 
 		Vector3f X, Y, Z;
 
-		Z = forward.negate(null);
+		Z = Vector3f.negate(forward);
 		Y = up;
-		X = Vector3f.cross(Y, Z, null);
+		X = Vector3f.cross(Y, Z);
 
 		dest.m00 = X.x;
 		dest.m10 = X.y;
@@ -984,7 +984,7 @@ public class MatrixOps {
 	public static Matrix4f createOrthographicProjectionMatrix(Vector3f boxMinCorner, Vector3f boxMaxCorner,
 			Matrix4f dest) {
 
-		Vector3f center = Vector3f.add(boxMinCorner, boxMaxCorner, null);
+		Vector3f center = Vector3f.add(boxMinCorner, boxMaxCorner);
 		center.x /= 2.0f;
 		center.y /= 2.0f;
 		center.z /= 2.0f;

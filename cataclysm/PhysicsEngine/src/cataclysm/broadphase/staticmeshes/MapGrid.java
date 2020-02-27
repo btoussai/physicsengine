@@ -5,10 +5,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.broadphase.AABB;
+import math.vector.Vector2f;
+import math.vector.Vector3f;
 
 /**
  * Repr�sente la grille 3D dans laquel sont stock�s les triangles des

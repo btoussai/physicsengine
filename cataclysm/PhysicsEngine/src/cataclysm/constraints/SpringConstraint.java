@@ -1,11 +1,10 @@
 package cataclysm.constraints;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
+import math.vector.Vector3f;
 
 /**
- * Cette contrainte représente un ressort entre deux solides.
+ * Cette contrainte reprï¿½sente un ressort entre deux solides.
  * 
  * @author Briac
  *
@@ -120,16 +119,16 @@ public class SpringConstraint extends LinearConstraint {
 	}
 	
 	/**
-	 * Modifie les paramètres de rigidité du ressort.
+	 * Modifie les paramï¿½tres de rigiditï¿½ du ressort.
 	 * 
 	 * @param damping_ratio Un facteur d'amortissement. <br>
 	 *                      0.0f --> pas d'amortissement <br>
 	 *                      1.0f --> aucune oscillation
-	 * @param frequency     Le nombre d'oscillation par seconde. Une fréquence élévée
-	 *                      correspond à une contrainte plus rigide, une fréquence
-	 *                      faible correspond à une contrainte plus souple. <br>
-	 *                      0.1f --> très souple <br>
-	 *                      30.0f --> très raide <br>
+	 * @param frequency     Le nombre d'oscillation par seconde. Une frï¿½quence ï¿½lï¿½vï¿½e
+	 *                      correspond ï¿½ une contrainte plus rigide, une frï¿½quence
+	 *                      faible correspond ï¿½ une contrainte plus souple. <br>
+	 *                      0.1f --> trï¿½s souple <br>
+	 *                      30.0f --> trï¿½s raide <br>
 	 * 
 	 */
 	public void setSoftnessParameters(float damping_ratio, float frequency) {

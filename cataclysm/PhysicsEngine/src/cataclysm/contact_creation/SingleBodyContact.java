@@ -1,14 +1,13 @@
 package cataclysm.contact_creation;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
 import cataclysm.broadphase.staticmeshes.Triangle;
 import cataclysm.wrappers.RigidBody;
 import cataclysm.wrappers.Wrapper;
 import math.Clamp;
 import math.MatrixOps;
+import math.vector.Matrix3f;
+import math.vector.Vector3f;
 
 /**
  * Représente un contact entre un solide et un triangle. Les solides ne se
@@ -77,7 +76,7 @@ public class SingleBodyContact extends AbstractSingleBodyContact {
 	public void velocityStart() {
 		super.mixContactProperties(wrapper.getBody().getContactProperties(),
 				triangle.mesh.getContactProperties());
-		area.getNormal().negate(N);
+		Vector3f.negate(area.getNormal(), N);
 		MatrixOps.computeOrthogonalComplement(N, T, B);
 
 		for (int i = 0; i < super.area.getContactCount(); i++) {

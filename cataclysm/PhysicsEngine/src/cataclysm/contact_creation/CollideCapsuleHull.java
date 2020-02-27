@@ -1,12 +1,11 @@
 package cataclysm.contact_creation;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
 import cataclysm.wrappers.CapsuleWrapper;
 import cataclysm.wrappers.ConvexHullWrapper;
 import cataclysm.wrappers.ConvexHullWrapperFace;
 import cataclysm.wrappers.ConvexHullWrapperHalfEdge;
+import math.vector.Vector3f;
 
 /**
  * Permet de tester la collision entre une capsule et une enveloppe convexe.
@@ -16,19 +15,21 @@ import cataclysm.wrappers.ConvexHullWrapperHalfEdge;
  */
 class CollideCapsuleHull {
 
-	private static final Vector3f normal = new Vector3f();
-	private static final Vector3f closestOnHull = new Vector3f();
-	private static final Vector3f closestOnSegment = new Vector3f();
+	private final Vector3f normal = new Vector3f();
+	private final Vector3f closestOnHull = new Vector3f();
+	private final Vector3f closestOnSegment = new Vector3f();
 
-	private static final Vector3f C1 = new Vector3f();
-	private static final Vector3f C2 = new Vector3f();
-	private static final Vector3f capsuleSegment = new Vector3f();
-	private static float capsuleSegmentLengthSquared = 0;
+	private final Vector3f C1 = new Vector3f();
+	private final Vector3f C2 = new Vector3f();
+	private final Vector3f capsuleSegment = new Vector3f();
+	private float capsuleSegmentLengthSquared = 0;
 
-	private static final Vector3f clipPlaneNormal = new Vector3f();
+	private final Vector3f clipPlaneNormal = new Vector3f();
 
-	private static final ContactFeature onA = new ContactFeature();
-	private static final ContactFeature onB = new ContactFeature();
+	private final ContactFeature onA = new ContactFeature();
+	private final ContactFeature onB = new ContactFeature();
+	
+	private final GJK gjk = new GJK();
 
 	/**
 	 * Permet de tester la collision entre une capsule et une enveloppe convexe.
@@ -37,9 +38,8 @@ class CollideCapsuleHull {
 	 * @param hull
 	 * @param contact
 	 */
-	static void test(CapsuleWrapper capsule, ConvexHullWrapper hull, ContactArea contact) {
-
-		float distance = GJK.distance(capsule, hull, closestOnSegment, closestOnHull);
+	void test(CapsuleWrapper capsule, ConvexHullWrapper hull, ContactArea contact) {
+		float distance = gjk.distance(capsule, hull, closestOnSegment, closestOnHull);
 
 		if (distance < capsule.getRadius()) {
 
@@ -51,8 +51,8 @@ class CollideCapsuleHull {
 			capsuleSegmentLengthSquared = capsuleSegment.lengthSquared();
 
 			if (distance > 0.0f) {
-				// shallow contact, capsuleSegment est à l'extérieur du solide.
-				GJK.getClosestFeatureOnB(onB);
+				// shallow contact, capsuleSegment est ï¿½ l'extï¿½rieur du solide.
+				gjk.getClosestFeatureOnB(onB);
 
 				Vector3f.sub(closestOnHull, closestOnSegment, normal);
 				normal.scale(1.0f / distance);
@@ -68,7 +68,7 @@ class CollideCapsuleHull {
 					}
 
 				} else {
-					// Contact sur une extrêmité.
+					// Contact sur une extrï¿½mitï¿½.
 					oneContactPointScenario(normal, distance, capsule, contact);
 				}
 
@@ -88,7 +88,7 @@ class CollideCapsuleHull {
 
 					contact.contactPoints[0].set(0.5f * (C1.x + C2.x), 0.5f * (C1.y + C2.y), 0.5f * (C1.z + C2.z));
 					contact.penetrations[0] = depth;
-					bestEdgeNormal.negate(normal);
+					Vector3f.negate(bestEdgeNormal, normal);
 					contact.rebuild(normal, depth, 1, onA, onB);
 				}
 
@@ -100,7 +100,7 @@ class CollideCapsuleHull {
 
 	}
 
-	private static ConvexHullWrapperFace bestFace = null;
+	private ConvexHullWrapperFace bestFace = null;
 
 	/**
 	 * Teste si la capsule repose sur une des faces du solide.
@@ -109,7 +109,7 @@ class CollideCapsuleHull {
 	 * @param hull
 	 * @return
 	 */
-	private static boolean checkCapsuleLayingOnFace(Vector3f contactNormal, ConvexHullWrapper hull) {
+	private boolean checkCapsuleLayingOnFace(Vector3f contactNormal, ConvexHullWrapper hull) {
 		float bestDot = Float.MAX_VALUE;
 
 		for (ConvexHullWrapperFace face : hull.getFaces()) {
@@ -127,14 +127,14 @@ class CollideCapsuleHull {
 	}
 
 	/**
-	 * Cherche la face maximisant la distance à capsuleSegment, dans le cas où
-	 * capsuleSegment intersecte le solide. (car la distance est négative)
+	 * Cherche la face maximisant la distance ï¿½ capsuleSegment, dans le cas oï¿½
+	 * capsuleSegment intersecte le solide. (car la distance est nï¿½gative)
 	 * 
 	 * @param capsule
 	 * @param hull
-	 * @return une distance négative !
+	 * @return une distance nï¿½gative !
 	 */
-	private static float distanceToFaces(CapsuleWrapper capsule, ConvexHullWrapper hull) {
+	private float distanceToFaces(CapsuleWrapper capsule, ConvexHullWrapper hull) {
 		float distance = Float.NEGATIVE_INFINITY;
 		for (ConvexHullWrapperFace face : hull.getFaces()) {
 			float d = Math.min(face.signedDistance(C1), face.signedDistance(C2));
@@ -147,24 +147,24 @@ class CollideCapsuleHull {
 		return distance;
 	}
 
-	private static ConvexHullWrapperHalfEdge bestEdge = null;
-	private static final Vector3f bestEdgeNormal = new Vector3f();
-	private static final Vector3f segmentCrossEdgeVec = new Vector3f();
-	private static final Vector3f edgeVec = new Vector3f();
-	private static final Vector3f capsuleToEdge = new Vector3f();
-	private static final Vector3f hullCentroid = new Vector3f();
-	private static final Vector3f capsuleCentroid = new Vector3f();
-	private static final Vector3f capsuleToHull = new Vector3f();
+	private ConvexHullWrapperHalfEdge bestEdge = null;
+	private final Vector3f bestEdgeNormal = new Vector3f();
+	private final Vector3f segmentCrossEdgeVec = new Vector3f();
+	private final Vector3f edgeVec = new Vector3f();
+	private final Vector3f capsuleToEdge = new Vector3f();
+	private final Vector3f hullCentroid = new Vector3f();
+	private final Vector3f capsuleCentroid = new Vector3f();
+	private final Vector3f capsuleToHull = new Vector3f();
 
 	/**
-	 * Cherche l'arête maximisant la distance à capsuleSegment, dans le cas où
-	 * capsuleSegment intersecte le solide. (car la distance est négative)
+	 * Cherche l'arï¿½te maximisant la distance ï¿½ capsuleSegment, dans le cas oï¿½
+	 * capsuleSegment intersecte le solide. (car la distance est nï¿½gative)
 	 * 
 	 * @param capsule
 	 * @param hull
-	 * @return une distance négative !
+	 * @return une distance nï¿½gative !
 	 */
-	private static float distanceToEdges(CapsuleWrapper capsule, ConvexHullWrapper hull) {
+	private float distanceToEdges(CapsuleWrapper capsule, ConvexHullWrapper hull) {
 
 		hullCentroid.set(hull.getCentroid());
 		capsuleCentroid.set(capsule.getCentroid());
@@ -203,12 +203,12 @@ class CollideCapsuleHull {
 	}
 
 	/**
-	 * Traite le cas où la capsule est couchée sur une face.
+	 * Traite le cas oï¿½ la capsule est couchï¿½e sur une face.
 	 * 
 	 * @param capsule
 	 * @param distanceToBestFace
 	 */
-	private static void stackingScenario(CapsuleWrapper capsule, ConvexHullWrapper hull, float distanceToBestFace,
+	private void stackingScenario(CapsuleWrapper capsule, ConvexHullWrapper hull, float distanceToBestFace,
 			ContactArea contact) {
 
 		// Clip segment against bestFace
@@ -224,7 +224,7 @@ class CollideCapsuleHull {
 		}
 
 		normal.set(bestFace.getNormal());
-		normal.negate(normal);
+		normal.negate();
 
 		float r = capsule.getRadius();
 		float d1 = bestFace.signedDistance(C1);
@@ -265,14 +265,13 @@ class CollideCapsuleHull {
 	}
 
 	/**
-	 * Traite le cas où il n'y a qu'un seul point de contact.
+	 * Traite le cas oï¿½ il n'y a qu'un seul point de contact.
 	 * 
 	 * @param normal
 	 * @param distance
 	 * @param capsule
 	 */
-	private static void oneContactPointScenario(Vector3f normal, float distance, CapsuleWrapper capsule,
-			ContactArea contact) {
+	private void oneContactPointScenario(Vector3f normal, float distance, CapsuleWrapper capsule, ContactArea contact) {
 		float depth = distance - capsule.getRadius();
 
 		float toContactPoint = distance + 0.5f * depth;
@@ -283,12 +282,12 @@ class CollideCapsuleHull {
 	}
 
 	/**
-	 * Fait en sorte que le segment C1C2 soit entièrement du côté du plan.
+	 * Fait en sorte que le segment C1C2 soit entiï¿½rement du cï¿½tï¿½ du plan.
 	 * 
 	 * @param planeNormal
 	 * @param planeOffset
 	 */
-	private static void clipSegmentAgainstPlane(Vector3f planeNormal, float planeOffset) {
+	private void clipSegmentAgainstPlane(Vector3f planeNormal, float planeOffset) {
 
 		float NdotN = planeNormal.lengthSquared();
 		float NdotC1 = Vector3f.dot(planeNormal, C1);
@@ -336,14 +335,14 @@ class CollideCapsuleHull {
 
 	}
 
-	private static Vector3f AB = new Vector3f();
-	private static Vector3f CD = new Vector3f();
-	private static Vector3f AC = new Vector3f();
+	private Vector3f AB = new Vector3f();
+	private Vector3f CD = new Vector3f();
+	private Vector3f AC = new Vector3f();
 
 	/**
-	 * Calcule la position du point appartenant à AB étant le plus proche de CD.
-	 * Stocke le résultat dans destOnFirstSegment. Calcule la position du point
-	 * appartenant à CD étant le plus proche de AB. Stocke le résultat dans
+	 * Calcule la position du point appartenant ï¿½ AB ï¿½tant le plus proche de CD.
+	 * Stocke le rï¿½sultat dans destOnFirstSegment. Calcule la position du point
+	 * appartenant ï¿½ CD ï¿½tant le plus proche de AB. Stocke le rï¿½sultat dans
 	 * destOnSecondSegment.
 	 * 
 	 * @param A
@@ -353,7 +352,7 @@ class CollideCapsuleHull {
 	 * @param destOnAB
 	 * @param destOnCD
 	 */
-	private static void closestPointsBetweenSegments(Vector3f A, Vector3f B, Vector3f C, Vector3f D, Vector3f destOnAB,
+	private void closestPointsBetweenSegments(Vector3f A, Vector3f B, Vector3f C, Vector3f D, Vector3f destOnAB,
 			Vector3f destOnCD) {
 
 		Vector3f.sub(B, A, AB);

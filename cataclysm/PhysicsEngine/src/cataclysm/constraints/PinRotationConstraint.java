@@ -1,10 +1,9 @@
 package cataclysm.constraints;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
 import math.MatrixOps;
+import math.vector.Matrix3f;
+import math.vector.Vector3f;
 
 /**
  * Cette contrainte permet de verrouiller l'orientation relative de deux

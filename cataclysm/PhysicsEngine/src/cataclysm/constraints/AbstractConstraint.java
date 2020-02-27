@@ -1,11 +1,10 @@
 package cataclysm.constraints;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.wrappers.RigidBody;
+import math.vector.Vector3f;
 
 /**
- * Représente une contrainte entre deux solides ou entre un solide et un point
+ * Reprï¿½sente une contrainte entre deux solides ou entre un solide et un point
  * fixe en world-space. <br>
  * 
  * @author Briac
@@ -24,7 +23,7 @@ public abstract class AbstractConstraint{
 	protected final AnchorPoint pointB;
 
 	/**
-	 * Indique si les deux corps rigides liés par la contrainte peuvent entrer en
+	 * Indique si les deux corps rigides liï¿½s par la contrainte peuvent entrer en
 	 * collision ou non.
 	 */
 	private boolean collideConnected = false;
@@ -36,11 +35,11 @@ public abstract class AbstractConstraint{
 
 		if (pointA.isStatic() && pointB.isStatic()) {
 			throw new IllegalArgumentException(
-					"Erreur, les deux points d'ancrage de la contrainte appartiennent au décor.");
+					"Erreur, les deux points d'ancrage de la contrainte appartiennent au dï¿½cor.");
 		}
 		if (pointA.getBody() == pointB.getBody()) {
 			throw new IllegalArgumentException(
-					"Erreur, les deux points d'ancrage de la contrainte appartiennent au même corps rigide");
+					"Erreur, les deux points d'ancrage de la contrainte appartiennent au mï¿½me corps rigide");
 		}
 
 		this.pointA.setConstraint(this);
@@ -48,14 +47,14 @@ public abstract class AbstractConstraint{
 	}
 
 	/**
-	 * Résout les erreurs de vitesse pour la contrainte.
+	 * Rï¿½sout les erreurs de vitesse pour la contrainte.
 	 * 
 	 * @param firstIteration
 	 */
 	protected abstract void solveVelocity(boolean firstIteration, float timeStep, Vector3f temp);
 
 	/**
-	 * Résout les erreurs de position pour la contrainte, la fonction n'est appelée
+	 * Rï¿½sout les erreurs de position pour la contrainte, la fonction n'est appelï¿½e
 	 * que si {@link #hasPositionCorrection()} retourne true.
 	 * 
 	 * @param firstIteration
@@ -63,7 +62,7 @@ public abstract class AbstractConstraint{
 	protected abstract void solvePosition(boolean firstIteration, float timeStep, Vector3f temp);
 
 	/**
-	 * Indique si la contrainte nécessite une étape de résolution au niveau de la
+	 * Indique si la contrainte nï¿½cessite une ï¿½tape de rï¿½solution au niveau de la
 	 * position.
 	 * 
 	 * @return
@@ -71,7 +70,7 @@ public abstract class AbstractConstraint{
 	protected abstract boolean hasPositionCorrection();
 
 	/**
-	 * @return true si les solides connectés par la contrainte peuvent entrer en
+	 * @return true si les solides connectï¿½s par la contrainte peuvent entrer en
 	 *         collision.
 	 */
 	public boolean shouldCollide() {
@@ -79,10 +78,10 @@ public abstract class AbstractConstraint{
 	}
 
 	/**
-	 * Change le comportement des solides reliés par la contrainte.
+	 * Change le comportement des solides reliï¿½s par la contrainte.
 	 * 
 	 * @param collideConnected true: les solides peuvent entrer en collision. <br>
-	 *                         false: les solides ne peuvent pas générer de contact
+	 *                         false: les solides ne peuvent pas gï¿½nï¿½rer de contact
 	 *                         entre eux.
 	 */
 	public void setCollideConnected(boolean collideConnected) {

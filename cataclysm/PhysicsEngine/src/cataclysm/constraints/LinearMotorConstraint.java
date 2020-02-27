@@ -1,37 +1,36 @@
 package cataclysm.constraints;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
+import math.vector.Vector3f;
 
 /**
  * Cette contrainte permet de simuler une barre dont la longueur peut varier.
- * Cette barre peut tourner, on peut s'en servir pour modéliser un treuil.
+ * Cette barre peut tourner, on peut s'en servir pour modï¿½liser un treuil.
  * 
  * @see PistonConstraint <br>
- *      pour modéliser un piston d'axe fixe.
+ *      pour modï¿½liser un piston d'axe fixe.
  * @author Briac
  *
  */
 public class LinearMotorConstraint extends LinearConstraint {
 
 	/**
-	 * Définit le comportement du piston.
+	 * Dï¿½finit le comportement du piston.
 	 * 
 	 * @author Briac
 	 *
 	 */
 	public enum MotionMode {
 		/**
-		 * Le piston essaie de s'étendre et de se rétracter pour atteindre une longueur
-		 * spécifiée par {@link LinearMotorConstraint#setTargetLength(float)}. <br>
-		 * Sa vitesse est égale à
+		 * Le piston essaie de s'ï¿½tendre et de se rï¿½tracter pour atteindre une longueur
+		 * spï¿½cifiï¿½e par {@link LinearMotorConstraint#setTargetLength(float)}. <br>
+		 * Sa vitesse est ï¿½gale ï¿½
 		 * {@code targetSpeed = gain * (targetLength - currentLength)}
 		 */
 		TrackLength,
 
 		/**
-		 * Le piston essaie de modifier sa longueur à la vitesse spécifiée par
+		 * Le piston essaie de modifier sa longueur ï¿½ la vitesse spï¿½cifiï¿½e par
 		 * {@link LinearMotorConstraint#setTargetSpeed(float)}
 		 */
 		TrackSpeed;
@@ -43,7 +42,7 @@ public class LinearMotorConstraint extends LinearConstraint {
 	private float currentSpeed = 0;
 
 	/**
-	 * La vitesse souhaitée d'extension du piston
+	 * La vitesse souhaitï¿½e d'extension du piston
 	 */
 	private float targetSpeed = 0;
 
@@ -53,13 +52,13 @@ public class LinearMotorConstraint extends LinearConstraint {
 	private float currentLength;
 
 	/**
-	 * La longueur souhaitée du piston.
+	 * La longueur souhaitï¿½e du piston.
 	 */
 	private float targetLength;
 
 	/**
-	 * La vitesse à laquelle le piston cherche à modifier sa longueur pour atteindre
-	 * la longueur voulue. Plus précisément:
+	 * La vitesse ï¿½ laquelle le piston cherche ï¿½ modifier sa longueur pour atteindre
+	 * la longueur voulue. Plus prï¿½cisï¿½ment:
 	 * {@code targetSpeed = gain * (targetLength - currentLength)}
 	 */
 	private float gain = 1.0f;
@@ -71,8 +70,8 @@ public class LinearMotorConstraint extends LinearConstraint {
 
 	/**
 	 * Cette contrainte permet de simuler un piston dont la longueur peut varier. La
-	 * longueur du piston ne doit pas être nulle sinon le piston ne peut pas
-	 * déterminer une direction d'extension.
+	 * longueur du piston ne doit pas ï¿½tre nulle sinon le piston ne peut pas
+	 * dï¿½terminer une direction d'extension.
 	 * 
 	 * @param pointA
 	 * @param pointB
@@ -199,8 +198,8 @@ public class LinearMotorConstraint extends LinearConstraint {
 	}
 
 	/**
-	 * @return La vitesse à laquelle le piston cherche à modifier sa longueur pour
-	 *         atteindre la longueur voulue. Plus précisément:
+	 * @return La vitesse ï¿½ laquelle le piston cherche ï¿½ modifier sa longueur pour
+	 *         atteindre la longueur voulue. Plus prï¿½cisï¿½ment:
 	 *         {@code targetSpeed = gain * (targetLength - currentLength)}
 	 */
 	public float getGain() {
@@ -208,8 +207,8 @@ public class LinearMotorConstraint extends LinearConstraint {
 	}
 
 	/**
-	 * Modifie la vitesse à laquelle le piston cherche à modifier sa longueur pour
-	 * atteindre la longueur voulue. Plus précisément:
+	 * Modifie la vitesse ï¿½ laquelle le piston cherche ï¿½ modifier sa longueur pour
+	 * atteindre la longueur voulue. Plus prï¿½cisï¿½ment:
 	 * {@code targetSpeed = gain * (targetLength - currentLength)} Ceci n'a un effet
 	 * que si le piston est en mode vaut {@link MotionMode#TrackLength}.
 	 * 

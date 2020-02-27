@@ -1,8 +1,8 @@
 package math;
 
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
+import math.vector.Vector2f;
+import math.vector.Vector3f;
+import math.vector.Vector4f;
 
 public class Maths {
 
@@ -56,14 +56,14 @@ public class Maths {
 
 	public static boolean checkPointInsideTriangle(Vector3f point, Vector3f pa, Vector3f pb, Vector3f pc) {
 
-		Vector3f e10 = Vector3f.sub(pb, pa, null);
-		Vector3f e20 = Vector3f.sub(pc, pa, null);
+		Vector3f e10 = Vector3f.sub(pb, pa);
+		Vector3f e20 = Vector3f.sub(pc, pa);
 		float a = Vector3f.dot(e10, e10);
 		float b = Vector3f.dot(e10, e20);
 		float c = Vector3f.dot(e20, e20);
 		float ac_bb = a * c - b * b;
 
-		Vector3f vp = Vector3f.sub(point, pa, null);
+		Vector3f vp = Vector3f.sub(point, pa);
 
 		float d = Vector3f.dot(vp, e10);
 		float e = Vector3f.dot(vp, e20);
@@ -141,15 +141,15 @@ public class Maths {
 	}
 
 	public static boolean isVertexInsideQuad(Vector3f vertex, Vector3f vertex1, Vector3f vertex2, Vector3f vertex3) {
-		Vector3f alpha = Vector3f.sub(vertex, vertex1, null);
-		Vector3f U = Vector3f.sub(vertex2, vertex1, null);
+		Vector3f alpha = Vector3f.sub(vertex, vertex1);
+		Vector3f U = Vector3f.sub(vertex2, vertex1);
 		float scalaireAlphaU = Vector3f.dot(alpha, U);
 		float normU = U.length();
 		if (scalaireAlphaU < 0)
 			return false;
 		if (scalaireAlphaU / normU > normU)
 			return false;
-		U = Vector3f.sub(vertex3, vertex1, null);
+		U = Vector3f.sub(vertex3, vertex1);
 		scalaireAlphaU = Vector3f.dot(alpha, U);
 		normU = U.length();
 		if (scalaireAlphaU < 0)
@@ -161,16 +161,16 @@ public class Maths {
 
 	public static boolean isVertexInsideTriangle2D(Vector2f point, Vector2f P1, Vector2f P2, Vector2f P3) {
 
-		Vector2f A = Vector2f.sub(P2, P1, null);
-		Vector2f B = Vector2f.sub(P3, P1, null);
-		Vector2f X = Vector2f.sub(point, P1, null);
+		Vector2f A = Vector2f.sub(P2, P1);
+		Vector2f B = Vector2f.sub(P3, P1);
+		Vector2f X = Vector2f.sub(point, P1);
 
 		float a = A.y / A.x;
 
 		float V = (X.y - a * X.x) / (-a * B.x + B.y);
 		float U = (X.x - B.x * V) / A.x;
 
-		System.out.println("Combinaison linéaire: X= A*" + U + " + B*" + V);
+		System.out.println("Combinaison linï¿½aire: X= A*" + U + " + B*" + V);
 		System.out.println(A.x + "*" + U + " + " + B.x + "*" + V + " = " + (A.x * U + B.x * V) + " | " + X.x);
 		System.out.println(A.y + "*" + U + " + " + B.y + "*" + V + " = " + (A.y * U + B.y * V) + " | " + X.y);
 
@@ -183,9 +183,9 @@ public class Maths {
 
 	public static boolean isVertexInsideTriangle3D(Vector3f point, Vector3f P1, Vector3f P2, Vector3f P3) {
 
-		Vector3f A = Vector3f.sub(P2, P1, null);
-		Vector3f B = Vector3f.sub(P3, P1, null);
-		Vector3f X = Vector3f.sub(point, P1, null);
+		Vector3f A = Vector3f.sub(P2, P1);
+		Vector3f B = Vector3f.sub(P3, P1);
+		Vector3f X = Vector3f.sub(point, P1);
 
 		float det = -A.x * B.y + A.y * B.x, U = -1, V = -1;
 		if (det != 0) {
@@ -249,7 +249,7 @@ public class Maths {
 			}
 			return "Delta: " + delta + " x1: " + x1 + " x2: " + x2;
 		}
-		return " Delta²: " + delta;
+		return " Deltaï¿½: " + delta;
 	}
 
 	public static double getLowestRoot(double a, double b, double c, double maxRange, double precision) {

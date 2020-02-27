@@ -3,9 +3,6 @@ package cataclysm;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.broadphase.staticmeshes.StaticMesh;
 import cataclysm.broadphase.staticmeshes.StaticMeshData;
 import cataclysm.broadphase.staticmeshes.StaticMeshManager;
@@ -14,6 +11,8 @@ import cataclysm.wrappers.RigidBody;
 import cataclysm.wrappers.RigidBodyManager;
 import cataclysm.wrappers.WrapperBuilder;
 import math.MatrixOps;
+import math.vector.Matrix4f;
+import math.vector.Vector3f;
 
 /**
  * Repr�sente l'ensemble des objets sur lesquels de la physique est appliquée.

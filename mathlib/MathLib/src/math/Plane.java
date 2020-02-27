@@ -1,10 +1,10 @@
 package math;
 
-import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
+import math.vector.Vector3f;
+import math.vector.Vector4f;
 
 /**
- * Représente un plan en 3D.
+ * Reprï¿½sente un plan en 3D.
  * 
  * @author Briac
  *
@@ -12,7 +12,7 @@ import org.lwjgl.util.vector.Vector4f;
 public class Plane {
 
 	/**
-	 * L'équation du plan sous forme cartésienne (ax+by+cz+d = 0) dans un vecteur
+	 * L'ï¿½quation du plan sous forme cartï¿½sienne (ax+by+cz+d = 0) dans un vecteur
 	 * (a, b, c, d)
 	 */
 	public Vector4f equation;
@@ -28,7 +28,7 @@ public class Plane {
 	public Vector3f normal;
 
 	/**
-	 * Construit un plan à partir d'un point et d'un vecteur normal.
+	 * Construit un plan ï¿½ partir d'un point et d'un vecteur normal.
 	 * 
 	 * @param origin
 	 * @param normal
@@ -43,8 +43,8 @@ public class Plane {
 	}
 
 	/**
-	 * Construit un plan à partir de 3 points. La normale du plan pointera vers
-	 * l'observateur si on passe de P1 à P2 à P3 en tournant dans le sens trigo du
+	 * Construit un plan ï¿½ partir de 3 points. La normale du plan pointera vers
+	 * l'observateur si on passe de P1 ï¿½ P2 ï¿½ P3 en tournant dans le sens trigo du
 	 * point de vue de l'observateur.
 	 * 
 	 * @param P1
@@ -54,39 +54,39 @@ public class Plane {
 	public Plane(Vector3f P1, Vector3f P2, Vector3f P3) {
 
 		this.origin = new Vector3f(P1);
-		this.normal = Vector3f.cross(Vector3f.sub(P2, P1, null), Vector3f.sub(P3, P1, null), null);
-		this.normal.normalise(this.normal);
+		this.normal = Vector3f.cross(Vector3f.sub(P2, P1), Vector3f.sub(P3, P1));
+		this.normal.normalise();
 		this.equation = new Vector4f(this.normal.x, this.normal.y, this.normal.z,
 				-Vector3f.dot(this.normal, this.origin));
 
 	}
 
 	/**
-	 * Teste si le plan fait face à l'observateur.
+	 * Teste si le plan fait face ï¿½ l'observateur.
 	 * 
 	 * @param direction La direction dans laquelle regarde l'observateur.
-	 * @return true si l'observateur voit la normale du plan pointée vers lui.
+	 * @return true si l'observateur voit la normale du plan pointï¿½e vers lui.
 	 */
 	public boolean isFrontFacingTo(Vector3f direction) {
 		return (Vector3f.dot(direction, this.normal) <= 0);
 	}
 
 	/**
-	 * Calcule la distance signée d'un point à ce plan. La distance est positive si
-	 * le point est du même côté que la normale.
+	 * Calcule la distance signï¿½e d'un point ï¿½ ce plan. La distance est positive si
+	 * le point est du mï¿½me cï¿½tï¿½ que la normale.
 	 * 
-	 * @param vertex Le point considéré.
-	 * @return la distance signée du point au plan.
+	 * @param vertex Le point considï¿½rï¿½.
+	 * @return la distance signï¿½e du point au plan.
 	 */
 	public float signedDistanceTo(Vector3f vertex) {
 		return Vector3f.dot(this.normal, vertex) + this.equation.w;
 	}
 
 	/**
-	 * Calcule le projeté orthogonal d'un point sur ce plan.
+	 * Calcule le projetï¿½ orthogonal d'un point sur ce plan.
 	 * 
-	 * @param vertex Le point considéré.
-	 * @return le projeté orthogonal d'un point sur ce plan.
+	 * @param vertex Le point considï¿½rï¿½.
+	 * @return le projetï¿½ orthogonal d'un point sur ce plan.
 	 */
 	public Vector3f project(Vector3f vertex) {
 		float distance = signedDistanceTo(vertex);

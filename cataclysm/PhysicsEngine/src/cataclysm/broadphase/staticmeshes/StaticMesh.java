@@ -1,11 +1,10 @@
 package cataclysm.broadphase.staticmeshes;
 
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.DefaultParameters;
 import cataclysm.contact_creation.ContactProperties;
 import cataclysm.datastructures.Identifier;
+import math.vector.Matrix4f;
+import math.vector.Vector3f;
 
 /**
  * Repr�sente un maillage statique de collision pour les d�cors.

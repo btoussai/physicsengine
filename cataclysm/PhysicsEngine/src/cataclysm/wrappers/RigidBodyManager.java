@@ -3,8 +3,6 @@ package cataclysm.wrappers;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.lwjgl.util.vector.Matrix4f;
-
 import cataclysm.DefaultParameters;
 import cataclysm.PhysicsStats;
 import cataclysm.PhysicsWorld;
@@ -14,6 +12,7 @@ import cataclysm.constraints.AnchorPoint;
 import cataclysm.contact_creation.AbstractDoubleBodyContact;
 import cataclysm.contact_creation.AbstractSingleBodyContact;
 import cataclysm.datastructures.BufferedManager;
+import math.vector.Matrix4f;
 
 /**
  * Contient l'ensemble des objets de la simulation.
@@ -30,6 +29,8 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 	private final StaticMeshManager meshes;
 	
 	private final PhysicsStats stats;
+	
+	private final PolyhedralMassProperties poly = new PolyhedralMassProperties();
 	
 	/**
 	 * La liste des contacts Wrapper vs Triangle donnant lieu à une pénétration des
@@ -61,7 +62,7 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 	 * @return L'objet nouvellement créé.
 	 */
 	public RigidBody newBody(Matrix4f transform, DefaultParameters params, WrapperBuilder... builders) {
-		RigidBody body = new RigidBody(transform, params, this.generator, builders);
+		RigidBody body = new RigidBody(transform, params, this.generator, poly, builders);
 		addElement(body);
 		return body;
 	}

@@ -1,8 +1,7 @@
 package cataclysm.contact_creation;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.wrappers.Wrapper;
+import math.vector.Vector3f;
 
 /**
  * Cette classe contient une impl�mentation de l'algorithme GJK permettant de
@@ -15,24 +14,24 @@ import cataclysm.wrappers.Wrapper;
  */
 class GJK {
 
-	private static Simplex simplex = new Simplex();
-	private static Simplex previousSimplex = new Simplex();
-	private static final Vector3f direction = new Vector3f();
-	private static final SimplexVertex support = new SimplexVertex();
+	private Simplex simplex = new Simplex();
+	private Simplex previousSimplex = new Simplex();
+	private final Vector3f direction = new Vector3f();
+	private final SimplexVertex support = new SimplexVertex();
 
-	private static final Vector3f AB = new Vector3f();
-	private static final Vector3f AC = new Vector3f();
-	private static final Vector3f AD = new Vector3f();
+	private final Vector3f AB = new Vector3f();
+	private final Vector3f AC = new Vector3f();
+	private final Vector3f AD = new Vector3f();
 
-	private static final Vector3f triangleNormal = new Vector3f();
-	private static final Vector3f temp = new Vector3f();
+	private final Vector3f triangleNormal = new Vector3f();
+	private final Vector3f temp = new Vector3f();
 
-	private static final Vector3f ABC_normal = new Vector3f();
-	private static final Vector3f ACD_normal = new Vector3f();
-	private static final Vector3f ADB_normal = new Vector3f();
+	private final Vector3f ABC_normal = new Vector3f();
+	private final Vector3f ACD_normal = new Vector3f();
+	private final Vector3f ADB_normal = new Vector3f();
 
-	private static boolean intersectionFound = false;
-	private static boolean repeatedVertex = false;
+	private boolean intersectionFound = false;
+	private boolean repeatedVertex = false;
 
 	private static final boolean DEBUG = false;
 
@@ -79,13 +78,13 @@ class GJK {
 			blend3(v1.positionOnB, w1, v2.positionOnB, w2, v3.positionOnB, w3, positionOnB);
 		}
 
-		private static void blend2(Vector3f v1, float w1, Vector3f v2, float w2, Vector3f dest) {
+		private void blend2(Vector3f v1, float w1, Vector3f v2, float w2, Vector3f dest) {
 			dest.x = v1.x * w1 + v2.x * w2;
 			dest.y = v1.y * w1 + v2.y * w2;
 			dest.z = v1.z * w1 + v2.z * w2;
 		}
 
-		private static void blend3(Vector3f v1, float w1, Vector3f v2, float w2, Vector3f v3, float w3, Vector3f dest) {
+		private void blend3(Vector3f v1, float w1, Vector3f v2, float w2, Vector3f v3, float w3, Vector3f dest) {
 			dest.x = v1.x * w1 + v2.x * w2 + v3.x * w3;
 			dest.y = v1.y * w1 + v2.y * w2 + v3.y * w3;
 			dest.z = v1.z * w1 + v2.z * w2 + v3.z * w3;
@@ -135,7 +134,6 @@ class GJK {
 		SimplexType type;
 
 		private Simplex() {
-
 		}
 
 		@Override
@@ -166,7 +164,7 @@ class GJK {
 			A.positionOnB.set(bodyB.getCentroid());
 
 			Vector3f.sub(A.positionOnA, A.positionOnB, A.position);
-			A.position.negate(searchDir);
+			Vector3f.negate(A.position, searchDir);
 
 			closestDistance = Float.POSITIVE_INFINITY;
 			type = SimplexType.Vertex;
@@ -179,24 +177,22 @@ class GJK {
 		 * @param previous
 		 * 
 		 * @param point
+		 * @return true si un sommet est répété.
 		 */
-		public void addVertex(Simplex previous, SimplexVertex point) {
+		public boolean addVertex(Simplex previous, SimplexVertex point) {
 			switch (previous.type) {
 			case Tetrahedron:
 			case Triangle:
 				if (point.position.equals(previous.C.position)) {
-					repeatedVertex = true;
-					return;
+					return true;
 				}
 			case Segment:
 				if (point.position.equals(previous.B.position)) {
-					repeatedVertex = true;
-					return;
+					return true;
 				}
 			case Vertex:
 				if (point.position.equals(previous.A.position)) {
-					repeatedVertex = true;
-					return;
+					return true;
 				}
 			}
 
@@ -215,6 +211,8 @@ class GJK {
 
 			closestDistance = previous.closestDistance;
 			closest.set(previous.closest);
+			
+			return false;
 		}
 
 		public void permutation(SimplexVertex v1, SimplexVertex v2, SimplexVertex v3, SimplexVertex v4,
@@ -240,7 +238,7 @@ class GJK {
 	 * @return La distance de s�paration (positive) ou -Float.MAX_VALUE si les
 	 *         solides se touchent.
 	 */
-	static float distance(Wrapper bodyA, Wrapper bodyB, Vector3f closestOnA, Vector3f closestOnB) {
+	float distance(Wrapper bodyA, Wrapper bodyB, Vector3f closestOnA, Vector3f closestOnB) {
 
 		previousSimplex.init(bodyA, bodyB, direction);
 
@@ -285,7 +283,7 @@ class GJK {
 	 * 
 	 * @param dest
 	 */
-	static void getClosestFeatureOnA(ContactFeature dest) {
+	void getClosestFeatureOnA(ContactFeature dest) {
 		Vector3f v1, v2, v3;
 		switch (simplex.type) {
 		case Triangle:
@@ -339,7 +337,7 @@ class GJK {
 	 * 
 	 * @param dest
 	 */
-	static void getClosestFeatureOnB(ContactFeature dest) {
+	void getClosestFeatureOnB(ContactFeature dest) {
 		Vector3f v1, v2, v3;
 		switch (simplex.type) {
 		case Triangle:
@@ -390,7 +388,7 @@ class GJK {
 	 * Teste l'intersection entre les deux solides.
 	 * 
 	 */
-	private static void checkIntersection(Wrapper bodyA, Wrapper bodyB) {
+	private void checkIntersection(Wrapper bodyA, Wrapper bodyB) {
 		intersectionFound = false;
 		repeatedVertex = false;
 
@@ -406,7 +404,7 @@ class GJK {
 				System.out.println("\nSupport point: " + support);
 			}
 
-			simplex.addVertex(previousSimplex, support);
+			repeatedVertex = simplex.addVertex(previousSimplex, support);
 
 			if (repeatedVertex) {
 				if (DEBUG) {
@@ -453,7 +451,7 @@ class GJK {
 				return;
 			}
 
-			closest.negate(direction);
+			Vector3f.negate(closest, direction);
 			swapSimplex();
 
 		} while (true);
@@ -463,7 +461,7 @@ class GJK {
 	 * Cherche le point appartenant au simplex se situant le plus proche de
 	 * l'origine. Place le r�sultat dans simplex.closest
 	 */
-	private static void getClosestPoint() {
+	private void getClosestPoint() {
 
 		switch (simplex.type) {
 		case Segment:
@@ -481,7 +479,7 @@ class GJK {
 
 	}
 
-	private static void getClosestPointOnSegment() {
+	private void getClosestPointOnSegment() {
 
 		Vector3f OA = simplex.A.position;
 		Vector3f OB = simplex.B.position;
@@ -504,7 +502,7 @@ class GJK {
 
 	}
 
-	private static void getClosestPointOnTriangle() {
+	private void getClosestPointOnTriangle() {
 
 		Vector3f OA = simplex.A.position;
 		Vector3f OB = simplex.B.position;
@@ -528,8 +526,8 @@ class GJK {
 
 		Vector3f.cross(AB, AC, triangleNormal);
 		float areaABC2 = triangleNormal.lengthSquared();
-
-		float wABC = Vector3f.dot(Vector3f.cross(OA, OB, temp), triangleNormal) / areaABC2;
+		Vector3f.cross(OA, OB, temp);
+		float wABC = Vector3f.dot(temp, triangleNormal) / areaABC2;
 		if (wABC <= 0.0f) {
 			if (DEBUG)
 				System.out.println("Triangle --> AB");
@@ -537,8 +535,9 @@ class GJK {
 			simplex.type = Simplex.SimplexType.Segment;
 			return;
 		}
-
-		float vABC = Vector3f.dot(Vector3f.cross(OC, OA, temp), triangleNormal) / areaABC2;
+		
+		Vector3f.cross(OC, OA, temp);
+		float vABC = Vector3f.dot(temp, triangleNormal) / areaABC2;
 		if (vABC <= 0.0f) {
 			if (DEBUG)
 				System.out.println("Triangle --> AC");
@@ -559,7 +558,7 @@ class GJK {
 
 	}
 
-	private static void getClosestPointOnTetrahedron() {
+	private void getClosestPointOnTetrahedron() {
 
 		Vector3f OA = simplex.A.position;
 		Vector3f OB = simplex.B.position;
@@ -672,7 +671,7 @@ class GJK {
 	 * @param searchDir
 	 * @param support
 	 */
-	private static void getSupportPoint(Wrapper bodyA, Wrapper bodyB, Vector3f searchDir, SimplexVertex support) {
+	private void getSupportPoint(Wrapper bodyA, Wrapper bodyB, Vector3f searchDir, SimplexVertex support) {
 		bodyA.getSupport(searchDir, false, support.positionOnA);
 		bodyB.getSupport(searchDir, true, support.positionOnB);
 		Vector3f.sub(support.positionOnA, support.positionOnB, support.position);
@@ -681,7 +680,7 @@ class GJK {
 	/**
 	 * Echange les r�les de simplex et previousSimplex.
 	 */
-	private static void swapSimplex() {
+	private void swapSimplex() {
 		Simplex temp = previousSimplex;
 		previousSimplex = simplex;
 		simplex = temp;

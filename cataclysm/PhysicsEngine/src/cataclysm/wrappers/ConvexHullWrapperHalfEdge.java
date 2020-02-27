@@ -1,9 +1,9 @@
 package cataclysm.wrappers;
 
-import org.lwjgl.util.vector.Vector3f;
+import math.vector.Vector3f;
 
 /**
- * Représente une arrête de l'enveloppe convexe.
+ * Reprï¿½sente une arrï¿½te de l'enveloppe convexe.
  * 
  * @author Briac
  *

@@ -18,6 +18,12 @@ import cataclysm.wrappers.Wrapper;
 public class CollisionTest {
 
 	private final CollideWrapperTriangle wrapperCollider = new CollideWrapperTriangle();
+	private final CollideSpheres collideSpheres = new CollideSpheres();
+	private final CollideSphereCapsule collideSphereCapsule = new CollideSphereCapsule();
+	private final CollideSphereHull collideSphereHull = new CollideSphereHull();
+	private final CollideCapsules collideCapsules = new CollideCapsules();
+	private final CollideCapsuleHull collideCapsuleHull = new CollideCapsuleHull();
+	private final CollideHulls collideHulls = new CollideHulls();
 
 	/**
 	 * Instancie un nouveau testeur de collision. Il permet de construire une zone
@@ -40,10 +46,10 @@ public class CollisionTest {
 	}
 
 	/**
-	 * Teste la collision d'une paire d'objets et construit des zones de
-	 * contact le cas échéant.
+	 * Teste la collision d'une paire d'objets et construit des zones de contact le
+	 * cas échéant.
 	 * 
-	 * @param contact 
+	 * @param contact
 	 * @param callbacks
 	 * @param bodyContacts
 	 */
@@ -56,7 +62,7 @@ public class CollisionTest {
 			bodyContacts.add(contact);
 			if (callbacks.getOnCollision() != null)
 				callbacks.getOnCollision().accept(contact.getWrapperA(), contact.getWrapperB());
-		}else {
+		} else {
 			contact.resetImpulses();
 		}
 
@@ -76,25 +82,25 @@ public class CollisionTest {
 		switch (A.getType()) {
 		case Sphere:
 			if (B.getType() == Wrapper.Type.Sphere) {
-				CollideSpheres.test((SphereWrapper) A, (SphereWrapper) B, contact);
+				collideSpheres.test((SphereWrapper) A, (SphereWrapper) B, contact);
 				break;
 			} else if (B.getType() == Wrapper.Type.Capsule) {
-				CollideSphereCapsule.test((SphereWrapper) A, (CapsuleWrapper) B, contact);
+				collideSphereCapsule.test((SphereWrapper) A, (CapsuleWrapper) B, contact);
 				break;
 			} else {
-				CollideSphereHull.test((SphereWrapper) A, (ConvexHullWrapper) B, contact);
+				collideSphereHull.test((SphereWrapper) A, (ConvexHullWrapper) B, contact);
 				break;
 			}
 		case Capsule:
 			if (B.getType() == Wrapper.Type.Capsule) {
-				CollideCapsules.test((CapsuleWrapper) A, (CapsuleWrapper) B, contact);
+				collideCapsules.test((CapsuleWrapper) A, (CapsuleWrapper) B, contact);
 				break;
 			} else {
-				CollideCapsuleHull.test((CapsuleWrapper) A, (ConvexHullWrapper) B, contact);
+				collideCapsuleHull.test((CapsuleWrapper) A, (ConvexHullWrapper) B, contact);
 				break;
 			}
 		case ConvexHull:
-			CollideHulls.test((ConvexHullWrapper) A, (ConvexHullWrapper) B, contact);
+			collideHulls.test((ConvexHullWrapper) A, (ConvexHullWrapper) B, contact);
 			break;
 		}
 

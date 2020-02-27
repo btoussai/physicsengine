@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.CataclysmCallbacks;
 import cataclysm.CollisionFilter;
 import cataclysm.Epsilons;
@@ -22,6 +20,7 @@ import cataclysm.contact_creation.DoubleBodyContact;
 import cataclysm.contact_creation.DoubleBodyContactSimplified;
 import cataclysm.contact_creation.SingleBodyContact;
 import cataclysm.contact_creation.SingleBodyContactSimplified;
+import math.vector.Vector3f;
 
 /**
  * Cette classe permet d'effectuer la broadphase et la narrow phase en une même

@@ -8,9 +8,11 @@ import cataclysm.wrappers.ConvexHullWrapper;
  *
  */
 class CollideHulls {
+	
+	private final SAT sat = new SAT();
 
-	static void test(ConvexHullWrapper A, ConvexHullWrapper B, ContactArea contact) {
-		SAT.overlapTest(A, B, contact);
+	void test(ConvexHullWrapper A, ConvexHullWrapper B, ContactArea contact) {
+		sat.overlapTest(A, B, contact);
 	}
 
 }

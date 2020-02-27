@@ -1,11 +1,11 @@
 package math;
 
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
+import math.vector.Vector2f;
+import math.vector.Vector3f;
+import math.vector.Vector4f;
 
 /**
- * Cette classe contient quelques méthodes utilitaires pour les vecteurs.
+ * Cette classe contient quelques mï¿½thodes utilitaires pour les vecteurs.
  * @author Briac
  *
  */

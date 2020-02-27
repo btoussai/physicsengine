@@ -1,13 +1,12 @@
 package cataclysm.contact_creation;
 
-import org.lwjgl.util.vector.Matrix3f;
-import org.lwjgl.util.vector.Vector3f;
-
 import cataclysm.Epsilons;
 import cataclysm.wrappers.RigidBody;
 import cataclysm.wrappers.Wrapper;
 import math.Clamp;
 import math.MatrixOps;
+import math.vector.Matrix3f;
+import math.vector.Vector3f;
 
 /**
  * Représente un contact entre deux wrappers. Les wrappers ne se touchent pas
@@ -46,7 +45,7 @@ public class DoubleBodyContactSimplified extends AbstractDoubleBodyContact {
 	public void velocityStart() {
 		super.mixContactProperties(wrapperA.getBody().getContactProperties(),
 				wrapperB.getBody().getContactProperties());
-		area.getNormal().negate(N);
+		Vector3f.negate(area.getNormal(), N);
 		MatrixOps.computeOrthogonalComplement(N, T, B);
 
 		for (int i = 0; i < super.area.getContactCount(); i++) {
