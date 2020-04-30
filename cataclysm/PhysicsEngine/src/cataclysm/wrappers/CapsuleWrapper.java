@@ -1,5 +1,6 @@
 package cataclysm.wrappers;
 
+import cataclysm.record.WrapperRepr;
 import math.MatrixOps;
 import math.vector.Matrix3f;
 import math.vector.Vector3f;
@@ -35,6 +36,15 @@ public class CapsuleWrapper extends Wrapper {
 		super(body, wrapperToBody, massProperties, halfLength + radius, ID);
 		this.radius = radius;
 		this.halfLength = halfLength;
+
+		center1.getInputSpaceCoord().set(0, halfLength, 0);
+		center2.getInputSpaceCoord().set(0, -halfLength, 0);
+	}
+	
+	public CapsuleWrapper(RigidBody body, WrapperRepr w, long ID) {
+		super(body, w, ID);
+		this.radius = w.capsuleRadius;
+		this.halfLength = w.halfLength;
 
 		center1.getInputSpaceCoord().set(0, halfLength, 0);
 		center2.getInputSpaceCoord().set(0, -halfLength, 0);
@@ -130,6 +140,13 @@ public class CapsuleWrapper extends Wrapper {
 		PolyhedralMassProperties.translateInertia(inertia, centerOfMass, mass);
 		
 		return mass;
+	}
+
+	@Override
+	protected void fill(WrapperRepr w) {
+		super.fill(w);
+		w.capsuleRadius = radius;
+		w.halfLength = halfLength;
 	}
 
 }

@@ -8,6 +8,7 @@ import cataclysm.broadphase.BroadPhaseNode;
 import cataclysm.contact_creation.AbstractDoubleBodyContact;
 import cataclysm.contact_creation.AbstractSingleBodyContact;
 import cataclysm.datastructures.Identifier;
+import cataclysm.record.WrapperRepr;
 import math.vector.Matrix3f;
 import math.vector.Vector3f;
 
@@ -104,7 +105,7 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 		this.node = new BroadPhaseNode<Wrapper>(new AABB(), this);
 		this.massProperties = new MassProperties(massProperties);
 	}
-
+	
 	/**
 	 * Ce constructeur ne doit être utilisé que par {@link TriangleAsHull}
 	 */
@@ -260,6 +261,24 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 		sb.append("\nMeshContacts:" + meshContacts.size());
 		sb.append("\nBodyContacts:" + bodyContacts.size());
 		return sb.toString();
+	}
+	
+	public Wrapper(RigidBody body, WrapperRepr w, long ID) {
+		super(ID);
+		
+		this.centroid = new TransformableVec3(w.centroid);
+		this.wrapperToBody = new Transform(w.wrapperToBody);
+		this.body = body;
+		this.maxRadius = w.maxRadius;
+		this.node = new BroadPhaseNode<Wrapper>(new AABB(), this);
+		this.massProperties = new MassProperties(w.massProperties);
+	}
+
+	protected void fill(WrapperRepr w) {
+		w.wrapperToBody.loadFrom(wrapperToBody);
+		w.centroid.set(centroid);
+		w.maxRadius = maxRadius;
+		w.massProperties.set(massProperties);
 	}
 
 }

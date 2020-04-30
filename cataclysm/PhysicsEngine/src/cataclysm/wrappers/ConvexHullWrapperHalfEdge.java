@@ -1,5 +1,7 @@
 package cataclysm.wrappers;
 
+import cataclysm.record.ReadWriteObject;
+import cataclysm.record.RecordFile;
 import math.vector.Vector3f;
 
 /**
@@ -8,7 +10,7 @@ import math.vector.Vector3f;
  * @author Briac
  *
  */
-public class ConvexHullWrapperHalfEdge {
+public class ConvexHullWrapperHalfEdge implements ReadWriteObject{
 
 	ConvexHullWrapperData data;
 
@@ -107,6 +109,31 @@ public class ConvexHullWrapperHalfEdge {
 
 	public int getTailIndex() {
 		return tail;
+	}
+	
+	public ConvexHullWrapperHalfEdge(RecordFile f, ConvexHullWrapperData data){
+		read(f);
+		this.data = data;
+	}
+
+	@Override
+	public void read(RecordFile f) {
+		tail = f.readInt();
+		index = f.readInt();
+		next = f.readInt();
+		prev = f.readInt();
+		twin = f.readInt();
+		face = f.readInt();
+	}
+
+	@Override
+	public void write(RecordFile f) {
+		f.writeInt(tail);
+		f.writeInt(index);
+		f.writeInt(next);
+		f.writeInt(prev);
+		f.writeInt(twin);
+		f.writeInt(face);
 	}
 
 }

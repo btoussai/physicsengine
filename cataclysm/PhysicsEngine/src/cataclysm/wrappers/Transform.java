@@ -1,5 +1,7 @@
 package cataclysm.wrappers;
 
+import cataclysm.record.ReadWriteObject;
+import cataclysm.record.RecordFile;
 import math.MatrixOps;
 import math.vector.Matrix3f;
 import math.vector.Matrix4f;
@@ -11,7 +13,7 @@ import math.vector.Vector3f;
  * @author Briac
  *
  */
-public class Transform {
+public final class Transform implements ReadWriteObject {
 
 	private final Matrix3f rotation = new Matrix3f();
 	private final Vector3f translation = new Vector3f();
@@ -52,12 +54,12 @@ public class Transform {
 		Matrix3f.mul(rotation, this.rotation, this.rotation);
 		return this;
 	}
-	
+
 	public Transform rotateLeft(Matrix4f rotation) {
 		MatrixOps.matrixMult(rotation, this.rotation, this.rotation);
 		return this;
 	}
-	
+
 	public Transform rotateRight(Matrix3f rotation) {
 		Matrix3f.mul(this.rotation, rotation, this.rotation);
 		return this;
@@ -155,7 +157,7 @@ public class Transform {
 
 		return dest;
 	}
-	
+
 	public void loadTo(Matrix4f dest) {
 		dest.m00 = rotation.m00;
 		dest.m01 = rotation.m01;
@@ -182,6 +184,11 @@ public class Transform {
 		MatrixOps.loadMatrix(src, rotation, false);
 		this.translation.set(src.m30, src.m31, src.m32);
 	}
+	
+	public void loadFrom(Transform transform) {
+		this.translation.set(transform.translation);
+		this.rotation.load(transform.rotation);
+	}
 
 	public Matrix3f getRotation() {
 		return rotation;
@@ -194,6 +201,22 @@ public class Transform {
 	@Override
 	public String toString() {
 		return "Transform: Rotation =\n" + this.rotation + "Translation = " + this.translation + "\n";
+	}
+
+	public Transform(RecordFile f) {
+		read(f);
+	}
+
+	@Override
+	public void read(RecordFile f) {
+		f.readMatrix3f(rotation);
+		f.readVector3f(translation);
+	}
+
+	@Override
+	public void write(RecordFile f) {
+		f.writeMatrix3f(rotation);
+		f.writeVector3f(translation);
 	}
 
 }

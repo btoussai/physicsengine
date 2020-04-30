@@ -1,5 +1,6 @@
 package cataclysm.wrappers;
 
+import cataclysm.record.WrapperRepr;
 import math.MatrixOps;
 import math.vector.Matrix3f;
 import math.vector.Vector3f;
@@ -17,6 +18,11 @@ public class SphereWrapper extends Wrapper {
 	SphereWrapper(RigidBody body, Transform wrapperToBody, MassProperties massProperties, float radius, long ID) {
 		super(body, wrapperToBody, massProperties, radius, ID);
 		this.radius = radius;
+	}
+	
+	public SphereWrapper(RigidBody body, WrapperRepr w, long ID) {
+		super(body, w, ID);
+		this.radius = w.sphereRadius;
 	}
 
 	@Override
@@ -61,6 +67,12 @@ public class SphereWrapper extends Wrapper {
 		PolyhedralMassProperties.translateInertia(inertia, centerOfMass, mass);
 		
 		return mass;
+	}
+
+	@Override
+	protected void fill(WrapperRepr w) {
+		super.fill(w);
+		w.sphereRadius = radius;
 	}
 
 }

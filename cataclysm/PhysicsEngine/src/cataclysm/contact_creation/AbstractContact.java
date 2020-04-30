@@ -25,7 +25,6 @@ public abstract class AbstractContact {
 	protected void mixContactProperties(ContactProperties A, ContactProperties B) {
 		this.friction = 0.5f * (A.getFriction() + B.getFriction());
 		this.elasticity = 0.5f * (A.getElasticity() + B.getElasticity());
-		this.stickiness = 0.5f * (A.getStickiness() + B.getStickiness());
 	}
 	
 	public abstract void velocityStart();

@@ -8,7 +8,7 @@ import math.vector.Vector3f;
  * @author Briac
  *
  */
-public class Triangle {
+public final class Triangle{
 
 	public final Vector3f v1;
 	public final Vector3f v2;

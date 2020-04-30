@@ -1,5 +1,7 @@
 package cataclysm.wrappers;
 
+import cataclysm.record.ReadWriteObject;
+import cataclysm.record.RecordFile;
 import math.vector.Vector3f;
 
 /**
@@ -9,7 +11,7 @@ import math.vector.Vector3f;
  * @author Briac
  *
  */
-public class ConvexHullWrapperData {
+public final class ConvexHullWrapperData implements ReadWriteObject{
 
 	/**
 	 * L'ensemble des faces de l'enveloppe convexe.
@@ -192,6 +194,48 @@ public class ConvexHullWrapperData {
 	 */
 	public float getScale() {
 		return scale;
+	}
+	
+	public ConvexHullWrapperData(RecordFile f) {
+		faces = (ConvexHullWrapperFace[]) f.readArray(file -> new ConvexHullWrapperFace(file, this));
+		edges = (ConvexHullWrapperHalfEdge[]) f.readArray(file -> new ConvexHullWrapperHalfEdge(file, this));
+		
+		maxRadius = f.readFloat();
+		scale = f.readFloat();
+		backupVertices = f.readVector3fArray();
+		backupFaceNormals = f.readVector3fArray();
+		backupFaceCentroids = f.readVector3fArray();
+		
+		this.vertices = new Vector3f[backupVertices.length];
+		for (int i = 0; i < vertices.length; i++) {
+			vertices[i] = new Vector3f();
+		}
+
+		faceNormals = new Vector3f[faces.length];
+		faceCentroids = new Vector3f[faces.length];
+		planeOffsets = new float[faces.length];
+		for (int i = 0; i < faces.length; i++) {
+			faceNormals[i] = new Vector3f();
+			faceCentroids[i] = new Vector3f();
+		}
+
+	}
+
+	@Override
+	public void read(RecordFile f) {
+		throw new IllegalStateException();
+	}
+
+	@Override
+	public void write(RecordFile f) {
+		f.writeArray(faces);
+		f.writeArray(edges);
+		
+		f.writeFloat(maxRadius);
+		f.writeFloat(scale);
+		f.writeVector3fArray(backupVertices);
+		f.writeVector3fArray(backupFaceNormals);
+		f.writeVector3fArray(backupFaceCentroids);
 	}
 
 }

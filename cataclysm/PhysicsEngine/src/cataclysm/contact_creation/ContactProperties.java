@@ -1,10 +1,12 @@
 package cataclysm.contact_creation;
 
-public class ContactProperties {
+import cataclysm.record.ReadWriteObject;
+import cataclysm.record.RecordFile;
+
+public final class ContactProperties implements ReadWriteObject{
 	
 	private float elasticity;
 	private float friction;
-	private float stickiness;
 	
 	public ContactProperties(float elasticity, float friction) {
 		this.elasticity = elasticity;
@@ -33,14 +35,26 @@ public class ContactProperties {
 		this.friction = friction;
 		return this;
 	}
-
-	public float getStickiness() {
-		return stickiness;
+	
+	public ContactProperties(RecordFile f) {
+		read(f);
+	}
+	
+	@Override
+	public void read(RecordFile f) {
+		elasticity = f.readFloat();
+		friction = f.readFloat();
 	}
 
-	public ContactProperties setStickiness(float stickiness) {
-		this.stickiness = stickiness;
-		return this;
+	@Override
+	public void write(RecordFile f) {
+		f.writeFloat(elasticity);
+		f.writeFloat(friction);
+	}
+
+	public void set(ContactProperties contactProperties) {
+		this.elasticity = contactProperties.elasticity;
+		this.friction = contactProperties.friction;
 	}
 	
 

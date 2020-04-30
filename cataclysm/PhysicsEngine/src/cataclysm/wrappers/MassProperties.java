@@ -1,12 +1,15 @@
 package cataclysm.wrappers;
 
+import cataclysm.record.ReadWriteObject;
+import cataclysm.record.RecordFile;
+
 /**
  * Contient les informations permettant de calculer la masse d'un wrapper.
  * 
  * @author Briac
  *
  */
-public class MassProperties {
+public final class MassProperties implements ReadWriteObject {
 
 	private float mass;
 	private float volume;
@@ -30,12 +33,7 @@ public class MassProperties {
 	}
 
 	public MassProperties(MassProperties other) {
-		this.mass = other.mass;
-		this.volume = other.volume;
-		this.surfaceArea = other.surfaceArea;
-		this.hollow = other.hollow;
-		this.density = other.density;
-		this.useDensity = other.useDensity;
+		set(other);
 	}
 
 	public void scale(float scaleFactor) {
@@ -94,25 +92,54 @@ public class MassProperties {
 	}
 
 	/**
-	 * Indique si la masse est calculée à partir de la densité ou l'inverse.
+	 * Indique si la masse est calculï¿½e ï¿½ partir de la densitï¿½ ou l'inverse.
 	 * 
-	 * @return true si la masse est calculée à partir de la densité, false si la
-	 *         densité est calculée à partir de la masse.
+	 * @return true si la masse est calculï¿½e ï¿½ partir de la densitï¿½, false si la
+	 *         densitï¿½ est calculï¿½e ï¿½ partir de la masse.
 	 */
 	public boolean useDensity() {
 		return useDensity;
 	}
 
 	/**
-	 * Change la façon dont sont calculées la masse et la densité.
+	 * Change la faï¿½on dont sont calculï¿½es la masse et la densitï¿½.
 	 * 
 	 * @param useDensity <br>
-	 *                   Si true --> la masse est calculée à partir de la
-	 *                   densité.<br>
-	 *                   Si false --> la densité est calculée à partir de la masse.
+	 *                   Si true --> la masse est calculï¿½e ï¿½ partir de la
+	 *                   densitï¿½.<br>
+	 *                   Si false --> la densitï¿½ est calculï¿½e ï¿½ partir de la masse.
 	 */
 	public void setUseDensity(boolean useDensity) {
 		this.useDensity = useDensity;
+	}
+
+	@Override
+	public void read(RecordFile f) {
+		mass = f.readFloat();
+		volume = f.readFloat();
+		surfaceArea = f.readFloat();
+		hollow = f.readBool();
+		density = f.readFloat();
+		useDensity = f.readBool();
+	}
+
+	@Override
+	public void write(RecordFile f) {
+		f.writeFloat(mass);
+		f.writeFloat(volume);
+		f.writeFloat(surfaceArea);
+		f.writeBool(hollow);
+		f.writeFloat(density);
+		f.writeBool(useDensity);
+	}
+
+	public void set(MassProperties other) {
+		this.mass = other.mass;
+		this.volume = other.volume;
+		this.surfaceArea = other.surfaceArea;
+		this.hollow = other.hollow;
+		this.density = other.density;
+		this.useDensity = other.useDensity;
 	}
 
 }

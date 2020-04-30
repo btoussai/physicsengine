@@ -9,6 +9,9 @@ import cataclysm.constraints.AnchorPoint;
 import cataclysm.contact_creation.ContactProperties;
 import cataclysm.datastructures.IDGenerator;
 import cataclysm.datastructures.Identifier;
+import cataclysm.record.ReadWriteList;
+import cataclysm.record.RigidBodyRepr;
+import cataclysm.record.WrapperRepr;
 import math.MatrixOps;
 import math.vector.Matrix3f;
 import math.vector.Matrix4f;
@@ -335,11 +338,11 @@ public class RigidBody extends Identifier {
 		v1.x = v0.x + transform.m00 * x + transform.m10 * y + transform.m20 * z;
 		v1.y = v0.y + transform.m01 * x + transform.m11 * y + transform.m21 * z;
 		v1.z = v0.z + transform.m02 * x + transform.m12 * y + transform.m22 * z;
-		
+
 		if (transform.m30 != 0.0f || transform.m31 != 0.0f || transform.m32 != 0.0f)
 			translate(transform.m30, transform.m31, transform.m32);
 	}
-	
+
 	/**
 	 * Fait tourner le rigidbody autour de son origine.
 	 * 
@@ -371,11 +374,11 @@ public class RigidBody extends Identifier {
 		v1.x = v0.x + transform.m00 * x + transform.m10 * y + transform.m20 * z;
 		v1.y = v0.y + transform.m01 * x + transform.m11 * y + transform.m21 * z;
 		v1.z = v0.z + transform.m02 * x + transform.m12 * y + transform.m22 * z;
-		
+
 		if (transform.m30 != 0.0f || transform.m31 != 0.0f || transform.m32 != 0.0f)
 			translate(transform.m30, transform.m31, transform.m32);
 	}
-	
+
 	/**
 	 * @return La position du centre de masse. i.e. L'origine du repère
 	 *         barycentrique.
@@ -816,6 +819,65 @@ public class RigidBody extends Identifier {
 	 */
 	public ArrayList<AnchorPoint> getAnchorPoints() {
 		return anchorPoints;
+	}
+
+	public void fill(RigidBodyRepr b) {
+		b.bodyToWorld.loadFrom(bodyToWorld);
+		b.barycentricToWorld.loadFrom(barycentricToWorld);
+		b.velocity.set(velocity);
+		b.angularVelocity.set(angularVelocity);
+		b.gravity = gravity;
+		b.contactProperties.set(contactProperties);
+		b.inv_mass = inv_mass;
+		b.inertia.set(inertia);
+		b.inv_Iws.load(inv_Iws);
+		
+		b.wrappers.rewind();
+		for(Wrapper w : wrappers) {
+			w.fill(b.wrappers.getNext());
+		}
+
+		// final ReadWriteList<AnchorPoint> anchorPoints; //don't save anchor
+		// points for now
+
+		b.mask = mask;
+		b.category = category;
+		b.sleeping = sleeping;
+		b.sleepCounter = sleepCounter;
+		b.rotationBlocked = rotationBlocked;
+	}
+
+	RigidBody(DefaultParameters params, IDGenerator generator, RigidBodyRepr b) {
+		super(generator.nextID());
+		this.bodyToWorld = new Transform(b.bodyToWorld);
+		this.barycentricToWorld.loadFrom(b.barycentricToWorld);
+		this.velocity.set(b.velocity);
+		this.angularVelocity.set(b.angularVelocity);
+		this.gravity = b.gravity;
+		this.contactProperties = new ContactProperties(b.contactProperties);
+		this.inv_mass = b.inv_mass;
+		this.inertia.set(b.inertia);
+		Matrix3f.load(b.inv_Iws, inv_Iws);
+		this.wrappers = new ArrayList<Wrapper>(b.wrappers.getSize());
+
+		for (WrapperRepr w : b.wrappers) {
+			this.wrappers.add(w.build(this, generator.nextID()));
+		}
+
+		this.anchorPoints = new ArrayList<AnchorPoint>();
+		// not filled yet
+
+		this.mask = b.mask;
+		this.category = b.category;
+		this.sleeping = b.sleeping;
+		this.sleepCounter = b.sleepCounter;
+		this.rotationBlocked = b.rotationBlocked;
+
+		updateTransform(new Transform());
+
+		for (Wrapper wrapper : wrappers) {
+			wrapper.placeBox(params.getPadding());
+		}
 	}
 
 }

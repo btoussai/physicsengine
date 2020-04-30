@@ -1,5 +1,6 @@
 package cataclysm.wrappers;
 
+import cataclysm.record.WrapperRepr;
 import math.vector.Matrix3f;
 import math.vector.Vector3f;
 
@@ -27,6 +28,10 @@ public class ConvexHullWrapper extends Wrapper {
 		this.data = new ConvexHullWrapperData(data);
 	}
 	
+	public ConvexHullWrapper(RigidBody body, WrapperRepr w, long ID) {
+		super(body, w, ID);
+		this.data = new ConvexHullWrapperData(w.data);
+	}
 
 	/**
 	 * Ce constructeur ne doit �tre utilis� que par {@link TriangleAsHull}
@@ -139,6 +144,12 @@ public class ConvexHullWrapper extends Wrapper {
 		super.placeCentroid(wrapperCenterOfMass);
 		
 		return mass;
+	}
+
+	@Override
+	protected void fill(WrapperRepr w) {
+		super.fill(w);
+		w.data = data;
 	}
 
 }

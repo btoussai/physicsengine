@@ -2,6 +2,8 @@ package cataclysm.wrappers;
 
 import java.util.Iterator;
 
+import cataclysm.record.ReadWriteObject;
+import cataclysm.record.RecordFile;
 import math.vector.Vector3f;
 
 /**
@@ -10,7 +12,7 @@ import math.vector.Vector3f;
  * @author Briac
  *
  */
-public class ConvexHullWrapperFace implements Iterable<ConvexHullWrapperHalfEdge> {
+public class ConvexHullWrapperFace implements Iterable<ConvexHullWrapperHalfEdge>, ReadWriteObject {
 
 	private static class FaceIterator implements Iterator<ConvexHullWrapperHalfEdge> {
 		private ConvexHullWrapperHalfEdge e0;
@@ -88,6 +90,23 @@ public class ConvexHullWrapperFace implements Iterable<ConvexHullWrapperHalfEdge
 	@Override
 	public Iterator<ConvexHullWrapperHalfEdge> iterator() {
 		return new FaceIterator(getEdge0());
+	}
+
+	public ConvexHullWrapperFace(RecordFile f, ConvexHullWrapperData data) {
+		read(f);
+		this.data = data;
+	}
+
+	@Override
+	public void read(RecordFile f) {
+		index = f.readInt();
+		edge0 = f.readInt();
+	}
+
+	@Override
+	public void write(RecordFile f) {
+		f.writeInt(index);
+		f.writeInt(edge0);
 	}
 
 }
