@@ -267,7 +267,7 @@ class SAT {
 		for (Iterator<Vector3f> it = inputList.iterator(); it.hasNext();) {
 			Vector3f vertex = it.next();
 			float distance = referenceFace.signedDistance(vertex);
-			if (distance > Epsilons.ALLOWED_PENETRATION) {
+			if (distance > 5*Epsilons.ALLOWED_PENETRATION) {
 				it.remove();
 			}
 		}

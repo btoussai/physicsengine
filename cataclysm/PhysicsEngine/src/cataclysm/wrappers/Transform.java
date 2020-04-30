@@ -34,20 +34,38 @@ public class Transform {
 		this.rotation.load(transform.rotation);
 	}
 
-	public void translate(Vector3f translation) {
+	public Transform translate(Vector3f translation) {
 		this.translation.x += translation.x;
 		this.translation.y += translation.y;
 		this.translation.z += translation.z;
+		return this;
 	}
 
-	public void translate(float x, float y, float z) {
+	public Transform translate(float x, float y, float z) {
 		this.translation.x += x;
 		this.translation.y += y;
 		this.translation.z += z;
+		return this;
 	}
 
-	public void rotate(Matrix3f rotation) {
+	public Transform rotateLeft(Matrix3f rotation) {
 		Matrix3f.mul(rotation, this.rotation, this.rotation);
+		return this;
+	}
+	
+	public Transform rotateLeft(Matrix4f rotation) {
+		MatrixOps.matrixMult(rotation, this.rotation, this.rotation);
+		return this;
+	}
+	
+	public Transform rotateRight(Matrix3f rotation) {
+		Matrix3f.mul(this.rotation, rotation, this.rotation);
+		return this;
+	}
+
+	public Transform rotateRight(Matrix4f rotation) {
+		MatrixOps.matrixMult(this.rotation, rotation, this.rotation);
+		return this;
 	}
 
 	public void transformVertex(Vector3f vertex, Vector3f dest) {
@@ -137,7 +155,7 @@ public class Transform {
 
 		return dest;
 	}
-
+	
 	public void loadTo(Matrix4f dest) {
 		dest.m00 = rotation.m00;
 		dest.m01 = rotation.m01;

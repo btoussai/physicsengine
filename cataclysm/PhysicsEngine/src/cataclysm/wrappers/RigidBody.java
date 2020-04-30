@@ -131,7 +131,8 @@ public class RigidBody extends Identifier {
 	 *                  rigidbody et de ses wrappers.
 	 * @param builders  Les enveloppes permettant de calculer les collisions.
 	 */
-	RigidBody(Matrix4f transform, DefaultParameters params, IDGenerator generator, PolyhedralMassProperties poly, WrapperBuilder... builders) {
+	RigidBody(Matrix4f transform, DefaultParameters params, IDGenerator generator, PolyhedralMassProperties poly,
+			WrapperBuilder... builders) {
 		super(generator.nextID());
 		this.bodyToWorld = new Transform(transform);
 		this.wrappers = new ArrayList<Wrapper>(builders.length);
@@ -223,7 +224,8 @@ public class RigidBody extends Identifier {
 	/**
 	 * Applique un changement d'échelle sur ce rigidbody. Le changement d'echelle
 	 * est appliqué au niveau du centre de masse et concerne tous les wrappers. Il
-	 * n'est pas nécessaire d'appeler {@link #computeMassProperties(PolyhedralMassProperties poly)} après cette
+	 * n'est pas nécessaire d'appeler
+	 * {@link #computeMassProperties(PolyhedralMassProperties poly)} après cette
 	 * fonction.<br>
 	 * <br>
 	 * 
@@ -308,8 +310,8 @@ public class RigidBody extends Identifier {
 	 * @param rotation
 	 */
 	public void rotateAboutCenterOfMass(Matrix3f rotation) {
-		barycentricToWorld.rotate(rotation);
-		bodyToWorld.rotate(rotation);
+		barycentricToWorld.rotateLeft(rotation);
+		bodyToWorld.rotateLeft(rotation);
 		Vector3f v0 = barycentricToWorld.getTranslation();
 		Vector3f v1 = bodyToWorld.getTranslation();
 		float x = v1.x - v0.x;
@@ -321,14 +323,31 @@ public class RigidBody extends Identifier {
 		v1.z = v0.z + rotation.m02 * x + rotation.m12 * y + rotation.m22 * z;
 	}
 
+	public void transformCenterOfMass(Matrix4f transform) {
+		barycentricToWorld.rotateLeft(transform);
+		bodyToWorld.rotateLeft(transform);
+		Vector3f v0 = barycentricToWorld.getTranslation();
+		Vector3f v1 = bodyToWorld.getTranslation();
+		float x = v1.x - v0.x;
+		float y = v1.y - v0.y;
+		float z = v1.z - v0.z;
+
+		v1.x = v0.x + transform.m00 * x + transform.m10 * y + transform.m20 * z;
+		v1.y = v0.y + transform.m01 * x + transform.m11 * y + transform.m21 * z;
+		v1.z = v0.z + transform.m02 * x + transform.m12 * y + transform.m22 * z;
+		
+		if (transform.m30 != 0.0f || transform.m31 != 0.0f || transform.m32 != 0.0f)
+			translate(transform.m30, transform.m31, transform.m32);
+	}
+	
 	/**
 	 * Fait tourner le rigidbody autour de son origine.
 	 * 
 	 * @param rotation
 	 */
 	public void rotateAboutOrigin(Matrix3f rotation) {
-		bodyToWorld.rotate(rotation);
-		barycentricToWorld.rotate(rotation);
+		bodyToWorld.rotateLeft(rotation);
+		barycentricToWorld.rotateLeft(rotation);
 		Vector3f v0 = bodyToWorld.getTranslation();
 		Vector3f v1 = barycentricToWorld.getTranslation();
 		float x = v1.x - v0.x;
@@ -340,6 +359,23 @@ public class RigidBody extends Identifier {
 		v1.z = v0.z + rotation.m02 * x + rotation.m12 * y + rotation.m22 * z;
 	}
 
+	public void transformOrigin(Matrix4f transform) {
+		bodyToWorld.rotateLeft(transform);
+		barycentricToWorld.rotateLeft(transform);
+		Vector3f v0 = bodyToWorld.getTranslation();
+		Vector3f v1 = barycentricToWorld.getTranslation();
+		float x = v1.x - v0.x;
+		float y = v1.y - v0.y;
+		float z = v1.z - v0.z;
+
+		v1.x = v0.x + transform.m00 * x + transform.m10 * y + transform.m20 * z;
+		v1.y = v0.y + transform.m01 * x + transform.m11 * y + transform.m21 * z;
+		v1.z = v0.z + transform.m02 * x + transform.m12 * y + transform.m22 * z;
+		
+		if (transform.m30 != 0.0f || transform.m31 != 0.0f || transform.m32 != 0.0f)
+			translate(transform.m30, transform.m31, transform.m32);
+	}
+	
 	/**
 	 * @return La position du centre de masse. i.e. L'origine du repère
 	 *         barycentrique.
@@ -554,7 +590,7 @@ public class RigidBody extends Identifier {
 		velocity.x += N.x * effect;
 		velocity.y += N.y * effect;
 		velocity.z += N.z * effect;
-		
+
 		float dwx = inv_Iws.m00 * RxN.x + inv_Iws.m10 * RxN.y + inv_Iws.m20 * RxN.z;
 		float dwy = inv_Iws.m01 * RxN.x + inv_Iws.m11 * RxN.y + inv_Iws.m21 * RxN.z;
 		float dwz = inv_Iws.m02 * RxN.x + inv_Iws.m12 * RxN.y + inv_Iws.m22 * RxN.z;
@@ -597,7 +633,7 @@ public class RigidBody extends Identifier {
 		angularVelocity.y += dwy * inv_mass;
 		angularVelocity.z += dwz * inv_mass;
 	}
-	
+
 	public void applyImpulseTorque(Vector3f axis, float torque) {
 		float effect = inv_mass * torque;
 		float dwx = inv_Iws.m00 * axis.x + inv_Iws.m10 * axis.y + inv_Iws.m20 * axis.z;
@@ -613,7 +649,7 @@ public class RigidBody extends Identifier {
 		pseudoVel.x += N.x * effect;
 		pseudoVel.y += N.y * effect;
 		pseudoVel.z += N.z * effect;
-		
+
 		float dwx = inv_Iws.m00 * RxN.x + inv_Iws.m10 * RxN.y + inv_Iws.m20 * RxN.z;
 		float dwy = inv_Iws.m01 * RxN.x + inv_Iws.m11 * RxN.y + inv_Iws.m21 * RxN.z;
 		float dwz = inv_Iws.m02 * RxN.x + inv_Iws.m12 * RxN.y + inv_Iws.m22 * RxN.z;
@@ -656,7 +692,7 @@ public class RigidBody extends Identifier {
 		pseudoAngVel.y += dwy * inv_mass;
 		pseudoAngVel.z += dwz * inv_mass;
 	}
-	
+
 	public void applyPseudoImpulseTorque(Vector3f axis, float torque) {
 		float effect = inv_mass * torque;
 		float dwx = inv_Iws.m00 * axis.x + inv_Iws.m10 * axis.y + inv_Iws.m20 * axis.z;
@@ -666,7 +702,6 @@ public class RigidBody extends Identifier {
 		pseudoAngVel.y += dwy * effect;
 		pseudoAngVel.z += dwz * effect;
 	}
-
 
 	/**
 	 * Calcule l'énergie cinétique de l'objet, utile pour le debug.

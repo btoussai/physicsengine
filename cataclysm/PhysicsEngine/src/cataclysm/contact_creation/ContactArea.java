@@ -9,6 +9,8 @@ import math.vector.Vector3f;
  *
  */
 public class ContactArea {
+	
+	private int previousContactCount = 0;
 
 	/**
 	 * Le nombre de point de contact, 0 indique qu'il n'y a pas de collision.
@@ -102,6 +104,7 @@ public class ContactArea {
 	 * Indique qu'il n'y a pas de collision.
 	 */
 	void setNoCollision() {
+		this.previousContactCount = this.contactCount;
 		contactCount = 0;
 	}
 
@@ -120,6 +123,7 @@ public class ContactArea {
 			ContactFeature onB) {
 		this.normal.set(normal);
 		this.penetrationDepth = penetrationDepth;
+		this.previousContactCount = this.contactCount;
 		this.contactCount = contactCount;
 		this.featureOnA.setFrom(onA);
 		this.featureOnB.setFrom(onB);
@@ -139,6 +143,14 @@ public class ContactArea {
 			string += "\nContact: " + contact;
 		}
 		return string;
+	}
+
+	public boolean wasCollisionOccuring() {
+		return previousContactCount != 0;
+	}
+	
+	public boolean hasChanged() {
+		return contactCount != previousContactCount;
 	}
 
 }

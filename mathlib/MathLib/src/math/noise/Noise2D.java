@@ -39,7 +39,7 @@ public class Noise2D extends Noise {
 		float v3 = noiseTexture[intY_plus_1 * texture_size + intX_plus_1];
 		
 		float i1 = Interpolation.linearInterpolation(v0, v1, fracSamplingCoordsX);
-		float i2 = Interpolation.linearInterpolation(v2, v3, fracSamplingCoordsY);
+		float i2 = Interpolation.linearInterpolation(v2, v3, fracSamplingCoordsX);
 		
 		return amplitude * Interpolation.linearInterpolation(i1, i2, fracSamplingCoordsY);
 	}
@@ -64,7 +64,7 @@ public class Noise2D extends Noise {
 		float v3 = noiseTexture[intY_plus_1 * texture_size + intX_plus_1];
 		
 		float i1 = Interpolation.cubicInterpolation(v0, v1, fracSamplingCoordsX);
-		float i2 = Interpolation.cubicInterpolation(v2, v3, fracSamplingCoordsY);
+		float i2 = Interpolation.cubicInterpolation(v2, v3, fracSamplingCoordsX);
 		
 		return amplitude * Interpolation.cubicInterpolation(i1, i2, fracSamplingCoordsY);
 	}

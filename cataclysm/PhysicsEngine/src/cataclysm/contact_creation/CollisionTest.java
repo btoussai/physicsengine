@@ -3,6 +3,7 @@ package cataclysm.contact_creation;
 import java.util.List;
 
 import cataclysm.CataclysmCallbacks;
+import cataclysm.Epsilons;
 import cataclysm.wrappers.CapsuleWrapper;
 import cataclysm.wrappers.ConvexHullWrapper;
 import cataclysm.wrappers.SphereWrapper;
@@ -58,12 +59,17 @@ public class CollisionTest {
 
 		ContactArea area = contact.area;
 		convexContact(contact.getWrapperA(), contact.getWrapperB(), area);
+
+		if (Epsilons.WARM_START && area.hasChanged()) {
+			contact.resetImpulses();
+		}
+
 		if (area.isCollisionOccuring()) {
 			bodyContacts.add(contact);
 			if (callbacks.getOnCollision() != null)
 				callbacks.getOnCollision().accept(contact.getWrapperA(), contact.getWrapperB());
-		} else {
-			contact.resetImpulses();
+		} else if (area.wasCollisionOccuring()) {
+			contact.wakeUp();
 		}
 
 	}

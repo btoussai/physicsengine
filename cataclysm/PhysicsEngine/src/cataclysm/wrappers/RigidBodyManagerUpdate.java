@@ -17,9 +17,11 @@ import cataclysm.contact_creation.AbstractDoubleBodyContact;
 import cataclysm.contact_creation.AbstractSingleBodyContact;
 import cataclysm.contact_creation.CollisionTest;
 import cataclysm.contact_creation.DoubleBodyContact;
-import cataclysm.contact_creation.DoubleBodyContactSimplified;
+import cataclysm.contact_creation.DoubleBodyContactArrayBased;
+import cataclysm.contact_creation.DoubleBodyContactBlockSolver;
 import cataclysm.contact_creation.SingleBodyContact;
-import cataclysm.contact_creation.SingleBodyContactSimplified;
+import cataclysm.contact_creation.SingleBodyContactArrayBased;
+import cataclysm.contact_creation.SingleBodyContactBlockSolver;
 import math.vector.Vector3f;
 
 /**
@@ -242,10 +244,18 @@ public class RigidBodyManagerUpdate {
 		ArrayList<AbstractDoubleBodyContact> pool = bodyContactPool[maxContacts];
 		AbstractDoubleBodyContact contact = null;
 		if (pool.isEmpty()) {
-			if(Epsilons.ARRAY_BASED_CONTACTS) {
-				contact = new DoubleBodyContactSimplified(maxContacts, wrapperA, wrapperB);
-			}else {
+			switch(Epsilons.solver) {
+			case ITERATIVE_ARRAY_BASED:
+				contact = new DoubleBodyContactArrayBased(maxContacts, wrapperA, wrapperB);
+				break;
+			case ITERATIVE_BLOCK_SOLVER:
+				contact = new DoubleBodyContactBlockSolver(maxContacts, wrapperA, wrapperB);
+				break;
+			case ITERATIVE_SIMPLE:
 				contact = new DoubleBodyContact(maxContacts, wrapperA, wrapperB);
+				break;
+			default:
+				throw new IllegalStateException("Invalid enum value: " + Epsilons.solver);
 			}
 		} else {
 			contact = pool.remove(pool.size() - 1);
@@ -261,10 +271,18 @@ public class RigidBodyManagerUpdate {
 		ArrayList<AbstractSingleBodyContact> pool = meshContactPool[maxContacts];
 		AbstractSingleBodyContact contact = null;
 		if (pool.isEmpty()) {
-			if(Epsilons.ARRAY_BASED_CONTACTS) {
-				contact = new SingleBodyContactSimplified(maxContacts, wrapper, triangle);
-			}else {
+			switch(Epsilons.solver) {
+			case ITERATIVE_ARRAY_BASED:
+				contact = new SingleBodyContactArrayBased(maxContacts, wrapper, triangle);
+				break;
+			case ITERATIVE_BLOCK_SOLVER:
+				contact = new SingleBodyContactBlockSolver(maxContacts, wrapper, triangle);
+				break;
+			case ITERATIVE_SIMPLE:
 				contact = new SingleBodyContact(maxContacts, wrapper, triangle);
+				break;
+			default:
+				throw new IllegalStateException("Invalid enum value: " + Epsilons.solver);
 			}
 		} else {
 			contact = pool.remove(pool.size() - 1);

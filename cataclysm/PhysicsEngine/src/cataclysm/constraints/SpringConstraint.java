@@ -129,11 +129,13 @@ public class SpringConstraint extends LinearConstraint {
 	 *                      faible correspond � une contrainte plus souple. <br>
 	 *                      0.1f --> tr�s souple <br>
 	 *                      30.0f --> tr�s raide <br>
+	 * @return 
 	 * 
 	 */
-	public void setSoftnessParameters(float damping_ratio, float frequency) {
+	public SpringConstraint setSoftnessParameters(float damping_ratio, float frequency) {
 		this.damping_ratio = damping_ratio;
 		this.angular_frequency = 2.0f * (float) Math.PI * frequency;
+		return this;
 	}
 
 	

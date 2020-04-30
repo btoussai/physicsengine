@@ -50,4 +50,11 @@ public abstract class AbstractDoubleBodyContact extends AbstractContact{
 		this.updateFlag = updateFlag;
 	}
 
+	public void wakeUp() {
+		this.wrapperA.getBody().setSleeping(false);
+		this.wrapperA.getBody().setSleepCounter(0);
+		this.wrapperB.getBody().setSleeping(false);
+		this.wrapperB.getBody().setSleepCounter(0);
+	}
+
 }

@@ -129,7 +129,7 @@ public class DoubleBodyContact extends AbstractDoubleBodyContact {
 
 	@Override
 	public void solveVelocity() {
-
+		
 		for (int i = 0; i < super.area.getContactCount(); i++) {
 
 			// the velocity may have changed due to other constraints, we need to recompute

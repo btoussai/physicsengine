@@ -4,7 +4,7 @@ import cataclysm.Epsilons;
 import math.vector.Vector3f;
 
 /**
- * Repr�sente un contrainte de distance entre deux solides.
+ * Repr�sente une contrainte de distance entre deux solides.
  * 
  * @author Briac
  *

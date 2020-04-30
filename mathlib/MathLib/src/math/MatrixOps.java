@@ -1727,6 +1727,22 @@ public class MatrixOps {
 	}
 	
 	/**
+	 * Computes left^T M right
+	 * @param left 
+	 * @param mat
+	 * @param right
+	 * @return
+	 */
+	public static float sandwichDotProduct(Vector3f left, Matrix3f mat, Vector3f right) {
+		float x = right.x;
+		float y = right.y;
+		float z = right.z;
+
+		return left.x * (mat.m00 * x + mat.m10 * y + mat.m20 * z) + left.y * (mat.m01 * x + mat.m11 * y + mat.m21 * z)
+				+ left.z * (mat.m02 * x + mat.m12 * y + mat.m22 * z);
+	}
+	
+	/**
 	 * Computes -vx M vx with vx denoting the cross-product / skew-symetric matrix.
 	 * @param mat
 	 * @param v

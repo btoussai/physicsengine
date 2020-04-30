@@ -32,9 +32,11 @@ public abstract class WrapperBuilder {
 	 * n'influence que le tenseur d'inertie du rigidbody poss�dent l'enveloppe.
 	 * 
 	 * @param hollow
+	 * @return this
 	 */
-	public void setHollow(boolean hollow) {
+	public WrapperBuilder setHollow(boolean hollow) {
 		this.massProperties.setHollow(hollow);
+		return this;
 	}
 
 	/**
@@ -44,10 +46,12 @@ public abstract class WrapperBuilder {
 	 * Si l'enveloppe est creuse, la densit� correspond � la masse volumique.
 	 * 
 	 * @param density
+	 * @return this
 	 */
-	public void setDensity(float density) {
+	public WrapperBuilder setDensity(float density) {
 		this.massProperties.setDensity(density);
 		this.massProperties.setUseDensity(true);
+		return this;
 	}
 
 	/**

@@ -32,7 +32,7 @@ public class Epsilons {
 		 * La vitesse de rotation minimale pour laquelle on considère la rotation
 		 * négligeable.
 		 */
-		public static final float MIN_ROTATION_SPEED = 2.0f * (float)Math.PI / 10.0f;// 10 seconds per rotation
+		public static final float MIN_ROTATION_SPEED = 2.0f * (float)Math.PI / 20.0f;// 10 seconds per rotation
 
 		/**
 		 * La vitesse de translation minimale pour laquelle on considère le déplacement
@@ -54,9 +54,13 @@ public class Epsilons {
 	 */
 	public static final boolean WARM_START = false;
 	
-	public static boolean ARRAY_BASED_CONTACTS = false;
+	public static ContactSolver solver = ContactSolver.ITERATIVE_SIMPLE;
+	
+	public enum ContactSolver{
+		ITERATIVE_SIMPLE, ITERATIVE_ARRAY_BASED, ITERATIVE_BLOCK_SOLVER;
+	}
 
-	// ############### STATIC CONSTS BELOW ###############
+	// ############### SUPER STATIC CONSTS BELOW, SHOULDN'T CHANGE ###############
 
 	/**
 	 * Le nombre maximal de contacts entre deux enveloppes convexes.
