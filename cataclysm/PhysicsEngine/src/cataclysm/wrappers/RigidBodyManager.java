@@ -71,6 +71,10 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 	protected void processAddedAndRemovedElements(List<RigidBody> added, List<RigidBody> removed) {
 		updator.processAddedAndRemovedElements(added, removed, meshes);
 		
+		if(world.getActiveRecord() != null) {
+			world.getActiveRecord().getCurrentFrame().fillBodies(added, removed);
+		}
+		
 		List<AbstractConstraint> contraintsToDelete = new ArrayList<AbstractConstraint>();
 		for (RigidBody body : removed) {
 			for (Wrapper w : body.getWrappers())

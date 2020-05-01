@@ -10,7 +10,7 @@ import math.vector.Vector3f;
  * @author Briac
  *
  */
-public class ConvexHullWrapperHalfEdge implements ReadWriteObject{
+public class ConvexHullWrapperHalfEdge implements ReadWriteObject {
 
 	ConvexHullWrapperData data;
 
@@ -22,7 +22,7 @@ public class ConvexHullWrapperHalfEdge implements ReadWriteObject{
 	int face = -1;
 
 	public ConvexHullWrapperHalfEdge() {
-		
+
 	}
 
 	public ConvexHullWrapperHalfEdge(ConvexHullWrapperHalfEdge edge, ConvexHullWrapperData data) {
@@ -110,8 +110,8 @@ public class ConvexHullWrapperHalfEdge implements ReadWriteObject{
 	public int getTailIndex() {
 		return tail;
 	}
-	
-	public ConvexHullWrapperHalfEdge(RecordFile f, ConvexHullWrapperData data){
+
+	public ConvexHullWrapperHalfEdge(RecordFile f, ConvexHullWrapperData data) {
 		read(f);
 		this.data = data;
 	}
@@ -136,6 +136,9 @@ public class ConvexHullWrapperHalfEdge implements ReadWriteObject{
 		f.writeInt(face);
 	}
 
+	@Override
+	public int size() {
+		return 6 * 4;
+	}
+
 }
-
-

@@ -109,4 +109,9 @@ public class ConvexHullWrapperFace implements Iterable<ConvexHullWrapperHalfEdge
 		f.writeInt(edge0);
 	}
 
+	@Override
+	public int size() {
+		return 2*4;
+	}
+
 }

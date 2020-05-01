@@ -28,10 +28,13 @@ public final class WrapperRepr implements ReadWriteObject {
 	// ConvexHull
 	public ConvexHullWrapperData data;
 
+	public WrapperRepr() {
+	}
+
 	public WrapperRepr(RecordFile f) {
 		read(f);
 	}
-	
+
 	public Wrapper build(RigidBody b, long ID) {
 		if (type == 0) {
 			return new SphereWrapper(b, this, ID);
@@ -42,7 +45,7 @@ public final class WrapperRepr implements ReadWriteObject {
 		} else {
 			throw new RecordFileDecodeError("Error while decoding record file !");
 		}
-		
+
 	}
 
 	@Override
@@ -84,6 +87,19 @@ public final class WrapperRepr implements ReadWriteObject {
 		} else {
 			throw new RecordFileDecodeError("Error while encoding record file !");
 		}
+	}
+
+	@Override
+	public int size() {
+		int typeSize = 4;
+		if (type == 0) {
+			typeSize += 4;
+		} else if (type == 1) {
+			typeSize += 8;
+		} else if (type == 2) {
+			typeSize += data.size();
+		}
+		return wrapperToBody.size() + centroid.size() + 4 + massProperties.size() + typeSize;
 	}
 
 }

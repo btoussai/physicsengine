@@ -5,12 +5,13 @@ import cataclysm.record.RecordFile;
 import math.vector.Vector3f;
 
 /**
- * Repr�sente un ensemble de deux {@link Vector3f} repr�sentant un m�me vecteur dans deux rep�res.
+ * Repr�sente un ensemble de deux {@link Vector3f} repr�sentant un m�me vecteur
+ * dans deux rep�res.
  * 
  * @author Briac
  *
  */
-public final class TransformableVec3 implements ReadWriteObject{
+public final class TransformableVec3 implements ReadWriteObject {
 
 	private final Vector3f inputSpaceCoord;
 	private final Vector3f outputSpaceCoord;
@@ -19,12 +20,12 @@ public final class TransformableVec3 implements ReadWriteObject{
 		this.inputSpaceCoord = new Vector3f(inputSpaceCoord);
 		this.outputSpaceCoord = new Vector3f();
 	}
-	
+
 	public TransformableVec3(TransformableVec3 vec) {
 		this.inputSpaceCoord = new Vector3f(vec.inputSpaceCoord);
 		this.outputSpaceCoord = new Vector3f(vec.outputSpaceCoord);
 	}
-	
+
 	public TransformableVec3(float x, float y, float z) {
 		this.inputSpaceCoord = new Vector3f(x, y, z);
 		this.outputSpaceCoord = new Vector3f();
@@ -46,11 +47,11 @@ public final class TransformableVec3 implements ReadWriteObject{
 	public void transformAsVertex(Transform transform) {
 		transform.transformVertex(inputSpaceCoord, outputSpaceCoord);
 	}
-	
+
 	public void transformAsVector(Transform transform) {
 		transform.transformVector(inputSpaceCoord, outputSpaceCoord);
 	}
-	
+
 	@Override
 	public String toString() {
 		return "ModelSpace: " + inputSpaceCoord + "    WorldSpace: " + outputSpaceCoord;
@@ -71,6 +72,11 @@ public final class TransformableVec3 implements ReadWriteObject{
 	public void set(TransformableVec3 vec) {
 		this.inputSpaceCoord.set(vec.inputSpaceCoord);
 		this.outputSpaceCoord.set(vec.outputSpaceCoord);
+	}
+
+	@Override
+	public int size() {
+		return 3 * 4 + 3 * 4;
 	}
 
 }

@@ -11,7 +11,7 @@ import math.vector.Vector3f;
  * @author Briac
  *
  */
-public final class ConvexHullWrapperData implements ReadWriteObject{
+public final class ConvexHullWrapperData implements ReadWriteObject {
 
 	/**
 	 * L'ensemble des faces de l'enveloppe convexe.
@@ -48,7 +48,7 @@ public final class ConvexHullWrapperData implements ReadWriteObject{
 	 * Le rayon maximal de l'enveloppe.
 	 */
 	protected float maxRadius;
-	
+
 	/**
 	 * Le facteur d'�chelle entre l'enveloppe et son mod�le.
 	 */
@@ -172,7 +172,7 @@ public final class ConvexHullWrapperData implements ReadWriteObject{
 			v.y = origin.y + (v.y - origin.y) * scaleFactor;
 			v.z = origin.z + (v.z - origin.z) * scaleFactor;
 		}
-		
+
 		this.maxRadius *= scaleFactor;
 		this.scale *= scaleFactor;
 	}
@@ -195,17 +195,17 @@ public final class ConvexHullWrapperData implements ReadWriteObject{
 	public float getScale() {
 		return scale;
 	}
-	
+
 	public ConvexHullWrapperData(RecordFile f) {
 		faces = (ConvexHullWrapperFace[]) f.readArray(file -> new ConvexHullWrapperFace(file, this));
 		edges = (ConvexHullWrapperHalfEdge[]) f.readArray(file -> new ConvexHullWrapperHalfEdge(file, this));
-		
+
 		maxRadius = f.readFloat();
 		scale = f.readFloat();
 		backupVertices = f.readVector3fArray();
 		backupFaceNormals = f.readVector3fArray();
 		backupFaceCentroids = f.readVector3fArray();
-		
+
 		this.vertices = new Vector3f[backupVertices.length];
 		for (int i = 0; i < vertices.length; i++) {
 			vertices[i] = new Vector3f();
@@ -230,12 +230,18 @@ public final class ConvexHullWrapperData implements ReadWriteObject{
 	public void write(RecordFile f) {
 		f.writeArray(faces);
 		f.writeArray(edges);
-		
+
 		f.writeFloat(maxRadius);
 		f.writeFloat(scale);
 		f.writeVector3fArray(backupVertices);
 		f.writeVector3fArray(backupFaceNormals);
 		f.writeVector3fArray(backupFaceCentroids);
+	}
+
+	@Override
+	public int size() {
+		return faces.length * faces[0].size() + edges.length * edges[0].size() + 4 + 4
+				+ (backupVertices.length + backupFaceNormals.length + backupFaceCentroids.length) * 3 * 4;
 	}
 
 }

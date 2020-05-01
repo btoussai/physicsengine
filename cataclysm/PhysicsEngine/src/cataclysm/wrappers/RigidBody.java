@@ -9,8 +9,8 @@ import cataclysm.constraints.AnchorPoint;
 import cataclysm.contact_creation.ContactProperties;
 import cataclysm.datastructures.IDGenerator;
 import cataclysm.datastructures.Identifier;
-import cataclysm.record.ReadWriteList;
 import cataclysm.record.RigidBodyRepr;
+import cataclysm.record.RigidBodyState;
 import cataclysm.record.WrapperRepr;
 import math.MatrixOps;
 import math.vector.Matrix3f;
@@ -831,9 +831,9 @@ public class RigidBody extends Identifier {
 		b.inv_mass = inv_mass;
 		b.inertia.set(inertia);
 		b.inv_Iws.load(inv_Iws);
-		
+
 		b.wrappers.rewind();
-		for(Wrapper w : wrappers) {
+		for (Wrapper w : wrappers) {
 			w.fill(b.wrappers.getNext());
 		}
 
@@ -878,6 +878,13 @@ public class RigidBody extends Identifier {
 		for (Wrapper wrapper : wrappers) {
 			wrapper.placeBox(params.getPadding());
 		}
+	}
+
+	public void fill(RigidBodyState state) {
+		state.position.set(getPosition());
+		state.rotation.load(getOrientation());
+		state.velocity.set(getVelocity());
+		state.angularVelocity.set(getAngularVelocity());
 	}
 
 }

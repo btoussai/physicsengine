@@ -108,7 +108,8 @@ public class PhysicsStats {
 	/**
 	 * Le nombre de frame simulées depuis le lancement de la simulation.
 	 */
-	public long frame_count = 0;
+	private long frame_count = 0;
+	private double elapsedTime = 0;
 
 	private int rigidBodies;
 	private int staticMeshes;
@@ -127,9 +128,13 @@ public class PhysicsStats {
 	public final TimeAverage constraintSolver = new TimeAverage(TimeUnit.MILLISEC, "Constraint Solver", smooth);
 	public final TimeAverage velocityIntegration = new TimeAverage(TimeUnit.MILLISEC, "Velocity integration", smooth);
 
-	public void reset(int rigidBodies, int staticMeshes, int constraints) {
+	public void step(float timeStep) {
 		this.frame_count++;
-
+		this.elapsedTime += timeStep;
+	}
+	
+	
+	public void reset(int rigidBodies, int staticMeshes, int constraints) {
 		this.rigidBodies = rigidBodies;
 		this.staticMeshes = staticMeshes;
 		this.constraints = constraints;
@@ -148,6 +153,14 @@ public class PhysicsStats {
 		sb.append("\n\tBody to Mesh contacts: " + bodyToMeshContacts + " (" + bodyToMeshActiveContacts + " active)");
 		sb.append("\n] frame " + frame_count);
 		return sb.toString();
+	}
+	
+	public long getFrameCount() {
+		return frame_count;
+	}
+	
+	public double getElapsedTime() {
+		return elapsedTime;
 	}
 
 }

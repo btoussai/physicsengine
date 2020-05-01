@@ -20,11 +20,12 @@ import math.vector.Vector3f;
  *
  */
 public class RecordFile {
-	private final int BUFFER_LENGTH = 1024;
+	private final int BUFFER_LENGTH = 1024 * 1024;
 
 	private ByteBuffer buffer = ByteBuffer.allocate(BUFFER_LENGTH);
 	private BufferedOutputStream out;
 	private BufferedInputStream in;
+	private boolean closed = false;
 
 	/**
 	 * Creates a new file in which a record will be saved or opens a record
@@ -48,35 +49,79 @@ public class RecordFile {
 
 	}
 
+	/**
+	 * Writes the remaining data contained in the bytebuffer into the file and then
+	 * closes it.
+	 */
 	public void flushAndClose() {
 		try {
+			System.out.println("flushAndClose ! writing " + buffer.position() + " bytes");
 			out.write(buffer.array(), 0, buffer.position());
 			buffer.rewind();
 			out.close();
+			closed = true;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private void flushToFile() {
-		if (buffer.position() == BUFFER_LENGTH - 1) {
+	/**
+	 * Closes the file being read from.
+	 */
+	public void close() {
+		try {
+			in.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		closed = true;
+	}
+
+	public boolean isClosed() {
+		return closed;
+	}
+
+	/**
+	 * Flushes the buffer to the file and empties it if there is not enough space in
+	 * the buffer to store size bytes.
+	 * 
+	 * @param size
+	 */
+	private void flushToFile(int size) {
+		int remaining = buffer.remaining();
+		if (remaining < size) {
 			try {
-				out.write(buffer.array());
-				buffer.rewind();
+				System.out.println("flushing to file " + buffer.position() + " bytes");
+				out.write(buffer.array(), 0, buffer.position());
+				buffer.compact();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 	}
 
-	private void replenishFromFile() {
-		if (buffer.remaining() == 0) {
+	/**
+	 * Replenishes the buffer from the file if the buffer contains less than size
+	 * bytes
+	 * 
+	 * @param size
+	 */
+	private void replenishFromFile(int size) {
+		int remaining = buffer.remaining();
+		if (remaining < size) {
 			try {
-				int count = in.read(buffer.array());
+				buffer.compact();
+				int toRead = buffer.limit() - buffer.position();
+				System.out.println("replenishing " + toRead + " bytes");
+				int count = in.read(buffer.array(), buffer.position(), toRead);
 				buffer.rewind();
+				System.out.println("read " + count + " bytes");
 
 				if (count == -1) {
 					in.close();
+					closed = true;
+				} else {
+					buffer.limit(count + remaining);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -84,70 +129,104 @@ public class RecordFile {
 		}
 	}
 
+	public void writeByte(byte b) {
+		flushToFile(1);
+		buffer.put(b);
+	}
+
+	public byte readByte() {
+		replenishFromFile(1);
+		return buffer.get();
+	}
+
 	public void writeBool(boolean b) {
-		flushToFile();
+		flushToFile(1);
 		buffer.put((byte) (b ? 1 : 0));
 	}
 
 	public boolean readBool() {
-		replenishFromFile();
+		replenishFromFile(1);
 		return buffer.get() != 0;
 	}
 
 	public void writeInt(int i) {
-		flushToFile();
+		flushToFile(4);
 		buffer.putInt(i);
 	}
 
 	public int readInt() {
-		replenishFromFile();
+		replenishFromFile(4);
 		return buffer.getInt();
 	}
 
+	public void writeLong(long l) {
+		flushToFile(8);
+		buffer.putLong(l);
+	}
+
+	public long readLong() {
+		replenishFromFile(8);
+		return buffer.getLong();
+	}
+
 	public void writeFloat(float f) {
-		flushToFile();
+		flushToFile(4);
 		buffer.putFloat(f);
 	}
 
 	public float readFloat() {
-		replenishFromFile();
+		replenishFromFile(4);
 		return buffer.getFloat();
 	}
 
+	public void writeDouble(double d) {
+		flushToFile(8);
+		buffer.putDouble(d);
+	}
+
+	public double readDouble() {
+		replenishFromFile(8);
+		return buffer.getDouble();
+	}
+
 	public void writeVector3f(Vector3f v) {
-		writeFloat(v.x);
-		writeFloat(v.y);
-		writeFloat(v.z);
+		flushToFile(3 * 4);
+		buffer.putFloat(v.x);
+		buffer.putFloat(v.y);
+		buffer.putFloat(v.z);
 	}
 
 	public void readVector3f(Vector3f v) {
-		v.x = readFloat();
-		v.y = readFloat();
-		v.z = readFloat();
+		replenishFromFile(3 * 4);
+		v.x = buffer.getFloat();
+		v.y = buffer.getFloat();
+		v.z = buffer.getFloat();
 	}
 
 	public void writeMatrix3f(Matrix3f m) {
-		writeFloat(m.m00);
-		writeFloat(m.m01);
-		writeFloat(m.m02);
-		writeFloat(m.m10);
-		writeFloat(m.m11);
-		writeFloat(m.m12);
-		writeFloat(m.m20);
-		writeFloat(m.m21);
-		writeFloat(m.m22);
+		flushToFile(9 * 4);
+		buffer.putFloat(m.m00);
+		buffer.putFloat(m.m01);
+		buffer.putFloat(m.m02);
+		buffer.putFloat(m.m10);
+		buffer.putFloat(m.m11);
+		buffer.putFloat(m.m12);
+		buffer.putFloat(m.m20);
+		buffer.putFloat(m.m21);
+		buffer.putFloat(m.m22);
 	}
 
 	public void readMatrix3f(Matrix3f m) {
-		m.m00 = readFloat();
-		m.m01 = readFloat();
-		m.m02 = readFloat();
-		m.m10 = readFloat();
-		m.m11 = readFloat();
-		m.m12 = readFloat();
-		m.m20 = readFloat();
-		m.m21 = readFloat();
-		m.m22 = readFloat();
+		replenishFromFile(9 * 4);
+		m.m00 = buffer.getFloat();
+		m.m01 = buffer.getFloat();
+		m.m02 = buffer.getFloat();
+		m.m10 = buffer.getFloat();
+		m.m11 = buffer.getFloat();
+		m.m12 = buffer.getFloat();
+		m.m20 = buffer.getFloat();
+		m.m21 = buffer.getFloat();
+		m.m22 = buffer.getFloat();
 	}
 
 	public Vector3f[] readVector3fArray() {
@@ -180,6 +259,44 @@ public class RecordFile {
 		for (int i = 0; i < array.length; i++) {
 			array[i].write(this);
 		}
+	}
+
+	/**
+	 * Reads an ascii line from the file (each character is encoded as a byte). The
+	 * end of line character '\n' is not appended to the stringbuilder
+	 * 
+	 * @param str
+	 */
+	public void readLine(StringBuilder str) {
+		str.delete(0, str.length());
+		byte b;
+		while ((b = readByte()) != '\n') {
+			str.append((char) b);
+		}
+	}
+
+	/**
+	 * Writes an ascii string in the file and appends an end of line character '\n'.
+	 * 
+	 * @param str
+	 */
+	public void writeLine(StringBuilder str) {
+		for (int i = 0; i < str.length(); i++) {
+			writeByte((byte) str.charAt(i));
+		}
+		writeByte((byte) '\n');
+	}
+
+	/**
+	 * Writes an ascii string in the file and appends an end of line character '\n'.
+	 * 
+	 * @param str
+	 */
+	public void writeLine(String str) {
+		for (int i = 0; i < str.length(); i++) {
+			writeByte((byte) str.charAt(i));
+		}
+		writeByte((byte) '\n');
 	}
 
 }

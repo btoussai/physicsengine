@@ -142,4 +142,9 @@ public final class MassProperties implements ReadWriteObject {
 		this.useDensity = other.useDensity;
 	}
 
+	@Override
+	public int size() {
+		return 4 + 4 + 4 + 1 + 4 + 1;
+	}
+
 }

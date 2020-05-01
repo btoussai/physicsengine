@@ -5,11 +5,15 @@ import math.vector.Vector3f;
 
 public final class StaticMeshRepr implements ReadWriteObject {
 
-	private final ReadWriteList<TriangleRepr> triangles = new ReadWriteList<TriangleRepr>(TriangleRepr::new, null);
-	private final Vector3f min = new Vector3f();
-	private final Vector3f max = new Vector3f();
-	private final ContactProperties contactProperties = new ContactProperties(0, 0);
+	public final ReadWriteList<TriangleRepr> triangles = new ReadWriteList<TriangleRepr>(TriangleRepr::new, TriangleRepr::new);
+	public final Vector3f min = new Vector3f();
+	public final Vector3f max = new Vector3f();
+	public final ContactProperties contactProperties = new ContactProperties(0, 0);
 
+
+	public StaticMeshRepr() {
+	}
+	
 	public StaticMeshRepr(RecordFile f) {
 		read(f);
 	}
@@ -28,6 +32,11 @@ public final class StaticMeshRepr implements ReadWriteObject {
 		f.writeVector3f(min);
 		f.writeVector3f(max);
 		contactProperties.write(f);
+	}
+
+	@Override
+	public int size() {
+		return triangles.size() + 2*3*4 + contactProperties.size();
 	}
 
 }

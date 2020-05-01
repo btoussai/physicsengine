@@ -22,7 +22,7 @@ public final class RigidBodyRepr implements ReadWriteObject {
 	public float inv_mass;
 	public final Vector3f inertia = new Vector3f();
 	public final Matrix3f inv_Iws = new Matrix3f();
-	public final ReadWriteList<WrapperRepr> wrappers = new ReadWriteList<WrapperRepr>(WrapperRepr::new, null);
+	public final ReadWriteList<WrapperRepr> wrappers = new ReadWriteList<WrapperRepr>(WrapperRepr::new, WrapperRepr::new);
 
 	// public final ReadWriteList<AnchorPoint> anchorPoints; //don't save anchor
 	// points for now
@@ -32,7 +32,10 @@ public final class RigidBodyRepr implements ReadWriteObject {
 	public boolean sleeping = false;
 	public int sleepCounter = 0;
 	public boolean rotationBlocked = false;
-	
+
+	public RigidBodyRepr() {
+
+	}
 
 	public RigidBodyRepr(RecordFile f) {
 		read(f);
@@ -76,6 +79,12 @@ public final class RigidBodyRepr implements ReadWriteObject {
 		f.writeBool(sleeping);
 		f.writeInt(sleepCounter);
 		f.writeBool(rotationBlocked);
+	}
+
+	@Override
+	public int size() {
+		return bodyToWorld.size() + barycentricToWorld.size() + 3 * 4 + 3 * 4 + 1 + contactProperties.size() + 4 + 3 * 4
+				+ 9 * 4 + wrappers.size() + 4 + 4 + 1 + 4 + 1;
 	}
 
 }

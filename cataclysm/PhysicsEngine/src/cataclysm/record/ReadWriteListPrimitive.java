@@ -8,13 +8,20 @@ import java.util.function.Function;
 public class ReadWriteListPrimitive<T> implements ReadWriteObject, Iterable<T> {
 
 	private final ArrayList<T> list = new ArrayList<T>();
-	private final Function<RecordFile, T> constructor;
+	private final Function<RecordFile, T> reader;
 	private final BiConsumer<RecordFile, T> writer;
 	private int size;
+	private final int primitiveSize;
 
-	public ReadWriteListPrimitive(Function<RecordFile, T> constructor, BiConsumer<RecordFile, T> writer) {
-		this.constructor = constructor;
+	public ReadWriteListPrimitive(Function<RecordFile, T> reader, BiConsumer<RecordFile, T> writer, int primitiveSize) {
+		this.reader = reader;
 		this.writer = writer;
+		this.primitiveSize = primitiveSize;
+	}
+	
+	public void add(T element) {
+		list.add(element);
+		size++;
 	}
 
 	@Override
@@ -25,11 +32,11 @@ public class ReadWriteListPrimitive<T> implements ReadWriteObject, Iterable<T> {
 		int i = 0;
 		int current_limit = Math.min(size, list.size());
 		for (; i < current_limit; i++) {
-			list.set(i, constructor.apply(f));
+			list.set(i, reader.apply(f));
 		}
 
 		for (; i < size; i++) {
-			list.add(constructor.apply(f));
+			list.add(reader.apply(f));
 		}
 		this.size = size;
 	}
@@ -50,6 +57,11 @@ public class ReadWriteListPrimitive<T> implements ReadWriteObject, Iterable<T> {
 	public void clear() {
 		list.clear();
 		size = 0;
+	}
+
+	@Override
+	public int size() {
+		return 4 + size * primitiveSize;
 	}
 
 }

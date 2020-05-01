@@ -21,6 +21,8 @@ import math.vector.Vector3f;
  *
  */
 final class PhysicsEngine {
+	
+	private final PhysicsWorld world;
 
 	/**
 	 * Les paramètres globaux pour la simulation.
@@ -52,8 +54,9 @@ final class PhysicsEngine {
 	 * 
 	 * @param params
 	 */
-	PhysicsEngine(DefaultParameters params) {
-		this.params = params;
+	PhysicsEngine(PhysicsWorld world) {
+		this.world = world;
+		this.params = world.getParameters();
 		this.forceInegrator = params.getForceIntegrator();
 	}
 
@@ -78,7 +81,6 @@ final class PhysicsEngine {
 		bodies.update();
 		stats.broadAndNarrowphase.stop();
 		
-
 		stats.reset(bodies.size(), meshes.size(), constraints.size());
 		
 		stats.constraintSolver.start();
@@ -90,6 +92,9 @@ final class PhysicsEngine {
 		integrateVelocity(bodies, timeStep, gyroscopicIntegration);
 		stats.velocityIntegration.stop();
 
+		if(world.getActiveRecord() != null	) {
+			world.getActiveRecord().getCurrentFrame().fillBodiesStates(world);
+		}
 	}
 
 	/**

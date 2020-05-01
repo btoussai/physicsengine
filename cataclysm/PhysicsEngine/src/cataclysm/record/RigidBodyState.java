@@ -10,10 +10,13 @@ import math.vector.Vector3f;
  *
  */
 public final class RigidBodyState implements ReadWriteObject {
-	private final Vector3f position = new Vector3f();
-	private final Matrix3f rotation = new Matrix3f();
-	private final Vector3f velocity = new Vector3f();
-	private final Vector3f angularVelocity = new Vector3f();
+	public final Vector3f position = new Vector3f();
+	public final Matrix3f rotation = new Matrix3f();
+	public final Vector3f velocity = new Vector3f();
+	public final Vector3f angularVelocity = new Vector3f();
+	
+	public RigidBodyState() {
+	}
 	
 	public RigidBodyState(RecordFile f) {
 		read(f);
@@ -33,5 +36,10 @@ public final class RigidBodyState implements ReadWriteObject {
 		f.writeMatrix3f(rotation);
 		f.writeVector3f(velocity);
 		f.writeVector3f(angularVelocity);
+	}
+
+	@Override
+	public int size() {
+		return 3*4 + 9*4 + 3*4 + 3*4;
 	}
 }

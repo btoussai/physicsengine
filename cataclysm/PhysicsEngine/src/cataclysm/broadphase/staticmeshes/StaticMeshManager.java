@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import cataclysm.DefaultParameters;
+import cataclysm.PhysicsWorld;
 import cataclysm.broadphase.AABB;
 import cataclysm.datastructures.BufferedManager;
 import math.vector.Matrix4f;
@@ -17,11 +18,13 @@ import math.vector.Vector3f;
 public final class StaticMeshManager extends BufferedManager<StaticMesh>{
 	
 	private final MapGrid mapGrid;
+	private final PhysicsWorld world;
 	private final DefaultParameters params;
 	
-	public StaticMeshManager(DefaultParameters params){
-		mapGrid = new MapGrid(params.getGridCellSize(), params.getMaxOctreeDepth());
-		this.params = params;
+	public StaticMeshManager(PhysicsWorld world){
+		this.world = world;
+		this.params = world.getParameters();
+		this.mapGrid = new MapGrid(params.getGridCellSize(), params.getMaxOctreeDepth());
 	}
 	
 	/**
@@ -106,6 +109,10 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh>{
 		}
 		for(StaticMesh mesh : removed) {
 			mapGrid.remove(mesh);
+		}
+		
+		if(world.getActiveRecord() != null) {
+			world.getActiveRecord().getCurrentFrame().fillMeshes(added, removed);
 		}
 	}
 	

@@ -56,6 +56,11 @@ public final class ContactProperties implements ReadWriteObject{
 		this.elasticity = contactProperties.elasticity;
 		this.friction = contactProperties.friction;
 	}
+
+	@Override
+	public int size() {
+		return 8;
+	}
 	
 
 }

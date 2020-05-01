@@ -13,5 +13,10 @@ public interface ReadWriteObject {
 	public void read(RecordFile f);
 
 	public void write(RecordFile f);
+	
+	/**
+	 * @return the size in bytes of the object
+	 */
+	public int size();
 
 }

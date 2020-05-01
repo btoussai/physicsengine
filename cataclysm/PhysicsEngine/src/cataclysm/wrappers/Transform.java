@@ -219,4 +219,9 @@ public final class Transform implements ReadWriteObject {
 		f.writeVector3f(translation);
 	}
 
+	@Override
+	public int size() {
+		return 3*4 + 9*4;
+	}
+
 }

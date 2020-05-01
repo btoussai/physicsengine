@@ -3,6 +3,8 @@ package cataclysm.broadphase.staticmeshes;
 import cataclysm.DefaultParameters;
 import cataclysm.contact_creation.ContactProperties;
 import cataclysm.datastructures.Identifier;
+import cataclysm.record.StaticMeshRepr;
+import cataclysm.record.TriangleRepr;
 import math.vector.Matrix4f;
 import math.vector.Vector3f;
 
@@ -108,6 +110,19 @@ public class StaticMesh extends Identifier {
 
 	public ContactProperties getContactProperties() {
 		return contactProperties;
+	}
+
+	public void fill(StaticMeshRepr m) {
+		m.min.set(min);
+		m.max.set(max);
+		m.contactProperties.set(contactProperties);
+		m.triangles.rewind();
+		for(Triangle t : triangles) {
+			TriangleRepr tRepr = m.triangles.getNext();
+			tRepr.v1.set(t.v1);
+			tRepr.v2.set(t.v2);
+			tRepr.v3.set(t.v3);
+		}
 	}
 
 }

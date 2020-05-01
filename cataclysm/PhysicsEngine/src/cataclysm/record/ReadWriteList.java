@@ -65,17 +65,29 @@ public final class ReadWriteList<T extends ReadWriteObject> implements ReadWrite
 		return list.subList(0, size).iterator();
 	}
 
+	/**
+	 * Sets the size to zero and deletes all elements
+	 */
 	public void clear() {
 		list.clear();
 		size = 0;
 	}
 
+	/**
+	 * Sets the current size to zero but does not discard any elements for caching purposes
+	 */
 	public void rewind() {
 		size = 0;
 	}
 
 	public int getSize() {
 		return size;
+	}
+
+	@Override
+	public int size() {
+		if(size == 0)return 4;
+		return 4 + size * list.get(0).size();
 	}
 
 }
