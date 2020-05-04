@@ -13,16 +13,17 @@ import math.vector.Vector3f;
  */
 public final class RigidBodyRepr implements ReadWriteObject {
 
+	public long ID;
 	public final Transform bodyToWorld = new Transform();
 	public final Transform barycentricToWorld = new Transform();
 	public final Vector3f velocity = new Vector3f();
 	public final Vector3f angularVelocity = new Vector3f();
-	public boolean gravity = false;
 	public final ContactProperties contactProperties = new ContactProperties(0, 0);
 	public float inv_mass;
 	public final Vector3f inertia = new Vector3f();
 	public final Matrix3f inv_Iws = new Matrix3f();
-	public final ReadWriteList<WrapperRepr> wrappers = new ReadWriteList<WrapperRepr>(WrapperRepr::new, WrapperRepr::new);
+	public final ReadWriteList<WrapperRepr> wrappers = new ReadWriteList<WrapperRepr>(WrapperRepr::new,
+			WrapperRepr::new);
 
 	// public final ReadWriteList<AnchorPoint> anchorPoints; //don't save anchor
 	// points for now
@@ -31,7 +32,7 @@ public final class RigidBodyRepr implements ReadWriteObject {
 	public int category = 0xFFFFFFFF;
 	public boolean sleeping = false;
 	public int sleepCounter = 0;
-	public boolean rotationBlocked = false;
+	public byte flags = 0;
 
 	public RigidBodyRepr() {
 
@@ -43,11 +44,11 @@ public final class RigidBodyRepr implements ReadWriteObject {
 
 	@Override
 	public void read(RecordFile f) {
+		ID = f.readLong();
 		bodyToWorld.read(f);
 		barycentricToWorld.read(f);
 		f.readVector3f(velocity);
 		f.readVector3f(angularVelocity);
-		gravity = f.readBool();
 		contactProperties.read(f);
 		inv_mass = f.readFloat();
 		f.readVector3f(inertia);
@@ -58,16 +59,16 @@ public final class RigidBodyRepr implements ReadWriteObject {
 		category = f.readInt();
 		sleeping = f.readBool();
 		sleepCounter = f.readInt();
-		rotationBlocked = f.readBool();
+		flags = f.readByte();
 	}
 
 	@Override
 	public void write(RecordFile f) {
+		f.writeLong(ID);
 		bodyToWorld.write(f);
 		barycentricToWorld.write(f);
 		f.writeVector3f(velocity);
 		f.writeVector3f(angularVelocity);
-		f.writeBool(gravity);
 		contactProperties.write(f);
 		f.writeFloat(inv_mass);
 		f.writeVector3f(inertia);
@@ -78,12 +79,12 @@ public final class RigidBodyRepr implements ReadWriteObject {
 		f.writeInt(category);
 		f.writeBool(sleeping);
 		f.writeInt(sleepCounter);
-		f.writeBool(rotationBlocked);
+		f.writeByte(flags);
 	}
 
 	@Override
 	public int size() {
-		return bodyToWorld.size() + barycentricToWorld.size() + 3 * 4 + 3 * 4 + 1 + contactProperties.size() + 4 + 3 * 4
+		return 8 + bodyToWorld.size() + barycentricToWorld.size() + 3 * 4 + 3 * 4 + contactProperties.size() + 4 + 3 * 4
 				+ 9 * 4 + wrappers.size() + 4 + 4 + 1 + 4 + 1;
 	}
 

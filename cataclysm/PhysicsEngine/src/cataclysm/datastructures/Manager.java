@@ -1,103 +1,87 @@
 package cataclysm.datastructures;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
- * Repr�sente un manager d'objets.
+ * This class is an implementation of {@link IdentifierManager} based on an
+ * ArrayList for fast iteration and a hashmap for fast lookup methods
  * 
  * @author Briac
  *
  * @param <T>
  */
-public abstract class Manager<T extends Identifier> implements Iterable<T> {
+public abstract class Manager<T extends Identifier> implements IdentifierManager<T> {
 
-	/**
-	 * Le générateur d'ID permettant d'instancier les objets gérés par le manager.
-	 */
 	protected IDGenerator generator = new IDGenerator();
-
-	/**
-	 * Les objets gérés par le manager.
-	 */
-	//protected HashSet<T> elements = new HashSet<T>();
 	protected ArrayList<T> elements = new ArrayList<T>();
+	private Map<Long, T> map = new HashMap<Long, T>();
 
-	/**
-	 * Construit un nouveau manager d'objets.
-	 */
 	public Manager() {
-	}
 
+	}
 	/**
-	 * Met à jour les éléments du manager.
+	 * Update all the elements
 	 */
+	@Override
 	public void update() {
 		internalUpdate();
 	}
 
 	/**
-	 * La mise à jour customizable des éléments.
+	 * Custom update function
 	 */
 	protected abstract void internalUpdate();
 
-	/**
-	 * @return Le nombre d'objets dans le manager.
-	 */
+	@Override
 	public int size() {
 		return elements.size();
 	}
 
+	@Override
+	public void addElement(T element) {
+		elements.add(element);
+		map.put(element.getID(), element);
+	}
+
+	@Override
+	public boolean contains(long ID) {
+		return map.containsKey(ID);
+	}
+	
+	@Override
+	public T get(long ID) {
+		return map.get(ID);
+	}
+	
+	@Override
+	public T removeAndGet(long ID) {
+		T e = map.remove(ID);
+		if(e != null) {
+			for(int i=0; i<elements.size(); i++) {
+				if(elements.get(i).getID() == ID) {
+					elements.remove(i);
+					break;
+				}
+			}
+		}
+		return e;
+	}
+	
 	/**
-	 * @return Le prochain identifiant libre. Cet identifiant est compté comme
-	 *         utilisé dès sa génération.
+	 * @return Reserves a unique ID for a newly allocated element
 	 */
 	public long nextID() {
 		return generator.nextID();
 	}
 
-	/**
-	 * Ajoute un élément à la liste des objets gérés par le manager. L'id de cet
-	 * élément doit avoir été réservé impérativement par un appel à
-	 * {@link #nextID()}
-	 * 
-	 * @param element L'élément à ajouter.
-	 */
-	public void addElement(T element) {
-		elements.add(element);
-	}
-
-	/**
-	 * Essaie de supprimer l'élément.
-	 * 
-	 * @param element L'objet à supprimer.
-	 * @return true si l'élément a bien été supprimé.
-	 */
-	public boolean removeElement(T element) {
-		if (elements.remove(element)) {
-			generator.freeID(element.getID());
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Teste la présence d'un élément.
-	 * 
-	 * @param element
-	 * @return true s'il existe un element e tel que <br>
-	 *         {@code e.getID()==element.getID()}
-	 */
-	public boolean contains(T element) {
-		return elements.contains(element);
-	}
-
-	/**
-	 * Supprime tous les éléments dans le manager et réinitialise le générateur
-	 * d'ID.
-	 */
+	
+	@Override
 	public void cleanUp() {
 		elements.clear();
+		map.clear();
 		generator.reset();
 	}
 

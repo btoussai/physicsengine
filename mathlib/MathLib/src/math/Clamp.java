@@ -39,6 +39,22 @@ public class Clamp {
 			return maxValue;
 		return value;
 	}
+	
+	/**
+	 * Restreint la valeur dans l'intervalle [minValue, maxValue].
+	 * 
+	 * @param value    La valeur � restreindre.
+	 * @param minValue La borne inf�rieure de l'intervalle.
+	 * @param maxValue La borne sup�rieure de l'intervalle.
+	 * @return La valeur restreinte � l'intervalle [minValue, maxValue].
+	 */
+	public static double clamp(double value, double minValue, double maxValue) {
+		if (value < minValue)
+			return minValue;
+		if (value > maxValue)
+			return maxValue;
+		return value;
+	}
 
 	/**
 	 * Restreint la valeur dans l'intervalle [minValue, maxValue].

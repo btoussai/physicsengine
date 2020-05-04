@@ -1,5 +1,7 @@
 package cataclysm.wrappers;
 
+import java.util.List;
+
 import cataclysm.record.ReadWriteObject;
 import cataclysm.record.RecordFile;
 import math.vector.Vector3f;
@@ -197,8 +199,8 @@ public final class ConvexHullWrapperData implements ReadWriteObject {
 	}
 
 	public ConvexHullWrapperData(RecordFile f) {
-		faces = (ConvexHullWrapperFace[]) f.readArray(file -> new ConvexHullWrapperFace(file, this));
-		edges = (ConvexHullWrapperHalfEdge[]) f.readArray(file -> new ConvexHullWrapperHalfEdge(file, this));
+		faces = (ConvexHullWrapperFace[]) f.readArray(i -> new ConvexHullWrapperFace[i], file -> new ConvexHullWrapperFace(file, this));
+		edges = (ConvexHullWrapperHalfEdge[]) f.readArray(i -> new ConvexHullWrapperHalfEdge[i], file -> new ConvexHullWrapperHalfEdge(file, this));
 
 		maxRadius = f.readFloat();
 		scale = f.readFloat();
@@ -240,8 +242,31 @@ public final class ConvexHullWrapperData implements ReadWriteObject {
 
 	@Override
 	public int size() {
-		return faces.length * faces[0].size() + edges.length * edges[0].size() + 4 + 4
-				+ (backupVertices.length + backupFaceNormals.length + backupFaceCentroids.length) * 3 * 4;
+		return ReadWriteObject.arraySize(faces) + ReadWriteObject.arraySize(edges) + 4 + 4
+				+ (backupVertices.length + backupFaceNormals.length + backupFaceCentroids.length) * 3 * 4 + (3 * 4);
+	}
+
+	public void asModel(List<Integer> indices, List<Vector3f> vertices) {
+		indices.clear();
+		for (ConvexHullWrapperFace f : faces) {
+			ConvexHullWrapperHalfEdge e0 = f.getEdge0();
+			ConvexHullWrapperHalfEdge prev = e0.getNext();
+			ConvexHullWrapperHalfEdge next = prev.getNext();
+			do {
+				indices.add(e0.getTailIndex());
+				indices.add(prev.getTailIndex());
+				indices.add(next.getTailIndex());
+				
+				prev = next;
+				next = next.getNext();
+			} while (next != e0);
+		}
+
+		vertices.clear();
+		for (Vector3f v : this.backupVertices) {
+			vertices.add(new Vector3f(v));
+		}
+
 	}
 
 }

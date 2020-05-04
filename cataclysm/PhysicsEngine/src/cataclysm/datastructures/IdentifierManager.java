@@ -1,73 +1,68 @@
 package cataclysm.datastructures;
 
-public abstract class IdentifierManager<T extends Identifier> {
-	/**
-	 * Le générateur d'ID permettant d'instancier les objets gérés par le manager.
-	 */
-	protected IDGenerator generator = new IDGenerator();
+/**
+ * This class represents an abstract data structure managing identifiers.
+ * 
+ * @see Identifier
+ * 
+ * @author Briac
+ *
+ * @param <T>
+ */
+public interface IdentifierManager<T extends Identifier> extends Iterable<T> {
 
 	/**
-	 * Met à jour les éléments du manager.
+	 * Update all the elements
 	 */
-	public void update() {
-		internalUpdate();
-	}
+	public void update();
 
 	/**
-	 * La mise à jour customizable des éléments.
+	 * @return The number of elements contained in the data structure
 	 */
-	protected abstract void internalUpdate();
+	public int size();
 
 	/**
-	 * @return Le nombre d'objets dans le manager.
-	 */
-	public abstract int size();
-
-	/**
-	 * @return Le prochain identifiant libre. Cet identifiant est compté comme
-	 *         utilisé dès sa génération.
-	 */
-	public long nextID() {
-		return generator.nextID();
-	}
-
-	/**
-	 * Ajoute un élément à la liste des objets gérés par le manager. L'id de cet
-	 * élément doit avoir été réservé impérativement par un appel à {@link #nextID()}
+	 * Adds an element to the data structure. The element's ID must have been
+	 * generated through #nextID()
 	 * 
-	 * @param element L'élément à ajouter.
+	 * @param element
 	 */
-	public abstract void addElement(T element);
+	public void addElement(T element);
 
 	/**
-	 * Essaie de supprimer l'élément ayant l'ID indiqué en paramètre.
-	 * 
-	 * @param ID L'identifiant de l'objet à supprimer.
-	 * @return true si l'élément a bien été supprimé.
-	 */
-	public abstract boolean removeElement(long ID);
-	
-	/**
-	 * Essaie de supprimer l'élément ayant l'ID indiqué en paramètre. 
-	 * @param ID L'identifiant de l'objet à supprimer.
-	 * @return L'élément supprimé ou null.
-	 */
-	public abstract T removeAndGet(long ID);
-
-	/**
-	 * Teste la présence d'un élément comportant l'ID indiquée.
+	 * Deletes the unique element such that {@code e.getID() == ID}
 	 * 
 	 * @param ID
-	 * @return true s'il existe un element e tel que <br>
-	 *         {@code e.getID()==ID}
+	 * @return true if such an an element has been deleted
 	 */
-	public abstract boolean contains(long ID);
+	public default boolean removeElement(long ID) {
+		return removeAndGet(ID) != null;
+	}
 
 	/**
-	 * Supprime tous les éléments dans le manager et réinitialise le générateur
-	 * d'ID.
+	 * Deletes the unique element such that {@code e.getID() == ID}
+	 * 
+	 * @param ID
+	 * @return The removed element or null
 	 */
-	public void cleanUp() {
-		generator.reset();
-	}
+	public T removeAndGet(long ID);
+
+	/**
+	 * 
+	 * @param ID
+	 * @return The unique element such that {@code e.getID()==ID} or null
+	 */
+	public T get(long ID);
+
+	/**
+	 * 
+	 * @param ID
+	 * @return true if there is an element such that {@code e.getID()==ID}
+	 */
+	public boolean contains(long ID);
+
+	/**
+	 * Deletes all the elements
+	 */
+	public void cleanUp();
 }

@@ -25,6 +25,44 @@ import math.vector.Vector3f;
  */
 public class RigidBody extends Identifier {
 
+	public enum SpecialFlags {
+
+		/**
+		 * Indique si l'objet est soumis aux forces extérieures (gravité).
+		 */
+		EXTERNAL_FORCES,
+		/**
+		 * Indique si la rotation pour ce rigidbody doit être bloquée ou non.
+		 */
+		ROTATION_BLOCKED,
+
+		/**
+		 * Indique si la vitesse doit être integrée (utilisé pour les objets contrôlés
+		 * par un enregistrement)
+		 */
+		SKIP_INTEGRATION;
+
+		byte setTrue(int flags) {
+			return (byte) (flags | (1 << this.ordinal()));
+		}
+
+		byte setFalse(int flags) {
+			return (byte) (flags & ~(1 << this.ordinal()));
+		}
+		
+		void set(RigidBody b, boolean bool) {
+			if(bool) {
+				b.flags = setTrue(b.flags);
+			}else {
+				b.flags = setFalse(b.flags);
+			}
+		}
+
+		boolean get(int flags) {
+			return (flags & (1 << this.ordinal())) != 0;
+		}
+	}
+
 	/**
 	 * La position et la rotation de l'objet en world-space
 	 */
@@ -45,11 +83,6 @@ public class RigidBody extends Identifier {
 	 * Le vecteur vitesse angulaire du centre de masse en rad/s (world-space)
 	 */
 	private final Vector3f angularVelocity = new Vector3f();
-
-	/**
-	 * true si l'objet est soumis aux forces extérieures.
-	 */
-	private boolean gravity = false;
 
 	/**
 	 * La friction et l'élasticité de l'objet.
@@ -123,7 +156,7 @@ public class RigidBody extends Identifier {
 	/**
 	 * Indique si la rotation pour ce rigidbody doit être bloquée ou non.
 	 */
-	private boolean rotationBlocked = false;
+	private byte flags;
 
 	/**
 	 * Construit un nouveau rigidbody.
@@ -154,7 +187,7 @@ public class RigidBody extends Identifier {
 		}
 
 		contactProperties = new ContactProperties(params.getContactProperties());
-		this.gravity = params.isGravity();
+		setExternalForces(params.isGravity());
 	}
 
 	/**
@@ -166,7 +199,7 @@ public class RigidBody extends Identifier {
 	 * @param temp Une variable de travail pour les calculs intermédiaires.
 	 */
 	public void updateTransform(Transform temp) {
-		if (!rotationBlocked) {
+		if (!isRotationBlocked()) {
 			float I1 = 1.0f / inertia.x;
 			float I2 = 1.0f / inertia.y;
 			float I3 = 1.0f / inertia.z;
@@ -176,12 +209,14 @@ public class RigidBody extends Identifier {
 			inv_Iws.setZero();
 		}
 
-		for (Wrapper wrapper : wrappers) {
+		for (int i=0; i<wrappers.size(); i++) {
+			Wrapper wrapper = wrappers.get(i);
 			Transform.compose(bodyToWorld, wrapper.getTransform(), temp);
 			wrapper.transform(temp);
 		}
 
-		for (AnchorPoint point : anchorPoints) {
+		for (int i=0; i<anchorPoints.size(); i++) {
+			AnchorPoint point = anchorPoints.get(i);
 			bodyToWorld.transformVertex(point.getBodySpacePosition(), point.getWorldSpacePosition());
 		}
 
@@ -277,12 +312,12 @@ public class RigidBody extends Identifier {
 		updateTransform(new Transform());
 	}
 
-	public boolean isGravity() {
-		return gravity;
+	public boolean isExternalForces() {
+		return SpecialFlags.EXTERNAL_FORCES.get(flags);
 	}
 
-	public void setGravity(boolean gravity) {
-		this.gravity = gravity;
+	public void setExternalForces(boolean externalForces) {
+		SpecialFlags.EXTERNAL_FORCES.set(this, externalForces);
 	}
 
 	/**
@@ -558,7 +593,7 @@ public class RigidBody extends Identifier {
 	 *         peut importe les chocs qu'il subit.
 	 */
 	public boolean isRotationBlocked() {
-		return rotationBlocked;
+		return SpecialFlags.ROTATION_BLOCKED.get(flags);
 	}
 
 	/**
@@ -571,7 +606,25 @@ public class RigidBody extends Identifier {
 	 * @param rotationBlocked
 	 */
 	public void setRotationBlocked(boolean rotationBlocked) {
-		this.rotationBlocked = rotationBlocked;
+		SpecialFlags.ROTATION_BLOCKED.set(this, rotationBlocked);
+	}
+
+	/**
+	 * Indique si la vitesse doit être integrée (utilisé pour les objets contrôlés
+	 * par un enregistrement)
+	 * 
+	 * @return
+	 */
+	public boolean isSkipIntegration() {
+		return SpecialFlags.SKIP_INTEGRATION.get(flags);
+	}
+
+	public void setSkipIntegration(boolean skipIntegration) {
+		SpecialFlags.SKIP_INTEGRATION.set(this, skipIntegration);
+	}
+
+	public byte getFlags() {
+		return flags;
 	}
 
 	/**
@@ -822,11 +875,11 @@ public class RigidBody extends Identifier {
 	}
 
 	public void fill(RigidBodyRepr b) {
+		b.ID = this.getID();
 		b.bodyToWorld.loadFrom(bodyToWorld);
 		b.barycentricToWorld.loadFrom(barycentricToWorld);
 		b.velocity.set(velocity);
 		b.angularVelocity.set(angularVelocity);
-		b.gravity = gravity;
 		b.contactProperties.set(contactProperties);
 		b.inv_mass = inv_mass;
 		b.inertia.set(inertia);
@@ -844,7 +897,7 @@ public class RigidBody extends Identifier {
 		b.category = category;
 		b.sleeping = sleeping;
 		b.sleepCounter = sleepCounter;
-		b.rotationBlocked = rotationBlocked;
+		b.flags = flags;
 	}
 
 	RigidBody(DefaultParameters params, IDGenerator generator, RigidBodyRepr b) {
@@ -853,12 +906,11 @@ public class RigidBody extends Identifier {
 		this.barycentricToWorld.loadFrom(b.barycentricToWorld);
 		this.velocity.set(b.velocity);
 		this.angularVelocity.set(b.angularVelocity);
-		this.gravity = b.gravity;
 		this.contactProperties = new ContactProperties(b.contactProperties);
 		this.inv_mass = b.inv_mass;
 		this.inertia.set(b.inertia);
 		Matrix3f.load(b.inv_Iws, inv_Iws);
-		this.wrappers = new ArrayList<Wrapper>(b.wrappers.getSize());
+		this.wrappers = new ArrayList<Wrapper>(b.wrappers.getElementCount());
 
 		for (WrapperRepr w : b.wrappers) {
 			this.wrappers.add(w.build(this, generator.nextID()));
@@ -871,7 +923,7 @@ public class RigidBody extends Identifier {
 		this.category = b.category;
 		this.sleeping = b.sleeping;
 		this.sleepCounter = b.sleepCounter;
-		this.rotationBlocked = b.rotationBlocked;
+		this.flags = b.flags;
 
 		updateTransform(new Transform());
 
@@ -881,6 +933,7 @@ public class RigidBody extends Identifier {
 	}
 
 	public void fill(RigidBodyState state) {
+		state.ID = this.getID();
 		state.position.set(getPosition());
 		state.rotation.load(getOrientation());
 		state.velocity.set(getVelocity());

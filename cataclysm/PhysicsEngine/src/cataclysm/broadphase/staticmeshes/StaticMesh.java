@@ -104,6 +104,21 @@ public class StaticMesh extends Identifier {
 		this.contactProperties = new ContactProperties(other.contactProperties);
 	}
 
+	StaticMesh(StaticMeshRepr m, long ID) {
+		super(ID);
+		this.min.set(m.min);
+		this.max.set(m.max);
+		this.contactProperties = new ContactProperties(m.contactProperties);
+		this.triangles = new Triangle[m.triangles.getElementCount()];
+		for (int i = 0; i < m.triangles.getElementCount(); i++) {
+			TriangleRepr t = m.triangles.get(i);
+			triangles[i] = new Triangle(this, new Vector3f(t.v1), new Vector3f(t.v2), new Vector3f(t.v3));
+		}
+
+		this.transform = null;
+		this.data = null;
+	}
+
 	public Matrix4f getTransform() {
 		return transform;
 	}
@@ -113,11 +128,12 @@ public class StaticMesh extends Identifier {
 	}
 
 	public void fill(StaticMeshRepr m) {
+		m.ID = this.getID();
 		m.min.set(min);
 		m.max.set(max);
 		m.contactProperties.set(contactProperties);
 		m.triangles.rewind();
-		for(Triangle t : triangles) {
+		for (Triangle t : triangles) {
 			TriangleRepr tRepr = m.triangles.getNext();
 			tRepr.v1.set(t.v1);
 			tRepr.v2.set(t.v2);

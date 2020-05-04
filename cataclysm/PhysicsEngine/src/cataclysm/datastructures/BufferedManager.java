@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Représente un manager d'objet avec des tampons permettant de garder la trace
- * des éléments ajoutés ou supprimés entre deux mises à jour du manager.
+ * This class provides buffers to store added and removed elements in order to
+ * apply a processing step in the update method before actually adding or
+ * removing them.
  * 
  * @author Briac
  *
@@ -14,36 +15,27 @@ import java.util.List;
 public abstract class BufferedManager<T extends Identifier> extends Manager<T> {
 
 	/**
-	 * La liste des éléments ayant été ajoutés à la liste actuelle.
+	 * A buffer of added elements
 	 */
 	private List<T> added = new ArrayList<T>();
 
 	/**
-	 * La liste des éléments ayant été supprimés de la liste actuelle.
+	 * A buffer of removed elements
 	 */
 	private List<T> removed = new ArrayList<T>();
 
-	/**
-	 * Construit un nouveau manager avec des tampons.
-	 */
 	public BufferedManager() {
 
 	}
 
 	/**
-	 * Applique un traitement particulier aux éléments devant être ajoutés et aux
-	 * éléments devant être retirés. La fonction {@link #internalUpdate()} est
-	 * appelée immédiatement après.
+	 * Applies some processing step to the buffered added and removed elements. When
+	 * the function returns, the elements are effectively added or removed. The
+	 * buffers of added and removed elements are then cleared. Finally,
+	 * {@link #internalUpdate()} is called.
 	 * 
-	 * @param added   La liste des objets qui doivent être ajoutés. La liste est
-	 *                vidée automatiquement au retour de la fonction. Les objets ne
-	 *                sont ajoutés dans le manager qu'au retour de la fonction,
-	 *                avant l'appel à {@link #internalUpdate()}
-	 * 
-	 * @param removed La liste des objets qui doivent être supprimés. La liste est
-	 *                vidée automatiquement au retour de la fonction. Les IDs des
-	 *                objets supprimés redeviennent disponibles au retour de la
-	 *                fonction.
+	 * @param added   The elements to be added
+	 * @param removed The elements to be removed
 	 */
 	protected abstract void processAddedAndRemovedElements(List<T> added, List<T> removed);
 
@@ -51,14 +43,13 @@ public abstract class BufferedManager<T extends Identifier> extends Manager<T> {
 	public void update() {
 		processAddedAndRemovedElements(added, removed);
 		removed.forEach(e -> {
-			generator.freeID(e.getID());
-			super.removeElement(e);
+			super.removeElement(e.getID());
 		});
 		added.forEach(e -> super.addElement(e));
-		
+
 		added.clear();
 		removed.clear();
-		
+
 		super.update();
 	}
 
@@ -68,17 +59,19 @@ public abstract class BufferedManager<T extends Identifier> extends Manager<T> {
 	}
 
 	@Override
-	public boolean removeElement(T element) {
-		if (element != null && contains(element)) {
-			removed.add(element);
+	public boolean removeElement(long ID) {
+		T e = super.get(ID);
+		if (e != null && !removed.contains(e)) {
+			removed.add(e);
 			return true;
 		}
 		return false;
 	}
-	
+
 	@Override
-	public boolean contains(T element) {
-		return super.contains(element) &&  !removed.contains(element);
+	public boolean contains(long ID) {
+		T e = super.get(ID);
+		return e != null && !removed.contains(e);
 	}
 
 	@Override

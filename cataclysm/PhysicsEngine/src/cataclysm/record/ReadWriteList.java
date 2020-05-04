@@ -24,6 +24,14 @@ public final class ReadWriteList<T extends ReadWriteObject> implements ReadWrite
 		size++;
 	}
 
+	public T get(int i) {
+		if (i >= 0 && i < size) {
+			return list.get(i);
+		} else {
+			throw new ArrayIndexOutOfBoundsException("Accessing element i=" + i + " size=" + size);
+		}
+	}
+
 	public T getNext() {
 		size++;
 		if (list.size() >= size) {
@@ -74,20 +82,23 @@ public final class ReadWriteList<T extends ReadWriteObject> implements ReadWrite
 	}
 
 	/**
-	 * Sets the current size to zero but does not discard any elements for caching purposes
+	 * Sets the current size to zero but does not discard any elements for caching
+	 * purposes
 	 */
 	public void rewind() {
 		size = 0;
 	}
 
-	public int getSize() {
+	public int getElementCount() {
 		return size;
 	}
 
 	@Override
 	public int size() {
-		if(size == 0)return 4;
-		return 4 + size * list.get(0).size();
+		int s = 0;
+		for (int i = 0; i < size; i++)
+			s += list.get(i).size();
+		return 4 + s;
 	}
 
 }

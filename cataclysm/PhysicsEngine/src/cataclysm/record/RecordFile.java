@@ -1,13 +1,12 @@
 package cataclysm.record;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel.MapMode;
 import java.util.function.Function;
 
 import math.vector.Matrix3f;
@@ -20,61 +19,95 @@ import math.vector.Vector3f;
  *
  */
 public class RecordFile {
-	private final int BUFFER_LENGTH = 1024 * 1024;
+	private final int BUFFER_LENGTH = 1024*1024;
+	private final String filePath;
+	private ByteBuffer buffer;
 
-	private ByteBuffer buffer = ByteBuffer.allocate(BUFFER_LENGTH);
-	private BufferedOutputStream out;
-	private BufferedInputStream in;
+	private final RandomAccessFile raf;
+	private final BufferedOutputStream out;
 	private boolean closed = false;
+	private int position = 0;
+	private boolean reading;
 
 	/**
 	 * Creates a new file in which a record will be saved or opens a record
 	 * previously saved on disk
 	 * 
-	 * @param path the path of the file
-	 * @param in   true if the file should be read from <br>
-	 *             false if the file should be written to
-	 * @throws FileNotFoundException if the file doesn't exist or if it couldn't be
-	 *                               created
+	 * @param path    the path of the file
+	 * @param reading true if the file should be read from <br>
+	 *                false if the file should be written to
+	 * @throws IOException
 	 */
-	public RecordFile(String path, boolean in) throws FileNotFoundException {
+	public RecordFile(String path, boolean reading) throws IOException {
+		this.filePath = path;
 		File f = new File(path);
-		if (in) {
-			this.in = new BufferedInputStream(new FileInputStream(f));
+		if (reading) {
+			raf = new RandomAccessFile(f, "r");
+			if (raf.length() > Integer.MAX_VALUE) {
+				throw new IllegalArgumentException("Error the file size is bigger than Integer.MAX_VALUE");
+			}else {
+				System.out.println("Opening record file of length " + raf.length() + " bytes");
+			}
+
 			this.out = null;
+			this.buffer = raf.getChannel().map(MapMode.READ_ONLY, position, raf.length());
 		} else {
-			this.in = null;
+			this.raf = null;
+			this.buffer = ByteBuffer.allocate(BUFFER_LENGTH);
 			this.out = new BufferedOutputStream(new FileOutputStream(f));
 		}
-
+		this.reading = reading;
 	}
+
+	public boolean isReading() {
+		return reading;
+	}
+
+	public boolean isWritting() {
+		return !reading;
+	}
+	
+	
 
 	/**
 	 * Writes the remaining data contained in the bytebuffer into the file and then
 	 * closes it.
+	 * @return the total file size
 	 */
-	public void flushAndClose() {
+	public int flushAndClose() {
+		if (reading) {
+			throw new IllegalStateException(
+					"Cannot call flushAndClose() when reading, close() should be called instead.");
+		}
 		try {
 			System.out.println("flushAndClose ! writing " + buffer.position() + " bytes");
 			out.write(buffer.array(), 0, buffer.position());
+			position += buffer.position();
 			buffer.rewind();
 			out.close();
 			closed = true;
+			buffer = null;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return position;
 	}
 
 	/**
 	 * Closes the file being read from.
 	 */
 	public void close() {
+		if (!reading) {
+			throw new IllegalStateException(
+					"Cannot call close() when writing, flushAndClose() should be called instead.");
+		}
 		try {
-			in.close();
+			raf.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		closed = true;
+		buffer = null;
 	}
 
 	public boolean isClosed() {
@@ -93,36 +126,8 @@ public class RecordFile {
 			try {
 				System.out.println("flushing to file " + buffer.position() + " bytes");
 				out.write(buffer.array(), 0, buffer.position());
-				buffer.compact();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	/**
-	 * Replenishes the buffer from the file if the buffer contains less than size
-	 * bytes
-	 * 
-	 * @param size
-	 */
-	private void replenishFromFile(int size) {
-		int remaining = buffer.remaining();
-		if (remaining < size) {
-			try {
-				buffer.compact();
-				int toRead = buffer.limit() - buffer.position();
-				System.out.println("replenishing " + toRead + " bytes");
-				int count = in.read(buffer.array(), buffer.position(), toRead);
+				position += buffer.position();
 				buffer.rewind();
-				System.out.println("read " + count + " bytes");
-
-				if (count == -1) {
-					in.close();
-					closed = true;
-				} else {
-					buffer.limit(count + remaining);
-				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -135,7 +140,6 @@ public class RecordFile {
 	}
 
 	public byte readByte() {
-		replenishFromFile(1);
 		return buffer.get();
 	}
 
@@ -145,7 +149,6 @@ public class RecordFile {
 	}
 
 	public boolean readBool() {
-		replenishFromFile(1);
 		return buffer.get() != 0;
 	}
 
@@ -155,7 +158,6 @@ public class RecordFile {
 	}
 
 	public int readInt() {
-		replenishFromFile(4);
 		return buffer.getInt();
 	}
 
@@ -165,7 +167,6 @@ public class RecordFile {
 	}
 
 	public long readLong() {
-		replenishFromFile(8);
 		return buffer.getLong();
 	}
 
@@ -175,7 +176,6 @@ public class RecordFile {
 	}
 
 	public float readFloat() {
-		replenishFromFile(4);
 		return buffer.getFloat();
 	}
 
@@ -185,7 +185,6 @@ public class RecordFile {
 	}
 
 	public double readDouble() {
-		replenishFromFile(8);
 		return buffer.getDouble();
 	}
 
@@ -197,7 +196,6 @@ public class RecordFile {
 	}
 
 	public void readVector3f(Vector3f v) {
-		replenishFromFile(3 * 4);
 		v.x = buffer.getFloat();
 		v.y = buffer.getFloat();
 		v.z = buffer.getFloat();
@@ -217,7 +215,6 @@ public class RecordFile {
 	}
 
 	public void readMatrix3f(Matrix3f m) {
-		replenishFromFile(9 * 4);
 		m.m00 = buffer.getFloat();
 		m.m01 = buffer.getFloat();
 		m.m02 = buffer.getFloat();
@@ -246,10 +243,10 @@ public class RecordFile {
 		}
 	}
 
-	public ReadWriteObject[] readArray(Function<RecordFile, ReadWriteObject> constructor) {
-		ReadWriteObject[] array = new ReadWriteObject[readInt()];
+	public ReadWriteObject[] readArray(Function<Integer, ReadWriteObject[]> arrayConstructor, Function<RecordFile, ReadWriteObject> elementConstructor) {
+		ReadWriteObject[] array = arrayConstructor.apply(readInt());
 		for (int i = 0; i < array.length; i++) {
-			array[i] = constructor.apply(this);
+			array[i] = elementConstructor.apply(this);
 		}
 		return array;
 	}
@@ -297,6 +294,60 @@ public class RecordFile {
 			writeByte((byte) str.charAt(i));
 		}
 		writeByte((byte) '\n');
+	}
+
+	/**
+	 * @return the position in the file of the next byte which will be written or
+	 *         read.
+	 */
+	public int getPosition() {
+		if(!reading) {
+			return position + buffer.position();
+		}else {
+			return buffer.position();
+		}
+	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	/**
+	 * Reads the next int but does not consume it.
+	 * 
+	 * @return
+	 */
+	public int peekInt() {
+		int value = buffer.getInt();
+		buffer.position(buffer.position() - 4);
+		return value;
+	}
+
+	/**
+	 * Skip n bytes forward or backward when reading, throws an exception if called
+	 * when writing
+	 * 
+	 * @param bytes
+	 */
+	public void skipBytes(int bytes) {
+		if (!reading) {
+			throw new IllegalStateException("Cannot skip bytes when writing");
+		}
+		int new_pos = buffer.position() + bytes;
+		if (new_pos < 0 || new_pos > buffer.limit()) {
+			throw new IllegalArgumentException("Invalid skip count");
+		}
+		buffer.position(new_pos);
+	}
+
+	public void seek(int position) {
+		if (!reading) {
+			throw new IllegalStateException("Cannot skip bytes when writing");
+		}
+		if (position < 0 || position > buffer.limit()) {
+			throw new IllegalArgumentException("Invalid position in file");
+		}
+		buffer.position(position);
 	}
 
 }

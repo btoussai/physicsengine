@@ -279,6 +279,7 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 		w.centroid.set(centroid);
 		w.maxRadius = maxRadius;
 		w.massProperties.set(massProperties);
+		w.type = getType().ordinal();
 	}
 
 }

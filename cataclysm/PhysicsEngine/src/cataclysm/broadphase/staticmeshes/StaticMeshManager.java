@@ -7,6 +7,7 @@ import cataclysm.DefaultParameters;
 import cataclysm.PhysicsWorld;
 import cataclysm.broadphase.AABB;
 import cataclysm.datastructures.BufferedManager;
+import cataclysm.record.StaticMeshRepr;
 import math.vector.Matrix4f;
 import math.vector.Vector3f;
 
@@ -63,13 +64,10 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh>{
 		return mesh;
 	}
 	
-	/**
-	 * Supprime un maillage statique
-	 * @param mesh 
-	 * @return true si le mesh a bien été supprimé.
-	 */
-	public boolean deleteMesh(StaticMesh mesh) {
-		return removeElement(mesh);
+	public StaticMesh newMesh(StaticMeshRepr repr) {
+		StaticMesh mesh = new StaticMesh(repr, nextID());
+		addElement(mesh);
+		return mesh;
 	}
 	
 	/**

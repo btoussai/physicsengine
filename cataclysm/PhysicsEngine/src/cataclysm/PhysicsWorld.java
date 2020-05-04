@@ -1,6 +1,6 @@
 package cataclysm;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,9 +88,16 @@ public class PhysicsWorld {
 	 */
 	public void start() {
 		if (activeRecord != null) {
-			//record frame 0
-			activeRecord.newFrame(getElapsedTime());
+			// record frame 0
+			activeRecord.newFrame();
 		}
+
+		if (recordPlayers != null) {
+			for (PhysicsPlayer player : recordPlayers) {
+				player.step(meshes, bodies);
+			}
+		}
+
 		meshes.update();
 		bodies.update();
 		if (activeRecord != null) {
@@ -113,7 +120,7 @@ public class PhysicsWorld {
 			actors.removeIf(actor -> !actor.update(this));
 			stats.step(params.getTimeStep());
 			if (activeRecord != null) {
-				activeRecord.newFrame(getElapsedTime());
+				activeRecord.newFrame();
 			}
 			engine.update(bodies, meshes, constraints, stats);
 			if (activeRecord != null) {
@@ -173,7 +180,7 @@ public class PhysicsWorld {
 	 * @return L'objet nouvellement cr��.
 	 */
 	public RigidBody newBody(Vector3f position, WrapperBuilder... builders) {
-		return bodies.newBody(MatrixOps.createTransformationMatrix(position, 0, 0, 0, 1, null), params, builders);
+		return bodies.newBody(MatrixOps.createTransformationMatrix(position, 0, 0, 0, 1, null), builders);
 	}
 
 	/**
@@ -184,28 +191,28 @@ public class PhysicsWorld {
 	 * @return L'objet nouvellement créé.
 	 */
 	public RigidBody newBody(Matrix4f transform, WrapperBuilder... builders) {
-		return bodies.newBody(transform, params, builders);
+		return bodies.newBody(transform, builders);
 	}
 
 	/**
 	 * Supprime un rigidbody. Toutes les contraintes ayant un point d'ancrage sur ce
 	 * corps seront également supprimées à la prochaine update.
 	 * 
-	 * @param body
+	 * @param ID
 	 * @return true si le corps a effectivement été supprimé.
 	 */
-	public boolean deleteBody(RigidBody body) {
-		return bodies.removeElement(body);
+	public boolean deleteBody(long ID) {
+		return bodies.removeElement(ID);
 	}
 
 	/**
 	 * Teste la présence d'un rigidbody dans la simulation.
 	 * 
-	 * @param body
+	 * @param ID
 	 * @return
 	 */
-	public boolean containsBody(RigidBody body) {
-		return bodies.contains(body);
+	public boolean containsBody(long ID) {
+		return bodies.contains(ID);
 	}
 
 	/**
@@ -245,21 +252,21 @@ public class PhysicsWorld {
 	/**
 	 * Supprime un staticmesh.
 	 * 
-	 * @param mesh
+	 * @param ID
 	 * @return true si le mesh a effectivement été supprimé.
 	 */
-	public boolean deleteMesh(StaticMesh mesh) {
-		return meshes.removeElement(mesh);
+	public boolean deleteMesh(long ID) {
+		return meshes.removeElement(ID);
 	}
 
 	/**
 	 * Teste la présence d'un staticmesh dans la simulation.
 	 * 
-	 * @param mesh
+	 * @param ID
 	 * @return
 	 */
-	public boolean containsMesh(StaticMesh mesh) {
-		return meshes.contains(mesh);
+	public boolean containsMesh(long ID) {
+		return meshes.contains(ID);
 	}
 
 	/**
@@ -298,6 +305,12 @@ public class PhysicsWorld {
 	public void cleanUp() {
 		if (activeRecord != null) {
 			stopRecording();
+		}
+
+		if (recordPlayers != null) {
+			for (PhysicsPlayer player : recordPlayers) {
+				player.close();
+			}
 		}
 
 		bodies.cleanUp();
@@ -352,13 +365,13 @@ public class PhysicsWorld {
 	 * everything from the start.
 	 * 
 	 * @param path
-	 * @throws FileNotFoundException
+	 * @throws IOException
 	 */
-	public void startRecording(String path) throws FileNotFoundException {
+	public void startRecording(String path) throws IOException {
 		if (activeRecord != null) {
 			throw new IllegalStateException("Cannot start a new record while the world is already being recorded");
 		}
-		activeRecord = new PhysicsRecorder(path);
+		activeRecord = new PhysicsRecorder(path, getElapsedTime());
 	}
 
 	public PhysicsRecorder getActiveRecord() {
@@ -369,7 +382,7 @@ public class PhysicsWorld {
 		if (activeRecord == null) {
 			throw new IllegalStateException("The world is not currently being recorded");
 		}
-		activeRecord.close();
+		activeRecord.close(this);
 		activeRecord = null;
 	}
 
@@ -378,6 +391,10 @@ public class PhysicsWorld {
 			recordPlayers = new ArrayList<PhysicsPlayer>();
 		}
 		recordPlayers.add(player);
+	}
+
+	public List<PhysicsPlayer> getRecordPlayers() {
+		return recordPlayers;
 	}
 
 }

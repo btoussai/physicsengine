@@ -7,6 +7,7 @@ import cataclysm.constraints.AbstractConstraint;
 import cataclysm.constraints.SequentialImpulseSolver;
 import cataclysm.integrators.ExternalForceIntegrator;
 import cataclysm.integrators.GyroscopicIntegrator;
+import cataclysm.record.PhysicsPlayer;
 import cataclysm.wrappers.RigidBody;
 import cataclysm.wrappers.RigidBodyManager;
 import cataclysm.wrappers.Transform;
@@ -21,7 +22,7 @@ import math.vector.Vector3f;
  *
  */
 final class PhysicsEngine {
-	
+
 	private final PhysicsWorld world;
 
 	/**
@@ -70,6 +71,13 @@ final class PhysicsEngine {
 	 */
 	void update(RigidBodyManager bodies, StaticMeshManager meshes, List<AbstractConstraint> constraints,
 			PhysicsStats stats) {
+
+		if (world.getRecordPlayers() != null) {
+			for (PhysicsPlayer player : world.getRecordPlayers()) {
+				player.step(meshes, bodies);
+			}
+		}
+
 		meshes.update();
 
 		float timeStep = params.getTimeStep();
@@ -80,19 +88,19 @@ final class PhysicsEngine {
 		stats.broadAndNarrowphase.start();
 		bodies.update();
 		stats.broadAndNarrowphase.stop();
-		
+
 		stats.reset(bodies.size(), meshes.size(), constraints.size());
-		
+
 		stats.constraintSolver.start();
-		solver.solve(bodies.getMeshContacts(), bodies.getBodyContacts(), constraints, timeStep, params.getMaxIterationsPosition(),
-				params.getMaxIterationVelocity());
+		solver.solve(bodies.getMeshContacts(), bodies.getBodyContacts(), constraints, timeStep,
+				params.getMaxIterationsPosition(), params.getMaxIterationVelocity());
 		stats.constraintSolver.stop();
 
 		stats.velocityIntegration.start();
 		integrateVelocity(bodies, timeStep, gyroscopicIntegration);
 		stats.velocityIntegration.stop();
 
-		if(world.getActiveRecord() != null	) {
+		if (world.getActiveRecord() != null) {
 			world.getActiveRecord().getCurrentFrame().fillBodiesStates(world);
 		}
 	}
@@ -107,7 +115,7 @@ final class PhysicsEngine {
 		forceInegrator.prepare();
 
 		for (RigidBody body : bodies) {
-			if (!body.isGravity() || body.isSleeping()) {
+			if (!body.isExternalForces() || body.isSleeping()) {
 				continue;
 			}
 
@@ -129,6 +137,11 @@ final class PhysicsEngine {
 		Transform temp = new Transform();
 
 		for (RigidBody body : bodies) {
+			if (body.isSkipIntegration()) {
+				body.updateTransform(temp);
+				continue;
+			}
+
 			Vector3f velocity = body.getVelocity();
 			Vector3f pseudoVel = body.getPseudoVelocity();
 
@@ -150,7 +163,8 @@ final class PhysicsEngine {
 
 			boolean translation_negligible = movement_squared < Epsilons.Sleep.MIN_TRANSLATION_SPEED
 					* Epsilons.Sleep.MIN_TRANSLATION_SPEED;
-			boolean rotation_negligible = omega2 < Epsilons.Sleep.MIN_ROTATION_SPEED*Epsilons.Sleep.MIN_ROTATION_SPEED;
+			boolean rotation_negligible = omega2 < Epsilons.Sleep.MIN_ROTATION_SPEED
+					* Epsilons.Sleep.MIN_ROTATION_SPEED;
 
 			if (Epsilons.Sleep.SLEEPING_ALLOWED) {
 
@@ -179,7 +193,7 @@ final class PhysicsEngine {
 			}
 
 			if (!rotation_negligible) {
-				float omega = (float)Math.sqrt(omega2);
+				float omega = (float) Math.sqrt(omega2);
 				float one_over_omega = 1.0f / omega;
 				axis.set(axis.x * one_over_omega, axis.y * one_over_omega, axis.z * one_over_omega);
 				MatrixOps.createRotationMatrix3f(omega * timeStep, axis, rotation);
@@ -190,7 +204,7 @@ final class PhysicsEngine {
 
 			pseudoVel.set(0, 0, 0);
 			pseudoAngVel.set(0, 0, 0);
-			
+
 		}
 	}
 

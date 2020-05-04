@@ -1,7 +1,7 @@
 package cataclysm.datastructures;
 
 /**
- * Repr�sente un identifiant unique pour un objet h�ritant de cette classe.
+ * All instances of this class can be uniquely identified through their ID.
  * 
  * @author Briac
  *
