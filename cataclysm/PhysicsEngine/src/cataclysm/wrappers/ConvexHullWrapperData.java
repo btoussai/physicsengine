@@ -199,11 +199,14 @@ public final class ConvexHullWrapperData implements ReadWriteObject {
 	}
 
 	public ConvexHullWrapperData(RecordFile f) {
-		faces = (ConvexHullWrapperFace[]) f.readArray(i -> new ConvexHullWrapperFace[i], file -> new ConvexHullWrapperFace(file, this));
-		edges = (ConvexHullWrapperHalfEdge[]) f.readArray(i -> new ConvexHullWrapperHalfEdge[i], file -> new ConvexHullWrapperHalfEdge(file, this));
+		faces = (ConvexHullWrapperFace[]) f.readArray(i -> new ConvexHullWrapperFace[i],
+				file -> new ConvexHullWrapperFace(file, this));
+		edges = (ConvexHullWrapperHalfEdge[]) f.readArray(i -> new ConvexHullWrapperHalfEdge[i],
+				file -> new ConvexHullWrapperHalfEdge(file, this));
 
 		maxRadius = f.readFloat();
-		scale = f.readFloat();
+		// scale = f.readFloat();//we don't read scale
+		scale = 1.0f;
 		backupVertices = f.readVector3fArray();
 		backupFaceNormals = f.readVector3fArray();
 		backupFaceCentroids = f.readVector3fArray();
@@ -234,7 +237,8 @@ public final class ConvexHullWrapperData implements ReadWriteObject {
 		f.writeArray(edges);
 
 		f.writeFloat(maxRadius);
-		f.writeFloat(scale);
+		// we don't write scale
+		// f.writeFloat(scale);
 		f.writeVector3fArray(backupVertices);
 		f.writeVector3fArray(backupFaceNormals);
 		f.writeVector3fArray(backupFaceCentroids);
@@ -242,29 +246,37 @@ public final class ConvexHullWrapperData implements ReadWriteObject {
 
 	@Override
 	public int size() {
-		return ReadWriteObject.arraySize(faces) + ReadWriteObject.arraySize(edges) + 4 + 4
+		return ReadWriteObject.arraySize(faces) + ReadWriteObject.arraySize(edges) + 4
 				+ (backupVertices.length + backupFaceNormals.length + backupFaceCentroids.length) * 3 * 4 + (3 * 4);
 	}
 
 	public void asModel(List<Integer> indices, List<Vector3f> vertices) {
 		indices.clear();
-		for (ConvexHullWrapperFace f : faces) {
-			ConvexHullWrapperHalfEdge e0 = f.getEdge0();
-			ConvexHullWrapperHalfEdge prev = e0.getNext();
-			ConvexHullWrapperHalfEdge next = prev.getNext();
-			do {
-				indices.add(e0.getTailIndex());
-				indices.add(prev.getTailIndex());
-				indices.add(next.getTailIndex());
-				
-				prev = next;
-				next = next.getNext();
-			} while (next != e0);
-		}
-
 		vertices.clear();
-		for (Vector3f v : this.backupVertices) {
-			vertices.add(new Vector3f(v));
+
+		int totalVertexCount = 0;
+		for (ConvexHullWrapperFace face : faces) {
+
+			ConvexHullWrapperHalfEdge firstEdge = face.getEdge0();
+			ConvexHullWrapperHalfEdge edge = firstEdge;
+
+			int indexVertexOnFace = 0;
+			do {
+
+				vertices.add(new Vector3f(backupVertices[edge.getTailIndex()]));
+
+				if (indexVertexOnFace >= 2) {// Triangulation basique de la face
+					indices.add(totalVertexCount);
+					indices.add(totalVertexCount + indexVertexOnFace - 1);
+					indices.add(totalVertexCount + indexVertexOnFace);
+				}
+
+				edge = edge.getNext();
+				indexVertexOnFace++;
+			} while (edge != firstEdge);
+
+			totalVertexCount = vertices.size();
+
 		}
 
 	}

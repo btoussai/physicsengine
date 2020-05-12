@@ -895,8 +895,6 @@ public class RigidBody extends Identifier {
 
 		b.mask = mask;
 		b.category = category;
-		b.sleeping = sleeping;
-		b.sleepCounter = sleepCounter;
 		b.flags = flags;
 	}
 
@@ -921,8 +919,8 @@ public class RigidBody extends Identifier {
 
 		this.mask = b.mask;
 		this.category = b.category;
-		this.sleeping = b.sleeping;
-		this.sleepCounter = b.sleepCounter;
+		this.sleeping = false;
+		this.sleepCounter = 0;
 		this.flags = b.flags;
 
 		updateTransform(new Transform());
@@ -934,8 +932,8 @@ public class RigidBody extends Identifier {
 
 	public void fill(RigidBodyState state) {
 		state.ID = this.getID();
-		state.position.set(getPosition());
-		state.rotation.load(getOrientation());
+		state.barycentricToWorld.loadFrom(barycentricToWorld);
+		state.bodyToWorld.loadFrom(bodyToWorld);
 		state.velocity.set(getVelocity());
 		state.angularVelocity.set(getAngularVelocity());
 	}

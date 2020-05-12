@@ -2,6 +2,7 @@ package cataclysm.broadphase.staticmeshes;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.Consumer;
 
 import cataclysm.DefaultParameters;
 import cataclysm.PhysicsWorld;
@@ -13,21 +14,31 @@ import math.vector.Vector3f;
 
 /**
  * Repr�sente une structure de donn�es contenant tous les StaticMesh.
+ * 
  * @author Briac
  *
  */
-public final class StaticMeshManager extends BufferedManager<StaticMesh>{
-	
+public final class StaticMeshManager extends BufferedManager<StaticMesh> {
+
 	private final MapGrid mapGrid;
 	private final PhysicsWorld world;
 	private final DefaultParameters params;
-	
-	public StaticMeshManager(PhysicsWorld world){
+
+	private Consumer<StaticMesh> callbackOnAdd;
+	private Consumer<StaticMesh> callbackOnRemove;
+
+	public StaticMeshManager(PhysicsWorld world) {
 		this.world = world;
 		this.params = world.getParameters();
 		this.mapGrid = new MapGrid(params.getGridCellSize(), params.getMaxOctreeDepth());
 	}
 	
+	public StaticMeshManager(DefaultParameters params) {
+		this.world = null;
+		this.params = params;
+		this.mapGrid = new MapGrid(params.getGridCellSize(), params.getMaxOctreeDepth());
+	}
+
 	/**
 	 * Construit un nouveau maillage de collision statique.
 	 * 
@@ -37,14 +48,14 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh>{
 	 * @param keepData  Indique s'il faut conserver les donn�es g�om�triques. Ceci
 	 *                  permet de dupliquer le maillage par la suite. Laisser �
 	 *                  false si le maillage statique ne sera jamais dupliqu�.
-	 * @return 
+	 * @return
 	 */
 	public StaticMesh newMesh(StaticMeshData data, Matrix4f transform, boolean keepData) {
 		StaticMesh mesh = new StaticMesh(data, transform, params, keepData, nextID());
 		addElement(mesh);
 		return mesh;
 	}
-	
+
 	/**
 	 * Construit un nouveau maillage de collision statique � partir des donn�es
 	 * g�om�triques initiales d'un maillage existant.
@@ -56,20 +67,20 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh>{
 	 * @param keepData  Indique s'il faut conserver les donn�es g�om�triques. Ceci
 	 *                  permet de dupliquer le maillage par la suite. Laisser �
 	 *                  false si le maillage statique ne sera jamais dupliqu�.
-	 * @return 
+	 * @return
 	 */
-	public StaticMesh copyMesh(Matrix4f transform, StaticMesh other, boolean keepData)  {
+	public StaticMesh copyMesh(Matrix4f transform, StaticMesh other, boolean keepData) {
 		StaticMesh mesh = new StaticMesh(transform, other, keepData, nextID());
 		addElement(mesh);
 		return mesh;
 	}
-	
+
 	public StaticMesh newMesh(StaticMeshRepr repr) {
 		StaticMesh mesh = new StaticMesh(repr, nextID());
 		addElement(mesh);
 		return mesh;
 	}
-	
+
 	/**
 	 * R�cup�re l'ensemble des triangles en intersection avec l'AABB.
 	 * 
@@ -79,17 +90,20 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh>{
 	public void boxTest(AABB box, HashSet<Triangle> dest) {
 		mapGrid.boxTest(box, dest);
 	}
-	
+
 	/**
 	 * 
-	 * Calcule la distance entre start et le premier triangle touch� par le rayon ray.
+	 * Calcule la distance entre start et le premier triangle touch� par le rayon
+	 * ray.
 	 * 
-	 * @param start Le point de d�part du rayon.
-	 * @param dir La direction du rayon, le vecteur doit �tre unitaire.
-	 * @param maxLength La distance maximale de recherche.
-	 * @param backfaceCulling Les triangles ne faisant pas face au rayon seront ignor�s si true.
-	 * @param normalDest La normale du triangle touch� sera stock�e dedans.
-	 * @return la distance du premier triangle touch� ou maxLength si aucun triangle n'a �t� trouv�.
+	 * @param start           Le point de d�part du rayon.
+	 * @param dir             La direction du rayon, le vecteur doit �tre unitaire.
+	 * @param maxLength       La distance maximale de recherche.
+	 * @param backfaceCulling Les triangles ne faisant pas face au rayon seront
+	 *                        ignor�s si true.
+	 * @param normalDest      La normale du triangle touch� sera stock�e dedans.
+	 * @return la distance du premier triangle touch� ou maxLength si aucun triangle
+	 *         n'a �t� trouv�.
 	 */
 	public float rayTest(Vector3f start, Vector3f dir, float maxLength, boolean backfaceCulling, Vector3f normalDest) {
 		return mapGrid.rayTest(start, dir, maxLength, backfaceCulling, normalDest);
@@ -97,42 +111,65 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh>{
 
 	@Override
 	protected void internalUpdate() {
-		
+
 	}
 
 	@Override
 	protected void processAddedAndRemovedElements(List<StaticMesh> added, List<StaticMesh> removed) {
-		for(StaticMesh mesh : added) {
+		if (callbackOnRemove != null)
+			removed.forEach(callbackOnRemove);
+		if (callbackOnAdd != null)
+			added.forEach(callbackOnAdd);
+
+		for (StaticMesh mesh : added) {
 			mapGrid.add(mesh);
 		}
-		for(StaticMesh mesh : removed) {
+		for (StaticMesh mesh : removed) {
 			mapGrid.remove(mesh);
 		}
-		
-		if(world.getActiveRecord() != null) {
+
+		if (world != null && world.getActiveRecord() != null) {
+			world.getUpdateStats().physicsRecorder.start();
 			world.getActiveRecord().getCurrentFrame().fillMeshes(added, removed);
+			world.getUpdateStats().physicsRecorder.pause();
 		}
 	}
-	
+
 	@Override
 	public void cleanUp() {
 		super.cleanUp();
 		mapGrid.cleanUp();
 	}
-	
-	
+
 	/**
-	 * Explore l'octree et ajoute une boite affichable dans la liste boxes � chaque cellule rencontr�e.
-	 * @param boxes La liste dans laquelle ranger les boites affichables.
-	 * @param maxDepth La profondeur maximale d'exploration.
-	 * @param leavesOnly N'ajoute que les cellules de profondeur maxDepth.
+	 * Explore l'octree et ajoute une boite affichable dans la liste boxes � chaque
+	 * cellule rencontr�e.
+	 * 
+	 * @param boxes        La liste dans laquelle ranger les boites affichables.
+	 * @param maxDepth     La profondeur maximale d'exploration.
+	 * @param leavesOnly   N'ajoute que les cellules de profondeur maxDepth.
 	 * @param nonVoidBoxes Ignore les cellules vides.
-	 * @param position La position en worldspace du d�but de l'exploration.
+	 * @param position     La position en worldspace du d�but de l'exploration.
 	 */
-	public void exploreHierarchy(List<OctreeCellRenderable> boxes, int maxDepth, boolean leavesOnly, boolean nonVoidBoxes, Vector3f position) {
+	public void exploreHierarchy(List<OctreeCellRenderable> boxes, int maxDepth, boolean leavesOnly,
+			boolean nonVoidBoxes, Vector3f position) {
 		mapGrid.exploreOctree(boxes, maxDepth, leavesOnly, nonVoidBoxes, position);
 	}
-	
-	
+
+	public Consumer<StaticMesh> getCallbackOnAdd() {
+		return callbackOnAdd;
+	}
+
+	public void setCallbackOnAdd(Consumer<StaticMesh> callbackOnAdd) {
+		this.callbackOnAdd = callbackOnAdd;
+	}
+
+	public Consumer<StaticMesh> getCallbackOnRemove() {
+		return callbackOnRemove;
+	}
+
+	public void setCallbackOnRemove(Consumer<StaticMesh> callbackOnRemove) {
+		this.callbackOnRemove = callbackOnRemove;
+	}
 
 }

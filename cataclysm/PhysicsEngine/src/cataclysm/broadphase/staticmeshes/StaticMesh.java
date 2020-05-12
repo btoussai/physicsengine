@@ -1,5 +1,7 @@
 package cataclysm.broadphase.staticmeshes;
 
+import java.util.List;
+
 import cataclysm.DefaultParameters;
 import cataclysm.contact_creation.ContactProperties;
 import cataclysm.datastructures.Identifier;
@@ -31,7 +33,7 @@ public class StaticMesh extends Identifier {
 	 * La matrice de transformation appliqu�es aux donn�es originelles pour
 	 * construire les triangles.
 	 */
-	private final Matrix4f transform;
+	private final Matrix4f transform = new Matrix4f();
 
 	/**
 	 * Les coordonn�es min des triangles du maillage.
@@ -65,10 +67,9 @@ public class StaticMesh extends Identifier {
 		triangles = data.buildTriangles(this, transform, min, max);
 		if (keepData) {
 			this.data = data;
-			this.transform = new Matrix4f(transform);
+			this.transform.load(transform);
 		} else {
 			this.data = null;
-			this.transform = null;
 		}
 
 		contactProperties = new ContactProperties(params.getContactProperties());
@@ -96,10 +97,9 @@ public class StaticMesh extends Identifier {
 		triangles = other.data.buildTriangles(this, transform, min, max);
 		if (keepData) {
 			this.data = other.data;
-			this.transform = new Matrix4f(transform);
+			this.transform.load(transform);
 		} else {
 			this.data = null;
-			this.transform = null;
 		}
 		this.contactProperties = new ContactProperties(other.contactProperties);
 	}
@@ -115,7 +115,6 @@ public class StaticMesh extends Identifier {
 			triangles[i] = new Triangle(this, new Vector3f(t.v1), new Vector3f(t.v2), new Vector3f(t.v3));
 		}
 
-		this.transform = null;
 		this.data = null;
 	}
 
@@ -139,6 +138,23 @@ public class StaticMesh extends Identifier {
 			tRepr.v2.set(t.v2);
 			tRepr.v3.set(t.v3);
 		}
+	}
+
+	public void asModel(List<Integer> indices, List<Vector3f> vertices) {
+		indices.clear();
+		vertices.clear();
+		int faceIndex = 0;
+		for (Triangle t : triangles) {
+			vertices.add(new Vector3f(t.v1));
+			vertices.add(new Vector3f(t.v2));
+			vertices.add(new Vector3f(t.v3));
+
+			indices.add(3 * faceIndex + 0);
+			indices.add(3 * faceIndex + 1);
+			indices.add(3 * faceIndex + 2);
+			faceIndex++;
+		}
+
 	}
 
 }

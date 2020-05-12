@@ -34,10 +34,21 @@ public final class Vector3f implements Serializable {
 		set(x, y, z);
 	}
 
-	public void set(float x, float y, float z) {
+	/**
+	 * Short-hand for <br>
+	 * {@code new Vector3f(value, value, value)}
+	 * 
+	 * @param value
+	 */
+	public Vector3f(float value) {
+		set(value, value, value);
+	}
+
+	public Vector3f set(float x, float y, float z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
+		return this;
 	}
 
 	/**

@@ -1,6 +1,6 @@
 package cataclysm.record;
 
-import math.vector.Matrix3f;
+import cataclysm.wrappers.Transform;
 import math.vector.Vector3f;
 
 /**
@@ -11,8 +11,8 @@ import math.vector.Vector3f;
  */
 public final class RigidBodyState implements ReadWriteObject {
 	public long ID;
-	public final Vector3f position = new Vector3f();
-	public final Matrix3f rotation = new Matrix3f();
+	public final Transform bodyToWorld = new Transform();
+	public final Transform barycentricToWorld = new Transform();
 	public final Vector3f velocity = new Vector3f();
 	public final Vector3f angularVelocity = new Vector3f();
 	
@@ -26,8 +26,8 @@ public final class RigidBodyState implements ReadWriteObject {
 	@Override
 	public void read(RecordFile f) {
 		ID = f.readLong();
-		f.readVector3f(position);
-		f.readMatrix3f(rotation);
+		bodyToWorld.read(f);
+		barycentricToWorld.read(f);
 		f.readVector3f(velocity);
 		f.readVector3f(angularVelocity);
 	}
@@ -35,14 +35,14 @@ public final class RigidBodyState implements ReadWriteObject {
 	@Override
 	public void write(RecordFile f) {
 		f.writeLong(ID);
-		f.writeVector3f(position);
-		f.writeMatrix3f(rotation);
+		bodyToWorld.write(f);
+		barycentricToWorld.write(f);
 		f.writeVector3f(velocity);
 		f.writeVector3f(angularVelocity);
 	}
 
 	@Override
 	public int size() {
-		return 8 + 3*4 + 9*4 + 3*4 + 3*4;
+		return 8 + bodyToWorld.size() + barycentricToWorld.size() + 3*4 + 3*4;
 	}
 }

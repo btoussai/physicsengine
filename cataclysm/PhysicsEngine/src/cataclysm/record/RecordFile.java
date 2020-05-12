@@ -335,7 +335,7 @@ public class RecordFile {
 		}
 		int new_pos = buffer.position() + bytes;
 		if (new_pos < 0 || new_pos > buffer.limit()) {
-			throw new IllegalArgumentException("Invalid skip count");
+			throw new IllegalArgumentException("Invalid skip count: " + bytes + " new pos: " + new_pos);
 		}
 		buffer.position(new_pos);
 	}

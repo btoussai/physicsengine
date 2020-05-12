@@ -30,8 +30,6 @@ public final class RigidBodyRepr implements ReadWriteObject {
 
 	public int mask = 0xFFFFFFFF;
 	public int category = 0xFFFFFFFF;
-	public boolean sleeping = false;
-	public int sleepCounter = 0;
 	public byte flags = 0;
 
 	public RigidBodyRepr() {
@@ -57,8 +55,6 @@ public final class RigidBodyRepr implements ReadWriteObject {
 
 		mask = f.readInt();
 		category = f.readInt();
-		sleeping = f.readBool();
-		sleepCounter = f.readInt();
 		flags = f.readByte();
 	}
 
@@ -77,15 +73,13 @@ public final class RigidBodyRepr implements ReadWriteObject {
 
 		f.writeInt(mask);
 		f.writeInt(category);
-		f.writeBool(sleeping);
-		f.writeInt(sleepCounter);
 		f.writeByte(flags);
 	}
 
 	@Override
 	public int size() {
 		return 8 + bodyToWorld.size() + barycentricToWorld.size() + 3 * 4 + 3 * 4 + contactProperties.size() + 4 + 3 * 4
-				+ 9 * 4 + wrappers.size() + 4 + 4 + 1 + 4 + 1;
+				+ 9 * 4 + wrappers.size() + 4 + 4 + 1;
 	}
 
 }

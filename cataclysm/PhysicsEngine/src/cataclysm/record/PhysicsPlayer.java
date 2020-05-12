@@ -8,10 +8,6 @@ import cataclysm.broadphase.staticmeshes.StaticMesh;
 import cataclysm.broadphase.staticmeshes.StaticMeshManager;
 import cataclysm.wrappers.RigidBody;
 import cataclysm.wrappers.RigidBodyManager;
-import math.Clamp;
-import math.MatrixOps;
-import math.vector.Matrix3f;
-import math.vector.Vector3f;
 
 /**
  * This class enables to play back a record of a simulation.
@@ -160,41 +156,15 @@ public class PhysicsPlayer {
 			blend = 1.0f - blend;
 		}
 
-		System.out.println("Blend: " + blend);
+		System.out.println("Blend: " + blend + " Playback speed: " + playbackSpeed);
 
-		if (blend < 0.0) {
-			for (RigidBodyState state : currentFrame.getBodyStates()) {
-				RigidBody b = addedBodies.get(state.ID);
-				b.getOriginTransform().getRotation().load(state.rotation);
-				b.getOriginTransform().getTranslation().set(state.position);
-				b.getVelocity().set(state.velocity).scale(playbackSpeed);
-				b.getAngularVelocity().set(state.angularVelocity).scale(playbackSpeed);
+		for (RigidBodyState state : currentFrame.getBodyStates()) {
+			RigidBody b = addedBodies.get(state.ID);
+			b.getBarycentricTransform().loadFrom(state.barycentricToWorld);
+			b.getOriginTransform().loadFrom(state.bodyToWorld);
+			b.getVelocity().set(state.velocity).scale(playbackSpeed);
+			b.getAngularVelocity().set(state.angularVelocity).scale(playbackSpeed);
 
-			}
-		} else {
-			float dt = 1.0f / 60.0f;
-			Vector3f axis = new Vector3f();
-			Matrix3f deltaRotation = new Matrix3f();
-			for (RigidBodyState state : currentFrame.getBodyStates()) {
-				RigidBody b = addedBodies.get(state.ID);
-				b.getVelocity().set(state.velocity).scale(playbackSpeed);
-				b.getAngularVelocity().set(state.angularVelocity).scale(playbackSpeed);
-
-				b.getOriginTransform().getTranslation().set(state.position).translate(b.getVelocity(), blend * dt);
-
-				axis.set(b.getAngularVelocity());
-				float omega2 = axis.lengthSquared();
-				if (omega2 > 1E-6f) {
-
-					float omega = (float) Math.sqrt(omega2);
-					float one_over_omega = 1.0f / omega;
-					axis.set(axis.x * one_over_omega, axis.y * one_over_omega, axis.z * one_over_omega);
-					MatrixOps.createRotationMatrix3f(omega * blend * dt, axis, deltaRotation);
-					Matrix3f.mul(deltaRotation, state.rotation, b.getOriginTransform().getRotation());
-				} else {
-					b.getOriginTransform().getRotation().load(state.rotation);
-				}
-			}
 		}
 
 	}
@@ -208,17 +178,29 @@ public class PhysicsPlayer {
 		System.out.println("Current time: " + currentTime);
 
 		if (mode == PlaybackMode.CLAMP) {
-			currentTime = Clamp.clamp(currentTime, 0.0, totalFrameCount - 1);
+			if(currentTime < 1.0f) {
+				currentTime = 1.0f;
+				setPlaybackSpeed(0.0f);
+			}else if(currentTime > totalFrameCount - 2) {
+				currentTime = totalFrameCount - 2;
+				setPlaybackSpeed(0.0f);
+			}
 		} else if (mode == PlaybackMode.BOUNCE) {
 			if (currentTime < 0) {
 				currentTime = -currentTime;
 				playbackSpeed = Math.abs(playbackSpeed);
 				swapFrames();
+				int temp = currentFrameIndex;
+				currentFrameIndex = nextFrameIndex;
+				nextFrameIndex = temp;
 				crossedFrame = true;
 			} else if (currentTime > totalFrameCount - 1) {
 				currentTime = (totalFrameCount - 1) + (totalFrameCount - 1) - currentTime;
 				playbackSpeed = -Math.abs(playbackSpeed);
 				swapFrames();
+				int temp = currentFrameIndex;
+				currentFrameIndex = nextFrameIndex;
+				nextFrameIndex = temp;
 				crossedFrame = true;
 			}
 		} else if (mode == PlaybackMode.LOOP) {
@@ -236,7 +218,7 @@ public class PhysicsPlayer {
 				currentFrameIndex = nextFrameIndex;
 				nextFrameIndex++;
 
-				System.out.println("Reading frame " + nextFrameIndex);
+				System.out.println("Reading next frame " + nextFrameIndex + " current frame " + currentFrameIndex);
 				swapFrames();
 				crossedFrame = true;
 				if (nextFrameIndex != totalFrameCount) {
@@ -250,7 +232,7 @@ public class PhysicsPlayer {
 				nextFrameIndex--;
 
 				if (nextFrameIndex != -1) {
-					System.out.println("Reading frame " + nextFrameIndex);
+					System.out.println("Reading next frame " + nextFrameIndex + " current frame " + currentFrameIndex);
 					file.skipBytes(-nextFrame.size());// rollback till the start of next frame
 					file.skipBytes(-4);
 					int frameSize = file.readInt();// read the size of the previous frame in the file

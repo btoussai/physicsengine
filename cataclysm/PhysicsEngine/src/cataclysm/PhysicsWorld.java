@@ -120,11 +120,15 @@ public class PhysicsWorld {
 			actors.removeIf(actor -> !actor.update(this));
 			stats.step(params.getTimeStep());
 			if (activeRecord != null) {
+				stats.physicsRecorder.start();
 				activeRecord.newFrame();
+				stats.physicsRecorder.pause();
 			}
 			engine.update(bodies, meshes, constraints, stats);
 			if (activeRecord != null) {
+				stats.physicsRecorder.start();
 				activeRecord.endOfFrame();
+				stats.physicsRecorder.stop();
 			}
 
 			stats.globalUpdate.stop();
@@ -317,7 +321,11 @@ public class PhysicsWorld {
 		meshes.cleanUp();
 		constraints.clear();
 	}
-
+	
+	public RigidBodyManager getBodyManager() {
+		return bodies;
+	}
+	
 	/**
 	 * @return Un it�rable sur les corps rigide de la simulation. Il ne faut en
 	 *         aucun cas s'en servir pour ajouter ou supprimer un rigidbody dans la
@@ -325,6 +333,10 @@ public class PhysicsWorld {
 	 */
 	public Iterable<RigidBody> getBodies() {
 		return bodies;
+	}
+	
+	public StaticMeshManager getMeshManager() {
+		return meshes;
 	}
 
 	/**

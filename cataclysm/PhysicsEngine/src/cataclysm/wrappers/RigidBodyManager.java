@@ -2,6 +2,7 @@ package cataclysm.wrappers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import cataclysm.PhysicsStats;
 import cataclysm.PhysicsWorld;
@@ -44,6 +45,10 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 	 */
 	private final List<AbstractDoubleBodyContact> bodyContacts = new ArrayList<AbstractDoubleBodyContact>();
 
+	private Consumer<RigidBody> callbackOnAdd;
+	
+	private Consumer<RigidBody> callbackOnRemove;
+
 	public RigidBodyManager(PhysicsWorld world, StaticMeshManager meshes, PhysicsStats stats) {
 		this.world = world;
 		this.meshes = meshes;
@@ -74,10 +79,17 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 
 	@Override
 	protected void processAddedAndRemovedElements(List<RigidBody> added, List<RigidBody> removed) {
+		if (callbackOnRemove != null)
+			removed.forEach(callbackOnRemove);
+		if (callbackOnAdd != null)
+			added.forEach(callbackOnAdd);
+
 		updator.processAddedAndRemovedElements(added, removed, meshes);
 
 		if (world.getActiveRecord() != null) {
+			world.getUpdateStats().physicsRecorder.start();
 			world.getActiveRecord().getCurrentFrame().fillBodies(added, removed);
+			world.getUpdateStats().physicsRecorder.pause();
 		}
 
 		List<AbstractConstraint> contraintsToDelete = new ArrayList<AbstractConstraint>();
@@ -141,4 +153,20 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 		super.cleanUp();
 	}
 
+	public Consumer<RigidBody> getCallbackOnAdd() {
+		return callbackOnAdd;
+	}
+
+	public void setCallbackOnAdd(Consumer<RigidBody> callbackOnAdd) {
+		this.callbackOnAdd = callbackOnAdd;
+	}
+
+	public Consumer<RigidBody> getCallbackOnRemove() {
+		return callbackOnRemove;
+	}
+
+	public void setCallbackOnRemove(Consumer<RigidBody> callbackOnRemove) {
+		this.callbackOnRemove = callbackOnRemove;
+	}
+	
 }

@@ -73,9 +73,11 @@ final class PhysicsEngine {
 			PhysicsStats stats) {
 
 		if (world.getRecordPlayers() != null) {
+			stats.physicsPlayers.start();
 			for (PhysicsPlayer player : world.getRecordPlayers()) {
 				player.step(meshes, bodies);
 			}
+			stats.physicsPlayers.stop();
 		}
 
 		meshes.update();
@@ -101,7 +103,9 @@ final class PhysicsEngine {
 		stats.velocityIntegration.stop();
 
 		if (world.getActiveRecord() != null) {
+			world.getUpdateStats().physicsRecorder.start();
 			world.getActiveRecord().getCurrentFrame().fillBodiesStates(world);
+			world.getUpdateStats().physicsRecorder.pause();
 		}
 	}
 

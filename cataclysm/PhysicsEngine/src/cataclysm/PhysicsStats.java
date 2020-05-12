@@ -32,6 +32,7 @@ public class PhysicsStats {
 	public static class TimeAverage {
 		private long updateCount = 0;
 		private long start;
+		private long accumulatedDelta;
 		private long stop;
 
 		private final TimeUnit unit;
@@ -45,7 +46,7 @@ public class PhysicsStats {
 			this.name = name;
 			this.history = new long[length];
 		}
-		
+
 		public TimeAverage(TimeUnit unit, String name) {
 			this.unit = unit;
 			this.name = name;
@@ -56,14 +57,21 @@ public class PhysicsStats {
 			start = System.nanoTime();
 		}
 
+		public void pause() {
+			stop = System.nanoTime();
+			accumulatedDelta += stop - start;
+		}
+
 		public void stop() {
 			stop = System.nanoTime();
-			
-			if(history!=null) {
-				update(stop - start);
-			}else {
-				average = Math.min(average, stop-start);
+			accumulatedDelta += stop - start;
+
+			if (history != null) {
+				update(accumulatedDelta);
+			} else {
+				average = Math.min(average, accumulatedDelta);
 			}
+			accumulatedDelta = 0;
 		}
 
 		private void update(long deltaNanoSec) {
@@ -76,27 +84,28 @@ public class PhysicsStats {
 			}
 			average += deltaNanoSec;
 			history[history.length - 1] = deltaNanoSec;
-			
+
 			long length = updateCount < history.length ? updateCount : history.length;
 			average /= length;
-			
+
 			std = 0;
-			for (int i = history.length-1; i >= history.length - length; i--) {
-				std += (history[i]-average)*(history[i]-average);
+			for (int i = history.length - 1; i >= history.length - length; i--) {
+				std += (history[i] - average) * (history[i] - average);
 			}
-			std = Math.sqrt(std/length);
+			std = Math.sqrt(std / length);
 		}
 
 		public double getAverageNanos() {
 			return average;
 		}
-		
+
 		public double getDeltaNanos() {
 			return history[history.length - 1];
 		}
 
 		public String asPercentage(double totalNanoSec) {
-			return name + ": " + String.format("%4.2f", average / totalNanoSec * 100.0) + "%" + " +/-" + String.format("%4.1f", 100.0*std/totalNanoSec) + "%";
+			return name + ": " + String.format("%4.2f", average / totalNanoSec * 100.0) + "%" + " +/-"
+					+ String.format("%4.1f", 100.0 * std / totalNanoSec) + "%";
 		}
 
 		@Override
@@ -120,7 +129,7 @@ public class PhysicsStats {
 
 	public int bodyToMeshContacts;
 	public int bodyToMeshActiveContacts;
-	
+
 	private final int smooth = 5;
 
 	public final TimeAverage globalUpdate = new TimeAverage(TimeUnit.MILLISEC, "Global update", smooth);
@@ -128,12 +137,14 @@ public class PhysicsStats {
 	public final TimeAverage constraintSolver = new TimeAverage(TimeUnit.MILLISEC, "Constraint Solver", smooth);
 	public final TimeAverage velocityIntegration = new TimeAverage(TimeUnit.MILLISEC, "Velocity integration", smooth);
 
+	public final TimeAverage physicsRecorder = new TimeAverage(TimeUnit.MILLISEC, "Simulation recording", smooth);
+	public final TimeAverage physicsPlayers = new TimeAverage(TimeUnit.MILLISEC, "Simulation replaying", smooth);
+
 	public void step(float timeStep) {
 		this.frame_count++;
 		this.elapsedTime += timeStep;
 	}
-	
-	
+
 	public void reset(int rigidBodies, int staticMeshes, int constraints) {
 		this.rigidBodies = rigidBodies;
 		this.staticMeshes = staticMeshes;
@@ -143,7 +154,11 @@ public class PhysicsStats {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("\nPhysicsWorld " + globalUpdate + " [\n");
-		sb.append("\t Total " + broadAndNarrowphase.asPercentage(globalUpdate.average) + "\n");
+		if (physicsRecorder.getDeltaNanos() != 0)
+			sb.append("\t" + physicsRecorder.asPercentage(globalUpdate.average) + "\n");
+		if (physicsPlayers.getDeltaNanos() != 0)
+			sb.append("\t" + physicsPlayers.asPercentage(globalUpdate.average) + "\n");
+		sb.append("\tTotal " + broadAndNarrowphase.asPercentage(globalUpdate.average) + "\n");
 		sb.append("\t" + constraintSolver.asPercentage(globalUpdate.average) + "\n");
 		sb.append("\t" + velocityIntegration.asPercentage(globalUpdate.average) + "\n");
 		sb.append("\tTotal frames simulated: " + frame_count);
@@ -154,11 +169,11 @@ public class PhysicsStats {
 		sb.append("\n] frame " + frame_count);
 		return sb.toString();
 	}
-	
+
 	public long getFrameCount() {
 		return frame_count;
 	}
-	
+
 	public double getElapsedTime() {
 		return elapsedTime;
 	}

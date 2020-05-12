@@ -253,19 +253,110 @@ public class MatrixOps {
 		evec0.scale(1.0f / (float) Math.sqrt(d));
 	}
 
+	/**
+	 * Computes U and V from W such that [U, V, W] is an orthonormal set. W must be
+	 * unit-length
+	 * 
+	 * @param W
+	 * @param U
+	 * @param V
+	 */
 	public static void computeOrthogonalComplement(Vector3f W, Vector3f U, Vector3f V) {
 		if (Math.abs(W.x) > Math.abs(W.y)) {
 			float inv_length = 1.0f / (float) Math.sqrt(W.x * W.x + W.z * W.z);
 			U.set(-W.z * inv_length, 0, W.x * inv_length);
 
-			V.set(W.y * U.z, U.x * W.z - U.z * W.x, -W.y * U.x);
+			V.set(W.y * U.z, U.x * W.z - U.z * W.x, -W.y * U.x);// Vector3f.cross(W, U, V);
 		} else {
 			float inv_length = 1.0f / (float) Math.sqrt(W.y * W.y + W.z * W.z);
 			U.set(0, W.z * inv_length, -W.y * inv_length);
 
-			V.set(W.y * U.z - W.z * U.y, -U.z * W.x, W.x * U.y);
+			V.set(W.y * U.z - W.z * U.y, -U.z * W.x, W.x * U.y);// Vector3f.cross(W, U, V);
 		}
-		// Vector3f.cross(W, U, V);
+
+	}
+
+	/**
+	 * Same as {@link #computeOrthogonalComplement(Vector3f, Vector3f, Vector3f)}
+	 * but the result is placed in a matrix instead, in the order [U | V | W]
+	 * 
+	 * @param W
+	 * @param dest
+	 * @return
+	 */
+	public static Matrix3f computeOrthogonalComplement(Vector3f W, Matrix3f dest) {
+		if (dest == null) {
+			dest = new Matrix3f();
+		}
+		dest.m20 = W.x;
+		dest.m21 = W.y;
+		dest.m22 = W.z;
+		if (Math.abs(W.x) > Math.abs(W.y)) {
+			float inv_length = 1.0f / (float) Math.sqrt(W.x * W.x + W.z * W.z);
+			dest.m00 = -W.z * inv_length;
+			dest.m01 = 0.0f;
+			dest.m02 = W.x * inv_length;
+
+			// Vector3f.cross(W, U, V);
+			dest.m10 = W.y * dest.m02;
+			dest.m11 = dest.m00 * W.z - dest.m02 * W.x;
+			dest.m12 = -W.y * dest.m00;
+		} else {
+			float inv_length = 1.0f / (float) Math.sqrt(W.y * W.y + W.z * W.z);
+			dest.m00 = 0.0f;
+			dest.m01 = W.z * inv_length;
+			dest.m02 = -W.y * inv_length;
+
+			// Vector3f.cross(W, U, V);
+			dest.m10 = W.y * dest.m02 - W.z * dest.m01;
+			dest.m11 = -dest.m02 * W.x;
+			dest.m12 = W.x * dest.m01;
+		}
+
+		return dest;
+	}
+
+	/**
+	 * Same as {@link #computeOrthogonalComplement(Vector3f, Vector3f, Vector3f)}
+	 * but the result is placed in a matrix instead, in the order [U | V | W]
+	 * 
+	 * @param W
+	 * @param dest
+	 * @return
+	 */
+	public static Matrix4f computeOrthogonalComplement(Vector3f W, Matrix4f dest) {
+		if (dest == null) {
+			dest = new Matrix4f();
+		}
+		dest.m20 = W.x;
+		dest.m21 = W.y;
+		dest.m22 = W.z;
+		if (Math.abs(W.x) > Math.abs(W.y)) {
+			float inv_length = 1.0f / (float) Math.sqrt(W.x * W.x + W.z * W.z);
+			dest.m00 = -W.z * inv_length;
+			dest.m01 = 0.0f;
+			dest.m02 = W.x * inv_length;
+
+			// Vector3f.cross(W, U, V);
+			dest.m10 = W.y * dest.m02;
+			dest.m11 = dest.m00 * W.z - dest.m02 * W.x;
+			dest.m12 = -W.y * dest.m00;
+		} else {
+			float inv_length = 1.0f / (float) Math.sqrt(W.y * W.y + W.z * W.z);
+			dest.m00 = 0.0f;
+			dest.m01 = W.z * inv_length;
+			dest.m02 = -W.y * inv_length;
+
+			// Vector3f.cross(W, U, V);
+			dest.m10 = W.y * dest.m02 - W.z * dest.m01;
+			dest.m11 = -dest.m02 * W.x;
+			dest.m12 = W.x * dest.m01;
+		}
+
+		dest.m03 = dest.m13 = dest.m23 = dest.m30 = dest.m31 = dest.m32 = 0.0f;
+		dest.m33 = 1.0f;
+
+		return dest;
 	}
 
 	private static void computeEigenVector1(Matrix3f mat, Vector3f temp1, Vector3f temp2, Vector3f temp3,
@@ -1293,6 +1384,40 @@ public class MatrixOps {
 	}
 
 	/**
+	 * Short-hand for dest = (matrix * vec4(v, 0.0)).xyz;
+	 * 
+	 * @param matrix
+	 * @param v
+	 * @param dest
+	 */
+	public static void vectorMult(Matrix4f matrix, Vector3f v, Vector3f dest) {
+		float x = matrix.m00 * v.x + matrix.m10 * v.y + matrix.m20 * v.z;
+		float y = matrix.m01 * v.x + matrix.m11 * v.y + matrix.m21 * v.z;
+		float z = matrix.m02 * v.x + matrix.m12 * v.y + matrix.m22 * v.z;
+
+		dest.x = x;
+		dest.y = y;
+		dest.z = z;
+	}
+
+	/**
+	 * Short-hand for dest = (matrix * vec4(v, 1.0)).xyz;
+	 * 
+	 * @param matrix
+	 * @param v
+	 * @param dest
+	 */
+	public static void vertexMult(Matrix4f matrix, Vector3f v, Vector3f dest) {
+		float x = matrix.m00 * v.x + matrix.m10 * v.y + matrix.m20 * v.z + matrix.m30;
+		float y = matrix.m01 * v.x + matrix.m11 * v.y + matrix.m21 * v.z + matrix.m31;
+		float z = matrix.m02 * v.x + matrix.m12 * v.y + matrix.m22 * v.z + matrix.m32;
+
+		dest.x = x;
+		dest.y = y;
+		dest.z = z;
+	}
+
+	/**
 	 * Permet de charger la sous-matrice 3x3 (coin haut gauche) de src dans dest.
 	 * 
 	 * @param src       La matrice source.
@@ -1713,6 +1838,7 @@ public class MatrixOps {
 
 	/**
 	 * Computes v^T M v
+	 * 
 	 * @param mat
 	 * @param v
 	 * @return
@@ -1725,10 +1851,11 @@ public class MatrixOps {
 		return x * (mat.m00 * x + mat.m10 * y + mat.m20 * z) + y * (mat.m01 * x + mat.m11 * y + mat.m21 * z)
 				+ z * (mat.m02 * x + mat.m12 * y + mat.m22 * z);
 	}
-	
+
 	/**
 	 * Computes left^T M right
-	 * @param left 
+	 * 
+	 * @param left
 	 * @param mat
 	 * @param right
 	 * @return
@@ -1741,30 +1868,31 @@ public class MatrixOps {
 		return left.x * (mat.m00 * x + mat.m10 * y + mat.m20 * z) + left.y * (mat.m01 * x + mat.m11 * y + mat.m21 * z)
 				+ left.z * (mat.m02 * x + mat.m12 * y + mat.m22 * z);
 	}
-	
+
 	/**
 	 * Computes -vx M vx with vx denoting the cross-product / skew-symetric matrix.
+	 * 
 	 * @param mat
 	 * @param v
-	 * @param dest 
+	 * @param dest
 	 */
 	public static void sandwichCrossProduct(Matrix3f mat, Vector3f v, Matrix3f dest) {
 		float x = v.x;
 		float y = v.y;
 		float z = v.z;
-		
+
 		float m00 = -z * mat.m01 + y * mat.m02;
 		float m10 = z * mat.m00 - x * mat.m02;
 		float m20 = -y * mat.m00 + x * mat.m01;
-		
+
 		float m01 = -z * mat.m11 + y * mat.m12;
 		float m11 = z * mat.m10 - x * mat.m12;
 		float m21 = -y * mat.m10 + x * mat.m11;
-		
+
 		float m02 = -z * mat.m21 + y * mat.m22;
 		float m12 = z * mat.m20 - x * mat.m22;
 		float m22 = -y * mat.m20 + x * mat.m21;
-		
+
 		dest.m00 = z * m01 - y * m02;
 		dest.m01 = -z * m00 + x * m02;
 		dest.m02 = y * m00 - x * m01;
@@ -1776,5 +1904,112 @@ public class MatrixOps {
 		dest.m20 = z * m21 - y * m22;
 		dest.m21 = -z * m20 + x * m22;
 		dest.m22 = y * m20 - x * m21;
+	}
+
+	/**
+	 * Builds a projection-view matrix for a directional light casting a shadow.
+	 * This matrix maps points in world-space to light space, so that the frustum of
+	 * the player is entierly contained within the shadow map.
+	 * 
+	 * @param lightDir       The direction of the light
+	 * @param cameraPos      The position of the camera
+	 * @param minToLightDist The minimum distance from the light to the camera, so
+	 *                       that objects outside the camera view are still included
+	 * @param minDepth       The minimum depth of the frustum of the shadow
+	 * @param InvProjView    The perspective projection-view matrix of the player,
+	 *                       inverted
+	 * @param dest           The destination matrix or null
+	 * @return dest or a new matrix
+	 */
+	public static Matrix4f createOrthographicShadowMatrix(Vector3f lightDir, Vector3f cameraPos, float minToLightDist,
+			float minDepth, Matrix4f InvProjView, Matrix4f dest) {
+		if (dest != null) {
+			dest.setIdentity();
+		} else {
+			dest = new Matrix4f();
+		}
+
+		Vector3f min = new Vector3f(Float.POSITIVE_INFINITY);
+		Vector3f max = new Vector3f(Float.NEGATIVE_INFINITY);
+		Vector3f temp = new Vector3f();
+
+		lightDir.negate();
+		Matrix4f rotation = MatrixOps.computeOrthogonalComplement(lightDir, (Matrix4f) null);
+		rotation.transpose();
+		lightDir.negate();
+
+		for (int i = 0; i < 8; i++) {// iterate over the corners of the NDC
+			temp.x = (i & 1) != 0 ? -1.0f : 1.0f;
+			temp.y = (i & 2) != 0 ? -1.0f : 1.0f;
+			temp.z = (i & 4) != 0 ? -1.0f : 1.0f;
+
+			float w = InvProjView.m03 * temp.x + InvProjView.m13 * temp.y + InvProjView.m23 * temp.z + InvProjView.m33;
+			MatrixOps.vertexMult(InvProjView, temp, temp);// transform to world-space
+			temp.scale(1.0f / w);
+
+			MatrixOps.vectorMult(rotation, temp, temp);// transform to light-space
+			VectorOps.min(min, temp, min);
+			VectorOps.max(max, temp, max);
+		}
+
+		temp.set(cameraPos).translate(lightDir, -minToLightDist);
+		MatrixOps.vectorMult(rotation, temp, temp);// transform to light-space
+		VectorOps.min(min, temp, min);
+		VectorOps.max(max, temp, max);
+		
+		//max.z = temp.z;
+
+		temp.set(cameraPos).translate(lightDir, minDepth - minToLightDist);
+		MatrixOps.vectorMult(rotation, temp, temp);// transform to light-space
+		VectorOps.min(min, temp, min);
+		VectorOps.max(max, temp, max);
+
+		//min.z = Math.max(min.z, max.z - maxDepth);
+
+		MatrixOps.createOrthographicProjectionMatrix(min, max, dest);
+		Matrix4f.mul(dest, rotation, dest);
+		return dest;
+	}
+
+	public static Matrix4f createOrthographicShadowMatrix(Vector3f lightDir, Vector3f cameraPos, float minToLightDist,
+			float minDepth, Vector3f[] frustumCorners, Matrix4f dest) {
+		if (dest != null) {
+			dest.setIdentity();
+		} else {
+			dest = new Matrix4f();
+		}
+
+		Vector3f min = new Vector3f(Float.POSITIVE_INFINITY);
+		Vector3f max = new Vector3f(Float.NEGATIVE_INFINITY);
+		Vector3f temp = new Vector3f();
+
+		lightDir.negate();
+		Matrix4f rotation = MatrixOps.computeOrthogonalComplement(lightDir, (Matrix4f) null);
+		rotation.transpose();
+		lightDir.negate();
+
+		for (int i = 0; i < 8; i++) {// iterate over the corners of the frustum
+			MatrixOps.vectorMult(rotation, frustumCorners[i], temp);// transform to light-space
+			VectorOps.min(min, temp, min);
+			VectorOps.max(max, temp, max);
+		}
+
+		temp.set(cameraPos).translate(lightDir, -minToLightDist);
+		MatrixOps.vectorMult(rotation, temp, temp);// transform to light-space
+		VectorOps.min(min, temp, min);
+		VectorOps.max(max, temp, max);
+		
+		//max.z = temp.z;
+
+		temp.set(cameraPos).translate(lightDir, minDepth - minToLightDist);
+		MatrixOps.vectorMult(rotation, temp, temp);// transform to light-space
+		VectorOps.min(min, temp, min);
+		VectorOps.max(max, temp, max);
+
+		//min.z = Math.max(min.z, max.z - maxDepth);
+
+		MatrixOps.createOrthographicProjectionMatrix(min, max, dest);
+		Matrix4f.mul(dest, rotation, dest);
+		return dest;
 	}
 }
