@@ -170,7 +170,7 @@ public class OctreeCell {
 			for (Triangle triangle : triangles) {
 				float d = triangle.rayTest(start, dir, maxLength, normalDest, backfaceCulling);
 				if (d < maxLength) {
-					normalDest.set(triangle.normal);
+					triangle.getNormal(normalDest);
 					maxLength = d;
 				}
 			}
@@ -304,10 +304,10 @@ public class OctreeCell {
 		}
 
 		// On projette la cellule sur la normale du triangle.
-		Vector3f n = triangle.normal;
+		Vector3f n = new Vector3f(triangle.getNormal(0), triangle.getNormal(1), triangle.getNormal(2));
 		Vector3f toCenter = new Vector3f();
-
-		Vector3f.sub(center, triangle.v1, toCenter);
+		
+		Vector3f.sub(center, triangle.getV0(toCenter), toCenter);
 		if (normalTest(n, toCenter)) {
 			return false;
 		}
@@ -326,7 +326,7 @@ public class OctreeCell {
 			return false;
 		}
 
-		Vector3f.sub(center, triangle.v2, toCenter);
+		Vector3f.sub(center, triangle.getV1(toCenter), toCenter);
 		// edge23 ^ n
 		Vector3f.cross(edges[1], n, axis);
 		if (axisTest(axis, toCenter)) {
@@ -336,7 +336,7 @@ public class OctreeCell {
 			return false;
 		}
 
-		Vector3f.sub(center, triangle.v3, toCenter);
+		Vector3f.sub(center, triangle.getV2(toCenter), toCenter);
 		// edge31 ^ n
 		Vector3f.cross(edges[2], n, axis);
 		if (axisTest(axis, toCenter)) {
@@ -411,11 +411,11 @@ public class OctreeCell {
 	}
 
 	/**
-	 * Teste si la normale du triangle est un axe de s�paration.
+	 * Teste si la normale du triangle est un axe de séparation.
 	 * 
 	 * @param normal
 	 * @param toCenter
-	 * @return true si normal est un axe de s�paration.
+	 * @return true si normal est un axe de séparation.
 	 */
 	private boolean normalTest(Vector3f normal, Vector3f toCenter) {
 		float proj = half_size * (Math.abs(normal.x) + Math.abs(normal.y) + Math.abs(normal.z));

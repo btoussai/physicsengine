@@ -4,9 +4,10 @@ import cataclysm.broadphase.staticmeshes.Triangle;
 import math.vector.Vector3f;
 
 /**
- * Repr�sente un triangle sous forme d'une enveloppe convexe.
- * Ceci permet de calculer les collisions entre les wrappers et les triangles
- * en r�utilisant les fonctions de collision contre une enveloppe convexe.
+ * Repr�sente un triangle sous forme d'une enveloppe convexe. Ceci permet de
+ * calculer les collisions entre les wrappers et les triangles en r�utilisant
+ * les fonctions de collision contre une enveloppe convexe.
+ * 
  * @author Briac
  *
  */
@@ -86,9 +87,9 @@ public class TriangleAsHull extends ConvexHullWrapper {
 		Vector3f[] vertices = new Vector3f[] { new Vector3f(), new Vector3f(), new Vector3f() };
 		Vector3f[] faceNormals = new Vector3f[] { new Vector3f(), new Vector3f() };
 		Vector3f[] faceCentroids = new Vector3f[] { new Vector3f(), new Vector3f() };
-		
+
 		ConvexHullWrapperData data = new ConvexHullWrapperData(faces, edges, vertices, faceNormals, faceCentroids);
-		
+
 		return data;
 	}
 
@@ -97,19 +98,20 @@ public class TriangleAsHull extends ConvexHullWrapper {
 	}
 
 	public void setFrom(Triangle triangle) {
-		super.getData().vertices[0] = triangle.v1;
-		super.getData().vertices[1] = triangle.v2;
-		super.getData().vertices[2] = triangle.v3;
+		ConvexHullWrapperData data = super.getData();
+		triangle.getV0(data.vertices[0]);
+		triangle.getV1(data.vertices[1]);
+		triangle.getV2(data.vertices[2]);
 
-		super.getData().faceNormals[0].set(triangle.normal);
-		Vector3f.negate(triangle.normal, super.getData().faceNormals[1]);
+		triangle.getNormal(data.faceNormals[0]);
+		Vector3f.negate(data.faceNormals[0], data.faceNormals[1]);
 
-		super.getData().planeOffsets[0] = Vector3f.dot(triangle.v1, triangle.normal);
-		super.getData().planeOffsets[1] = -super.getData().planeOffsets[0];
+		data.planeOffsets[0] = triangle.getPlaneOffset();
+		data.planeOffsets[1] = -data.planeOffsets[0];
 
-		this.getCentroid().set((1f / 3f) * (triangle.v1.x + triangle.v2.x + triangle.v3.x),
-				(1f / 3f) * (triangle.v1.y + triangle.v2.y + triangle.v3.y),
-				(1f / 3f) * (triangle.v1.z + triangle.v2.z + triangle.v3.z));
+		this.getCentroid().set((1f / 3f) * (triangle.getV0(0) + triangle.getV1(0) + triangle.getV2(0)),
+				(1f / 3f) * (triangle.getV0(1) + triangle.getV1(1) + triangle.getV2(1)),
+				(1f / 3f) * (triangle.getV0(2) + triangle.getV1(2) + triangle.getV2(2)));
 	}
 
 }

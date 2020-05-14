@@ -33,28 +33,50 @@ class CollideWrapperTriangle {
 	 */
 	private static class VectorRepr {
 
-		private Vector3f v;
+		private float x;
+		private float y;
+		private float z;
 
 		VectorRepr(Vector3f v) {
-			this.v = v;
+			set(v);
+		}
+
+		VectorRepr(float x, float y, float z) {
+			set(x, y, z);
 		}
 
 		void set(Vector3f v) {
-			if(v == null) {
+			if (v == null) {
 				throw new NullPointerException("Le vecteur est null.");
 			}
-			this.v = v;
+			this.x = v.x;
+			this.y = v.y;
+			this.z = v.z;
 		}
 
 		@Override
 		public boolean equals(Object o) {
-			return v.equals(v);
+			if (this == o) {
+				return true;
+			}
+			if (o instanceof VectorRepr) {
+				VectorRepr other = (VectorRepr) o;
+				if (x == other.x && y == other.y && z == other.z) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		@Override
 		public int hashCode() {
-			return 31 * (31 * Float.floatToRawIntBits(v.z) + Float.floatToRawIntBits(v.y))
-					+ Float.floatToRawIntBits(v.z);
+			return 31 * (31 * Float.floatToRawIntBits(z) + Float.floatToRawIntBits(y)) + Float.floatToRawIntBits(z);
+		}
+
+		public void set(float x, float y, float z) {
+			this.x = x;
+			this.y = y;
+			this.z = z;
 		}
 
 	}
@@ -74,7 +96,7 @@ class CollideWrapperTriangle {
 	 * Permet de transformer les triangles en enveloppe convexe.
 	 */
 	private final TriangleAsHull triangleHull = TriangleAsHull.buildNew();
-	
+
 	private final CollideSphereHull collideSphereHull = new CollideSphereHull();
 	private final CollideCapsuleHull collideCapsuleHull = new CollideCapsuleHull();
 	private final CollideHulls collideHulls = new CollideHulls();
@@ -84,29 +106,29 @@ class CollideWrapperTriangle {
 	 * 
 	 * @param wrapper
 	 * @param callbacks
-	 * @param meshContacts 
+	 * @param meshContacts
 	 */
 	public void test(Wrapper wrapper, CataclysmCallbacks callbacks, List<AbstractSingleBodyContact> meshContacts) {
-		
-		//System.out.println("Wrapper vs Triangle");
-		
+
+		// System.out.println("Wrapper vs Triangle");
+
 		voidedFeatures.clear();
 
 		updateContacts(wrapper);
-		
+
 		List<AbstractSingleBodyContact> contacts = wrapper.getMeshContacts();
 		contacts.sort(Comparator.comparingDouble((c) -> c.area.getPenetrationDepth()));
 
 		for (AbstractSingleBodyContact contact : contacts) {
-			if(!contact.area.isCollisionOccuring()) {
+			if (!contact.area.isCollisionOccuring()) {
 				contact.resetImpulses();
 				continue;
 			}
-			
+
 			boolean featureAlreadyProcessed = false;
 			ContactFeature feature = contact.area.getFeatureOnB();
 			switch (feature.getType()) {
-			//Updated from SAT
+			// Updated from SAT
 			case Face:
 				featureAlreadyProcessed = isFaceProcessed(contact.getTriangle());
 				break;
@@ -114,10 +136,10 @@ class CollideWrapperTriangle {
 				featureAlreadyProcessed = isHalfEdgeProcessed(feature.getHalfedge());
 				break;
 			case None:
-				//Attention, ce code est faux dans le cas g�n�ral :(
+				// Attention, ce code est faux dans le cas g�n�ral :(
 				featureAlreadyProcessed = isFaceProcessed(contact.getTriangle());
 				break;
-			//Updated from GJK
+			// Updated from GJK
 			case Triangle:
 				featureAlreadyProcessed = isTriangleProcessed(feature.getV1(), feature.getV2(), feature.getV3());
 				break;
@@ -132,22 +154,22 @@ class CollideWrapperTriangle {
 			}
 
 			if (featureAlreadyProcessed) {
-				//contact.area.setNoCollision();
+				// contact.area.setNoCollision();
 			}
-			
-			if(callbacks.getOnCollisionWithGround() != null) {
+
+			if (callbacks.getOnCollisionWithGround() != null) {
 				callbacks.getOnCollisionWithGround().accept(wrapper);
 			}
 
 			markTriangleAsProcessed(contact.getTriangle());
-			
+
 			meshContacts.add(contact);
 		}
 
 	}
 
 	/**
-	 * Met à  jour les contacts avec les triangles de ce wrapper.
+	 * Met à jour les contacts avec les triangles de ce wrapper.
 	 * 
 	 * @param wrapper
 	 */
@@ -155,30 +177,38 @@ class CollideWrapperTriangle {
 		final Consumer<ContactArea> collisionTest;
 		switch (wrapper.getType()) {
 		case Sphere:
-			collisionTest = (ContactArea contact) -> collideSphereHull.test((SphereWrapper)wrapper, triangleHull, contact);
+			collisionTest = (ContactArea contact) -> collideSphereHull.test((SphereWrapper) wrapper, triangleHull,
+					contact);
 			break;
 		case Capsule:
-			collisionTest = (ContactArea contact) -> collideCapsuleHull.test((CapsuleWrapper)wrapper, triangleHull, contact);
+			collisionTest = (ContactArea contact) -> collideCapsuleHull.test((CapsuleWrapper) wrapper, triangleHull,
+					contact);
 			break;
 		case ConvexHull:
-			collisionTest = (ContactArea contact) -> collideHulls.test((ConvexHullWrapper)wrapper, triangleHull, contact);
+			collisionTest = (ContactArea contact) -> collideHulls.test((ConvexHullWrapper) wrapper, triangleHull,
+					contact);
 			break;
 		default:
 			collisionTest = null;
 			break;
 		}
-		
-		for(AbstractSingleBodyContact contact : wrapper.getMeshContacts()) {
+
+		for (AbstractSingleBodyContact contact : wrapper.getMeshContacts()) {
 			triangleHull.setFrom(contact.getTriangle());
 			collisionTest.accept(contact.area);
 		}
+	}
+
+	private boolean isVertexProcessed(float x, float y, float z) {
+		vrepr.set(x, y, z);
+		return voidedFeatures.contains(vrepr);
 	}
 
 	private boolean isVertexProcessed(Vector3f v) {
 		vrepr.set(v);
 		return voidedFeatures.contains(vrepr);
 	}
-	
+
 	private boolean isSegmentProcessed(Vector3f v1, Vector3f v2) {
 		if (isVertexProcessed(v1)) {
 			return true;
@@ -196,17 +226,17 @@ class CollideWrapperTriangle {
 			return isVertexProcessed(v3);
 		}
 	}
-	
+
 	private boolean isFaceProcessed(Triangle triangle) {
-		if (isVertexProcessed(triangle.v1)) {
+		if (isVertexProcessed(triangle.getV0(0), triangle.getV0(1), triangle.getV0(2))) {
 			return true;
-		} else if (isVertexProcessed(triangle.v2)) {
+		} else if (isVertexProcessed(triangle.getV1(0), triangle.getV1(1), triangle.getV1(2))) {
 			return true;
 		} else {
-			return isVertexProcessed(triangle.v3);
+			return (isVertexProcessed(triangle.getV2(0), triangle.getV2(1), triangle.getV2(2)));
 		}
 	}
-	
+
 	private boolean isHalfEdgeProcessed(ConvexHullWrapperHalfEdge edge) {
 		if (isVertexProcessed(edge.getTail())) {
 			return true;
@@ -216,9 +246,9 @@ class CollideWrapperTriangle {
 	}
 
 	private void markTriangleAsProcessed(Triangle triangle) {
-		voidedFeatures.add(new VectorRepr(triangle.v1));
-		voidedFeatures.add(new VectorRepr(triangle.v2));
-		voidedFeatures.add(new VectorRepr(triangle.v3));
+		voidedFeatures.add(new VectorRepr(triangle.getV0(0), triangle.getV0(1), triangle.getV0(2)));
+		voidedFeatures.add(new VectorRepr(triangle.getV1(0), triangle.getV1(1), triangle.getV1(2)));
+		voidedFeatures.add(new VectorRepr(triangle.getV2(0), triangle.getV2(1), triangle.getV2(2)));
 	}
 
 }

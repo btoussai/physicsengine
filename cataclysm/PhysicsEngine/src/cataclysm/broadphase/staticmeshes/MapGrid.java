@@ -66,9 +66,9 @@ class MapGrid {
 				max.set(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
 				triangle.getMinMax(min, max);
 
-				Vector3f.sub(triangle.v2, triangle.v1, edges[0]);
-				Vector3f.sub(triangle.v3, triangle.v2, edges[1]);
-				Vector3f.sub(triangle.v1, triangle.v3, edges[2]);
+				triangle.getEdge0(edges[0]);
+				triangle.getEdge1(edges[1]);
+				triangle.getEdge2(edges[2]);
 				base.rootCell.insertTriangle(triangle, min, max, edges, axis);
 
 			}
@@ -97,9 +97,9 @@ class MapGrid {
 				max.set(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
 				triangle.getMinMax(min, max);
 
-				Vector3f.sub(triangle.v2, triangle.v1, edges[0]);
-				Vector3f.sub(triangle.v3, triangle.v2, edges[1]);
-				Vector3f.sub(triangle.v1, triangle.v3, edges[2]);
+				triangle.getEdge0(edges[0]);
+				triangle.getEdge1(edges[1]);
+				triangle.getEdge2(edges[2]);
 				base.rootCell.removeTriangle(triangle, min, max, edges, axis);
 
 			}

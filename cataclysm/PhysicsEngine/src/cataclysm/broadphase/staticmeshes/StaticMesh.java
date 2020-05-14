@@ -134,9 +134,9 @@ public class StaticMesh extends Identifier {
 		m.triangles.rewind();
 		for (Triangle t : triangles) {
 			TriangleRepr tRepr = m.triangles.getNext();
-			tRepr.v1.set(t.v1);
-			tRepr.v2.set(t.v2);
-			tRepr.v3.set(t.v3);
+			t.getV0(tRepr.v1);
+			t.getV1(tRepr.v2);
+			t.getV2(tRepr.v3);
 		}
 	}
 
@@ -145,9 +145,9 @@ public class StaticMesh extends Identifier {
 		vertices.clear();
 		int faceIndex = 0;
 		for (Triangle t : triangles) {
-			vertices.add(new Vector3f(t.v1));
-			vertices.add(new Vector3f(t.v2));
-			vertices.add(new Vector3f(t.v3));
+			vertices.add(t.getV0(new Vector3f()));
+			vertices.add(t.getV1(new Vector3f()));
+			vertices.add(t.getV2(new Vector3f()));
 
 			indices.add(3 * faceIndex + 0);
 			indices.add(3 * faceIndex + 1);
