@@ -92,8 +92,8 @@ public class AABB {
 	 */
 	public static void union(AABB left, AABB right, AABB dest) {
 		dest.minX = min(left.minX, right.minX);
-		dest.minY = min(left.minY, right.maxY);
-		dest.minZ = min(left.minZ, right.maxZ);
+		dest.minY = min(left.minY, right.minY);
+		dest.minZ = min(left.minZ, right.minZ);
 		dest.maxX = max(left.maxX, right.maxX);
 		dest.maxY = max(left.maxY, right.maxY);
 		dest.maxZ = max(left.maxZ, right.maxZ);
