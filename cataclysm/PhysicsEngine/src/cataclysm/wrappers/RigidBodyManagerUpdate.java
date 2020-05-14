@@ -88,7 +88,8 @@ public class RigidBodyManagerUpdate {
 	}
 
 	void updateBodies(RigidBodyManager bodies, StaticMeshManager meshes, CataclysmCallbacks callbacks,
-			PhysicsStats stats, List<AbstractSingleBodyContact> meshContacts, List<AbstractDoubleBodyContact> bodyContacts) {
+			PhysicsStats stats, List<AbstractSingleBodyContact> meshContacts,
+			List<AbstractDoubleBodyContact> bodyContacts) {
 		meshContacts.clear();
 		bodyContacts.clear();
 		stats.bodyToMeshContacts = 0;
@@ -98,15 +99,9 @@ public class RigidBodyManagerUpdate {
 			if (body.isSleeping())
 				continue;
 			ArrayList<Wrapper> wrappers = body.getWrappers();
-			if (wrappers.size() == 1) {
-				updateWrapper(body.getInvMass() == 0, wrappers.get(0), meshes, callbacks, stats, meshContacts,
-						bodyContacts);
-			} else {
-				for (int i = 0; i < wrappers.size(); i++) {
-					Wrapper wrapper = wrappers.get(i);
-					updateWrapper(body.getInvMass() == 0, wrapper, meshes, callbacks, stats, meshContacts,
-							bodyContacts);
-				}
+			for (int i = 0; i < wrappers.size(); i++) {
+				Wrapper wrapper = wrappers.get(i);
+				updateWrapper(body.getInvMass() == 0, wrapper, meshes, callbacks, stats, meshContacts, bodyContacts);
 			}
 		}
 
@@ -121,9 +116,9 @@ public class RigidBodyManagerUpdate {
 		AABB box = wrapper.getNode().getBox();
 		Vector3f centroid = wrapper.getCentroid();
 
-		float sx = 0.5f * (box.min.x + box.max.x) - centroid.x;
-		float sy = 0.5f * (box.min.y + box.max.y) - centroid.y;
-		float sz = 0.5f * (box.min.z + box.max.z) - centroid.z;
+		float sx = 0.5f * (box.minX + box.maxX) - centroid.x;
+		float sy = 0.5f * (box.minY + box.maxY) - centroid.y;
+		float sz = 0.5f * (box.minZ + box.maxZ) - centroid.z;
 
 		float d2 = sx * sx + sy * sy + sz * sz;
 
@@ -145,10 +140,11 @@ public class RigidBodyManagerUpdate {
 
 		for (int j = 0; j < contacts.size(); j++) {
 			AbstractDoubleBodyContact contact = contacts.get(j);
-			//boolean wrapperA_sleeping = contact.getWrapperA().getBody().isSleeping();
-			//boolean wrapperB_sleeping = contact.getWrapperB().getBody().isSleeping();
-			//boolean update = (wrapperA_sleeping || wrapperB_sleeping) || contact.getUpdateFlag();
-			
+			// boolean wrapperA_sleeping = contact.getWrapperA().getBody().isSleeping();
+			// boolean wrapperB_sleeping = contact.getWrapperB().getBody().isSleeping();
+			// boolean update = (wrapperA_sleeping || wrapperB_sleeping) ||
+			// contact.getUpdateFlag();
+
 			boolean update = contact.getUpdateFlag();
 			if (update) {
 				collisionTest.bodyContacts(contact, callbacks, bodyContacts);
@@ -166,8 +162,6 @@ public class RigidBodyManagerUpdate {
 		BroadPhaseNode<Wrapper> node = wrapper.getNode();
 		wrapper.placeBox(PADDING);
 
-		//bvh.remove(node);
-		//bvh.add(node);
 		bvh.update(node);
 		bvh.boxTest(node.getBox(), intersectedWrappers);
 		intersectedWrappers.remove(wrapper);
@@ -244,14 +238,14 @@ public class RigidBodyManagerUpdate {
 		ArrayList<AbstractDoubleBodyContact> pool = bodyContactPool[maxContacts];
 		AbstractDoubleBodyContact contact = null;
 		if (pool.isEmpty()) {
-			switch(Epsilons.solver) {
-			case ITERATIVE_ARRAY_BASED:
+			switch (Epsilons.contactType) {
+			case ARRAY_BASED:
 				contact = new DoubleBodyContactArrayBased(maxContacts, wrapperA, wrapperB);
 				break;
-			case ITERATIVE_BLOCK_SOLVER:
+			case BLOCK_SOLVER:
 				contact = new DoubleBodyContactBlockSolver(maxContacts, wrapperA, wrapperB);
 				break;
-			case ITERATIVE_SIMPLE:
+			case SIMPLE:
 				contact = new DoubleBodyContact(maxContacts, wrapperA, wrapperB);
 				break;
 			default:
@@ -271,14 +265,14 @@ public class RigidBodyManagerUpdate {
 		ArrayList<AbstractSingleBodyContact> pool = meshContactPool[maxContacts];
 		AbstractSingleBodyContact contact = null;
 		if (pool.isEmpty()) {
-			switch(Epsilons.solver) {
-			case ITERATIVE_ARRAY_BASED:
+			switch (Epsilons.contactType) {
+			case ARRAY_BASED:
 				contact = new SingleBodyContactArrayBased(maxContacts, wrapper, triangle);
 				break;
-			case ITERATIVE_BLOCK_SOLVER:
+			case BLOCK_SOLVER:
 				contact = new SingleBodyContactBlockSolver(maxContacts, wrapper, triangle);
 				break;
-			case ITERATIVE_SIMPLE:
+			case SIMPLE:
 				contact = new SingleBodyContact(maxContacts, wrapper, triangle);
 				break;
 			default:

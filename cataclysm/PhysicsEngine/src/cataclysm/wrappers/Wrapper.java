@@ -76,7 +76,7 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	 * staticmesh.
 	 */
 	protected final ArrayList<AbstractSingleBodyContact> meshContacts = new ArrayList<AbstractSingleBodyContact>(1);
-	
+
 	/**
 	 * La liste des contacts entre ce wrapper et d'autres wrappers à proximité.
 	 */
@@ -105,7 +105,7 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 		this.node = new BroadPhaseNode<Wrapper>(new AABB(), this);
 		this.massProperties = new MassProperties(massProperties);
 	}
-	
+
 	/**
 	 * Ce constructeur ne doit être utilisé que par {@link TriangleAsHull}
 	 */
@@ -122,8 +122,9 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	/**
 	 * Change la position du centre de masse de l'enveloppe (en wrapper-space). <br>
 	 * Cette fonction est appel�e par
-	 * {@link ConvexHullWrapper#computeInertia(Vector3f, Matrix3f, PolyhedralMassProperties)} car la position
-	 * du centre de masse de l'enveloppe n'est pas connue à l'avance.
+	 * {@link ConvexHullWrapper#computeInertia(Vector3f, Matrix3f, PolyhedralMassProperties)}
+	 * car la position du centre de masse de l'enveloppe n'est pas connue à
+	 * l'avance.
 	 * 
 	 * @param centroid le centre de masse de l'enveloppe en wrapper-space.
 	 */
@@ -133,13 +134,13 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 
 	/**
 	 * Cette méthode permet de recentrer l'{@link AABB} autour du {@link Wrapper}.
+	 * 
 	 * @param padding Une marge additionnelle autour de l'AABB.
 	 */
 	protected void placeBox(float padding) {
 		Vector3f centroid = this.getCentroid();
 		float halfSize = maxRadius + padding;
-		node.getBox().min.set(centroid.x - halfSize, centroid.y - halfSize, centroid.z - halfSize);
-		node.getBox().max.set(centroid.x + halfSize, centroid.y + halfSize, centroid.z + halfSize);
+		node.getBox().set(centroid, halfSize);
 	}
 
 	/**
@@ -180,11 +181,12 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	public ArrayList<AbstractSingleBodyContact> getMeshContacts() {
 		return meshContacts;
 	}
-	
+
 	/**
-	 * @return La liste des contacts entre ce wrapper et d'autres wrappers à proximité.
+	 * @return La liste des contacts entre ce wrapper et d'autres wrappers à
+	 *         proximité.
 	 */
-	public ArrayList<AbstractDoubleBodyContact> getBodyContacts(){
+	public ArrayList<AbstractDoubleBodyContact> getBodyContacts() {
 		return bodyContacts;
 	}
 
@@ -231,7 +233,7 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	 */
 	public void scale(float scaleFactor) {
 		this.massProperties.scale(scaleFactor);
-		float padding = 0.5f*(node.getBox().min.x + node.getBox().max.x) - this.maxRadius;
+		float padding = 0.5f * (node.getBox().minX + node.getBox().maxX) - this.maxRadius;
 		this.maxRadius *= scaleFactor;
 		placeBox(padding);
 	}
@@ -243,7 +245,7 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	 * 
 	 * @param centerOfMass un vecteur de destination pour le centre de masse.
 	 * @param inertia      une matrice de destination pour le tenseur d'inertie.
-	 * @param poly TODO
+	 * @param poly         TODO
 	 * @return la masse de l'enveloppe.
 	 */
 	abstract float computeInertia(Vector3f centerOfMass, Matrix3f inertia, PolyhedralMassProperties poly);
@@ -254,7 +256,7 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	public MassProperties getMassProperties() {
 		return massProperties;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("Wrapper " + getType() + " : \n");
@@ -262,10 +264,10 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 		sb.append("\nBodyContacts:" + bodyContacts.size());
 		return sb.toString();
 	}
-	
+
 	public Wrapper(RigidBody body, WrapperRepr w, long ID) {
 		super(ID);
-		
+
 		this.centroid = new TransformableVec3(w.centroid);
 		this.wrapperToBody = new Transform(w.wrapperToBody);
 		this.body = body;

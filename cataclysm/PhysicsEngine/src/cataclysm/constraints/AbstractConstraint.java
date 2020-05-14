@@ -35,11 +35,11 @@ public abstract class AbstractConstraint{
 
 		if (pointA.isStatic() && pointB.isStatic()) {
 			throw new IllegalArgumentException(
-					"Erreur, les deux points d'ancrage de la contrainte appartiennent au d�cor.");
+					"Erreur, les deux points d'ancrage de la contrainte appartiennent au décor.");
 		}
 		if (pointA.getBody() == pointB.getBody()) {
 			throw new IllegalArgumentException(
-					"Erreur, les deux points d'ancrage de la contrainte appartiennent au m�me corps rigide");
+					"Erreur, les deux points d'ancrage de la contrainte appartiennent au même corps rigide");
 		}
 
 		this.pointA.setConstraint(this);

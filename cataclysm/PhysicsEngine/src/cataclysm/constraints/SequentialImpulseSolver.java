@@ -14,7 +14,7 @@ import math.vector.Vector3f;
  * @author Briac
  *
  */
-public class SequentialImpulseSolver {
+public class SequentialImpulseSolver implements ConstraintSolver{
 
 	private final Vector3f temp = new Vector3f();
 
@@ -22,16 +22,7 @@ public class SequentialImpulseSolver {
 
 	}
 
-	/**
-	 * R�sout le syst�me des contraintes.
-	 * 
-	 * @param activeMeshContacts
-	 * @param activeBodyContacts
-	 * @param constraints
-	 * @param timeStep
-	 * @param MAX_ITERATIONS_VELOCITY
-	 * @param MAX_ITERATIONS_POSITION
-	 */
+	@Override
 	public void solve(List<AbstractSingleBodyContact> activeMeshContacts,
 			List<AbstractDoubleBodyContact> activeBodyContacts, List<AbstractConstraint> constraints, float timeStep,
 			int MAX_ITERATIONS_POSITION, int MAX_ITERATIONS_VELOCITY) {
@@ -41,13 +32,6 @@ public class SequentialImpulseSolver {
 			// System.out.println("Iteration " + i);
 			solveVelocity(activeMeshContacts, activeBodyContacts, constraints, timeStep, i);
 		}
-
-		/*
-		 * for (DoubleBodyContact contact : activeBodyContacts) {
-		 * System.out.println("Total impulse: " + contact.impulses_N[0] + " y = " + 0.5f
-		 * * (contact.getWrapperA().getCentroid().y +
-		 * contact.getWrapperB().getCentroid().y)); }
-		 */
 
 		for (int i = 0; i < MAX_ITERATIONS_POSITION; i++) {
 			solvePosition(activeMeshContacts, activeBodyContacts, constraints, timeStep, i == 0);

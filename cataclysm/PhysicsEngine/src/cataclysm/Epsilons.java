@@ -52,12 +52,18 @@ public class Epsilons {
 	 * Si true, les impulsions précédentes sont réutilisées comme valeur initiale
 	 * pour la résolution des contraintes.
 	 */
-	public static final boolean WARM_START = false;
+	public static boolean WARM_START = false;
 	
-	public static ContactSolver solver = ContactSolver.ITERATIVE_SIMPLE;
+	public static ContactSolver solver = ContactSolver.PARALLEL_IMPULSE;
+
+	public static ContactType contactType = ContactType.SIMPLE;
+	
+	public enum ContactType{
+		SIMPLE, ARRAY_BASED, BLOCK_SOLVER;
+	}
 	
 	public enum ContactSolver{
-		ITERATIVE_SIMPLE, ITERATIVE_ARRAY_BASED, ITERATIVE_BLOCK_SOLVER;
+		SEQUENTIAL_IMPULSE, PARALLEL_IMPULSE;
 	}
 
 	// ############### SUPER STATIC CONSTS BELOW, SHOULDN'T CHANGE ###############

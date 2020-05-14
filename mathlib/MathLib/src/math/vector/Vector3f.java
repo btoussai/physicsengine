@@ -319,6 +319,55 @@ public final class Vector3f implements Serializable {
 	}
 
 	/**
+	 * Computes {@code this.x *= scale}
+	 * 
+	 * @param scale
+	 * @return this
+	 */
+	public Vector3f scaleX(float scale) {
+		this.x *= scale;
+		return this;
+	}
+
+	/**
+	 * Computes {@code this.y *= scale}
+	 * 
+	 * @param scale
+	 * @return this
+	 */
+	public Vector3f scaleY(float scale) {
+		this.y *= scale;
+		return this;
+	}
+
+	/**
+	 * Computes {@code this.z *= scale}
+	 * 
+	 * @param scale
+	 * @return this
+	 */
+	public Vector3f scaleZ(float scale) {
+		this.z *= scale;
+		return this;
+	}
+
+	/**
+	 * Equivalent to {@code this.scaleX(sx).scaleY(sy).scaleZ(sz) }
+	 * 
+	 * @param sx
+	 * @param sy
+	 * @param sz
+	 * 
+	 * @return this
+	 */
+	public Vector3f scaleXYZ(float sx, float sy, float sz) {
+		scaleX(sx);
+		scaleY(sy);
+		scaleZ(sz);
+		return this;
+	}
+
+	/**
 	 * Computes {@code src * scale} and puts the result in a new vector
 	 * 
 	 * @param src

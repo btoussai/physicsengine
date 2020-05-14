@@ -174,25 +174,23 @@ public class PhysicsWorld {
 	}
 
 	/**
-	 * Ajoute un objet dans la simulation � la position sp�cifi�e. <br>
-	 * Pour modifier �galement la rotation initiale de l'objet, il faut utiliser
-	 * {@link #newBody(Matrix4f, WrapperBuilder...)}.
+	 * Builds a new rigid body in the simulation.
 	 * 
-	 * 
-	 * @param position La position de l'objet.
-	 * @param builders Les enveloppes de cet objet.
-	 * @return L'objet nouvellement cr��.
+	 * @param position The position of the object.
+	 * @param builders The wrapper of the new body.
+	 * @return the newly built body
 	 */
 	public RigidBody newBody(Vector3f position, WrapperBuilder... builders) {
 		return bodies.newBody(MatrixOps.createTransformationMatrix(position, 0, 0, 0, 1, null), builders);
 	}
 
 	/**
-	 * Ajoute un objet dans la simulation.
+	 * Builds a new rigid body in the simulation.
 	 * 
-	 * @param transform La position et la rotation de l'objet.
-	 * @param builders  Les enveloppes de cet objet.
-	 * @return L'objet nouvellement créé.
+	 * @param transform Position and rotation of the object. Must not contain a
+	 *                  scaling factor.
+	 * @param builders  The wrappers of the new body.
+	 * @return the newly built body
 	 */
 	public RigidBody newBody(Matrix4f transform, WrapperBuilder... builders) {
 		return bodies.newBody(transform, builders);
@@ -321,11 +319,11 @@ public class PhysicsWorld {
 		meshes.cleanUp();
 		constraints.clear();
 	}
-	
+
 	public RigidBodyManager getBodyManager() {
 		return bodies;
 	}
-	
+
 	/**
 	 * @return Un it�rable sur les corps rigide de la simulation. Il ne faut en
 	 *         aucun cas s'en servir pour ajouter ou supprimer un rigidbody dans la
@@ -334,7 +332,7 @@ public class PhysicsWorld {
 	public Iterable<RigidBody> getBodies() {
 		return bodies;
 	}
-	
+
 	public StaticMeshManager getMeshManager() {
 		return meshes;
 	}

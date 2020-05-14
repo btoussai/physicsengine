@@ -1,6 +1,5 @@
 package cataclysm.broadphase;
 
-import math.VectorOps;
 import math.vector.Vector3f;
 
 /**
@@ -11,8 +10,12 @@ import math.vector.Vector3f;
  */
 public class AABB {
 
-	public final Vector3f min = new Vector3f();
-	public final Vector3f max = new Vector3f();
+	public float minX;
+	public float minY;
+	public float minZ;
+	public float maxX;
+	public float maxY;
+	public float maxZ;
 	private float surfaceArea = 0;
 
 	/**
@@ -30,8 +33,16 @@ public class AABB {
 	 * @param radius
 	 */
 	public AABB(Vector3f center, float radius) {
-		this.min.set(center.x - radius, center.y - radius, center.z - radius);
-		this.max.set(center.x + radius, center.y + radius, center.z + radius);
+		set(center, radius);
+	}
+	
+	public void set(Vector3f center, float radius) {
+		minX = center.x - radius;
+		minY = center.y - radius;
+		minZ = center.z - radius;
+		maxX = center.x + radius;
+		maxY = center.y + radius;
+		maxZ = center.z + radius;
 	}
 
 	/**
@@ -42,9 +53,9 @@ public class AABB {
 	 * @return true si other est à l'intérieur de cette AABB.
 	 */
 	public boolean contains(AABB other) {
-		if (min.x <= other.min.x && max.x >= other.max.x) {
-			if (min.z <= other.min.z && max.z >= other.max.z) {
-				if (min.y <= other.min.y && max.y >= other.max.y) {
+		if (minX <= other.minX && maxX >= other.maxX) {
+			if (minZ <= other.minZ && maxZ >= other.maxZ) {
+				if (minY <= other.minY && maxY >= other.maxY) {
 					return true;
 				}
 			}
@@ -65,7 +76,13 @@ public class AABB {
 		union(left, right, dest);
 		return dest;
 	}
-
+	
+	private static float min(float a, float b) {
+		return a < b ? a : b;
+	}
+	private static float max(float a, float b) {
+		return a > b ? a : b;
+	}
 	/**
 	 * Calcule l'union de deux AABB et place le r�sultat dans dest.
 	 * 
@@ -74,15 +91,19 @@ public class AABB {
 	 * @param dest
 	 */
 	public static void union(AABB left, AABB right, AABB dest) {
-		VectorOps.min(left.min, right.min, dest.min);
-		VectorOps.max(left.max, right.max, dest.max);
+		dest.minX = min(left.minX, right.minX);
+		dest.minY = min(left.minY, right.maxY);
+		dest.minZ = min(left.minZ, right.maxZ);
+		dest.maxX = max(left.maxX, right.maxX);
+		dest.maxY = max(left.maxY, right.maxY);
+		dest.maxZ = max(left.maxZ, right.maxZ);
 		dest.computeSurfaceArea();
 	}
 
 	public static boolean intersect(AABB left, AABB right) {
-		if (left.max.x > right.min.x && left.min.x < right.max.x) {
-			if (left.max.z > right.min.z && left.min.z < right.max.z) {
-				if (left.max.y > right.min.y && left.min.y < right.max.y) {
+		if (left.maxX > right.minX && left.minX < right.maxX) {
+			if (left.maxZ > right.minZ && left.minZ < right.maxZ) {
+				if (left.maxY > right.minY && left.minY < right.maxY) {
 					return true;
 				}
 			}
@@ -95,16 +116,16 @@ public class AABB {
 	}
 
 	public float computeSurfaceArea() {
-		float dx = max.x - min.x;
-		float dy = max.y - min.y;
-		float dz = max.z - min.z;
+		float dx = maxX - minX;
+		float dy = maxY - minY;
+		float dz = maxZ - minZ;
 		surfaceArea = 2.0f * (dx * dy + dy * dz + dz * dx);
 		return surfaceArea;
 	}
 
 	@Override
 	public String toString() {
-		return "AABB[ " + min + " | " + max + "]";
+		return "AABB[ (" + minX + ", " + minY + ", " + minZ + ") | (" + maxX + ", " + maxY + ", " + maxZ + ") ]";
 	}
 
 }

@@ -205,13 +205,13 @@ class MapGrid {
 	
 	private void getCoordRange(AABB box) {
 
-		int minX = toGridCoord(box.min.x);
-		int minY = toGridCoord(box.min.y);
-		int minZ = toGridCoord(box.min.z);
+		int minX = toGridCoord(box.minX);
+		int minY = toGridCoord(box.minY);
+		int minZ = toGridCoord(box.minZ);
 
-		int maxX = toGridCoord(box.max.x);
-		int maxY = toGridCoord(box.max.y);
-		int maxZ = toGridCoord(box.max.z);
+		int maxX = toGridCoord(box.maxX);
+		int maxY = toGridCoord(box.maxY);
+		int maxZ = toGridCoord(box.maxZ);
 
 		start.set(minX, minY, minZ);
 		end.set(maxX, maxY, maxZ);

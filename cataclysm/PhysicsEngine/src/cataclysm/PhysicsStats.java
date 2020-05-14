@@ -103,9 +103,14 @@ public class PhysicsStats {
 			return history[history.length - 1];
 		}
 
-		public String asPercentage(double totalNanoSec) {
-			return name + ": " + String.format("%4.2f", average / totalNanoSec * 100.0) + "%" + " +/-"
-					+ String.format("%4.1f", 100.0 * std / totalNanoSec) + "%";
+		public String display(double totalNanoSec, boolean percentage) {
+			if (percentage) {
+				return name + ": " + String.format("%4.2f", average / totalNanoSec * 100.0) + "%" + " +/-"
+						+ String.format("%4.1f", 100.0 * std / totalNanoSec) + "%";
+			} else {
+				return name + ": " + String.format("%4.2f", unit.toUnit(average)) + unit.getUnitRepr() + " +/-"
+						+ String.format("%4.1f", unit.toUnit(std)) + unit.getUnitRepr();
+			}
 		}
 
 		@Override
@@ -153,14 +158,16 @@ public class PhysicsStats {
 
 	@Override
 	public String toString() {
+		boolean percentage = false;
+		
 		StringBuilder sb = new StringBuilder("\nPhysicsWorld " + globalUpdate + " [\n");
 		if (physicsRecorder.getDeltaNanos() != 0)
-			sb.append("\t" + physicsRecorder.asPercentage(globalUpdate.average) + "\n");
+			sb.append("\t" + physicsRecorder.display(globalUpdate.average, percentage) + "\n");
 		if (physicsPlayers.getDeltaNanos() != 0)
-			sb.append("\t" + physicsPlayers.asPercentage(globalUpdate.average) + "\n");
-		sb.append("\tTotal " + broadAndNarrowphase.asPercentage(globalUpdate.average) + "\n");
-		sb.append("\t" + constraintSolver.asPercentage(globalUpdate.average) + "\n");
-		sb.append("\t" + velocityIntegration.asPercentage(globalUpdate.average) + "\n");
+			sb.append("\t" + physicsPlayers.display(globalUpdate.average, percentage) + "\n");
+		sb.append("\tTotal " + broadAndNarrowphase.display(globalUpdate.average, percentage) + "\n");
+		sb.append("\t" + constraintSolver.display(globalUpdate.average, percentage) + "\n");
+		sb.append("\t" + velocityIntegration.display(globalUpdate.average, percentage) + "\n");
 		sb.append("\tTotal frames simulated: " + frame_count);
 		sb.append(
 				"\n\tRigidBodies: " + rigidBodies + " StaticMeshes: " + staticMeshes + " Constraints: " + constraints);

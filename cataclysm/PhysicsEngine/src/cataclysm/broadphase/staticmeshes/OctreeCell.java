@@ -250,7 +250,7 @@ public class OctreeCell {
 	}
 
 	/**
-	 * Calcule un code binaire permettant de d�terminer les noeuds fils que l'AABB intersecte.
+	 * Calcule un code binaire permettant de déterminer les noeuds fils que l'AABB intersecte.
 	 * 
 	 * @param min
 	 * @param max
@@ -259,21 +259,21 @@ public class OctreeCell {
 	private int getPosition(AABB box) {
 		int position = 0b11111111;
 
-		if (box.max.x < center.x) {
+		if (box.maxX < center.x) {
 			position &= 0b01010101;
-		} else if (box.min.x > center.x) {
+		} else if (box.minX > center.x) {
 			position &= 0b10101010;
 		}
 
-		if (box.max.y < center.y) {
+		if (box.maxY < center.y) {
 			position &= 0b00110011;
-		} else if (box.min.y > center.y) {
+		} else if (box.minY > center.y) {
 			position &= 0b11001100;
 		}
 
-		if (box.max.z < center.z) {
+		if (box.maxZ < center.z) {
 			position &= 0b00001111;
-		} else if (box.min.z > center.z) {
+		} else if (box.minZ > center.z) {
 			position &= 0b11110000;
 		}
 

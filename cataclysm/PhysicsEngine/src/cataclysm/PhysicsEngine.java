@@ -4,6 +4,8 @@ import java.util.List;
 
 import cataclysm.broadphase.staticmeshes.StaticMeshManager;
 import cataclysm.constraints.AbstractConstraint;
+import cataclysm.constraints.ConstraintSolver;
+import cataclysm.constraints.ParallelImpulseSolver;
 import cataclysm.constraints.SequentialImpulseSolver;
 import cataclysm.integrators.ExternalForceIntegrator;
 import cataclysm.integrators.GyroscopicIntegrator;
@@ -38,7 +40,7 @@ final class PhysicsEngine {
 	/**
 	 * Résout le système de contraintes entre les objets.
 	 */
-	private final SequentialImpulseSolver solver = new SequentialImpulseSolver();
+	private final ConstraintSolver solver;
 
 	/**
 	 * Permet d'intégrer le terme gyroscopique dans l'équation différentielle sur la
@@ -51,7 +53,7 @@ final class PhysicsEngine {
 	private final Vector3f axis = new Vector3f();
 
 	/**
-	 * Instancie un moteur physique. Il s'occupe de la mise � jour des objets.
+	 * Instancie un moteur physique. Il s'occupe de la mise à jour des objets.
 	 * 
 	 * @param params
 	 */
@@ -59,6 +61,17 @@ final class PhysicsEngine {
 		this.world = world;
 		this.params = world.getParameters();
 		this.forceInegrator = params.getForceIntegrator();
+		
+		switch(Epsilons.solver) {
+		case PARALLEL_IMPULSE:
+			this.solver  = new ParallelImpulseSolver(4);
+			break;
+		case SEQUENTIAL_IMPULSE:
+			this.solver  = new SequentialImpulseSolver();
+			break;
+		default:
+			throw new IllegalArgumentException("Error, invalid enum value: " + Epsilons.solver);
+		}
 	}
 
 	/**
