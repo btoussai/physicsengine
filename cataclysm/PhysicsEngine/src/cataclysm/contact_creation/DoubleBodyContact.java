@@ -85,7 +85,8 @@ public class DoubleBodyContact extends AbstractDoubleBodyContact {
 	public void velocityStart() {
 		super.mixContactProperties(wrapperA.getBody().getContactProperties(),
 				wrapperB.getBody().getContactProperties());
-		Vector3f.negate(area.getNormal(), N);
+		area.getNormal(N);
+		N.negate();
 		MatrixOps.computeOrthogonalComplement(N, T, B);
 
 		for (int i = 0; i < super.area.getContactCount(); i++) {
@@ -174,7 +175,7 @@ public class DoubleBodyContact extends AbstractDoubleBodyContact {
 		for (int i = 0; i < super.area.getContactCount(); i++) {
 			pseudo_impulses[i] = 0;
 			pseudo_bias[i] = (Epsilons.PENETRATION_RECOVERY / timeStep)
-					* Math.min(0, (area.penetrations[i] + Epsilons.ALLOWED_PENETRATION));
+					* Math.min(0, (area.getPenetrationDepth(i) + Epsilons.ALLOWED_PENETRATION));
 		}
 	}
 
@@ -201,9 +202,8 @@ public class DoubleBodyContact extends AbstractDoubleBodyContact {
 		Vector3f Ra = this.Ra[i];
 		Vector3f Rb = this.Rb[i];
 
-		Vector3f[] contacts = area.getContactPoints();
-		Vector3f.sub(contacts[i], bodyA.getPosition(), Ra);
-		Vector3f.sub(contacts[i], bodyB.getPosition(), Rb);
+		area.toContactPoint(i, bodyA.getPosition(), Ra);
+		area.toContactPoint(i, bodyB.getPosition(), Rb);
 
 		Vector3f.cross(Ra, N, RaxN[i]);
 		Vector3f.cross(Rb, N, RbxN[i]);

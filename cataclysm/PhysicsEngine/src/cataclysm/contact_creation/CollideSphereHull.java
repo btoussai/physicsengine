@@ -1,12 +1,13 @@
 package cataclysm.contact_creation;
 
 import cataclysm.wrappers.ConvexHullWrapper;
-import cataclysm.wrappers.ConvexHullWrapperFace;
 import cataclysm.wrappers.SphereWrapper;
 import math.vector.Vector3f;
 
 /**
- * Permet de tester la collision entre une sphere et une enveloppe convexe ou un triangle.
+ * Permet de tester la collision entre une sphere et une enveloppe convexe ou un
+ * triangle.
+ * 
  * @author Briac
  *
  */
@@ -14,18 +15,18 @@ class CollideSphereHull {
 
 	private final Vector3f closest = new Vector3f();
 	private final Vector3f normal = new Vector3f();
-	
+
 	private final ContactFeature onA = new ContactFeature();
 	private final ContactFeature onB = new ContactFeature();
-	
+
 	private final GJK gjk = new GJK();
 
-	void test(SphereWrapper sphere, ConvexHullWrapper hull, ContactArea contact) {
+	void test(SphereWrapper sphere, ConvexHullWrapper hull, ContactZone contact) {
 
 		float distance = gjk.distance(sphere, hull, null, closest);
-		
-		//System.out.println("Distance:" + distance);
-		//System.out.println("closest:" + closest);
+
+		// System.out.println("Distance:" + distance);
+		// System.out.println("closest:" + closest);
 
 		if (distance < sphere.getRadius()) {
 
@@ -33,41 +34,39 @@ class CollideSphereHull {
 
 				Vector3f.sub(closest, sphere.getCentroid(), normal);
 				normal.scale(1.0f / distance);
-				
+
 				gjk.getClosestFeatureOnB(onB);
 
 			} else {
 
 				distance = Float.NEGATIVE_INFINITY;
-				ConvexHullWrapperFace referenceFace = null;
-				for (ConvexHullWrapperFace face : hull.getFaces()) {
-					float d = face.signedDistance(sphere.getCentroid());
+				int referenceFace = 0;
+				for (int face = 0; face < hull.faceCount; face++) {
+					float d = hull.signedDistance(sphere.getCentroid(), face);
 					if (d > distance) {
 						distance = d;
 						referenceFace = face;
 					}
 				}
 
-				normal.set(referenceFace.getNormal());
+				hull.getNormal(referenceFace, normal);
 				normal.negate();
-				onB.setFrom(referenceFace);
+				onB.setFromHullFace(referenceFace);
 			}
 
 			float depth = distance - sphere.getRadius();
 
 			float toContactPoint = distance - 0.5f * depth;
-			
-			Vector3f contactPoint = contact.contactPoints[0];
-			contactPoint.set(sphere.getCentroid());
-			contactPoint.x += normal.x * toContactPoint;
-			contactPoint.y += normal.y * toContactPoint;
-			contactPoint.z += normal.z * toContactPoint;
-			
+
+			float x = sphere.getCentroid().x + normal.x * toContactPoint;
+			float y = sphere.getCentroid().y + normal.y * toContactPoint;
+			float z = sphere.getCentroid().z + normal.z * toContactPoint;
+
 			onA.setFrom(sphere.getCentroid());
-			
-			contact.penetrations[0] = depth;
+
+			contact.setContactPointAndPenetrationDepth(0, x, y, z, depth);
 			contact.rebuild(normal, depth, 1, onA, onB);
-		}else {
+		} else {
 			contact.setNoCollision();
 		}
 

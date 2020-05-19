@@ -20,7 +20,7 @@ class CollideSphereCapsule {
 	private final ContactFeature onA = new ContactFeature();
 	private final ContactFeature onB = new ContactFeature();
 
-	void test(SphereWrapper sphere, CapsuleWrapper capsule, ContactArea contact) {
+	void test(SphereWrapper sphere, CapsuleWrapper capsule, ContactZone contact) {
 
 		Vector3f.sub(capsule.getCenter2(), capsule.getCenter1(), axis);
 		Vector3f.sub(sphere.getCentroid(), capsule.getCenter1(), toSphere);
@@ -48,16 +48,14 @@ class CollideSphereCapsule {
 
 			float toMiddlePoint = sphere.getRadius() + 0.5f * depth;
 
-			Vector3f collisionPoint = contact.contactPoints[0];
-			collisionPoint.set(sphere.getCentroid());
-			collisionPoint.x += normal.x * toMiddlePoint;
-			collisionPoint.y += normal.y * toMiddlePoint;
-			collisionPoint.z += normal.z * toMiddlePoint;
+			float x = sphere.getCentroid().x + normal.x * toMiddlePoint;
+			float y = sphere.getCentroid().y + normal.y * toMiddlePoint;
+			float z = sphere.getCentroid().z + normal.z * toMiddlePoint;
 			
 			onA.setFrom(sphere.getCentroid());
 			onB.setFrom(capsule.getCenter1(), capsule.getCenter2());
-			
-			contact.penetrations[0] = depth;
+
+			contact.setContactPointAndPenetrationDepth(0, x, y, z, depth);
 			contact.rebuild(normal, depth, 1, onA, onB);
 		}else {
 			contact.setNoCollision();

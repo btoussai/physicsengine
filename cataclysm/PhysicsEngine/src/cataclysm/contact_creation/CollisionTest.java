@@ -57,7 +57,7 @@ public class CollisionTest {
 	public void bodyContacts(AbstractDoubleBodyContact contact, CataclysmCallbacks callbacks,
 			List<AbstractDoubleBodyContact> bodyContacts) {
 
-		ContactArea area = contact.area;
+		ContactZone area = contact.area;
 		convexContact(contact.getWrapperA(), contact.getWrapperB(), area);
 
 		if (Epsilons.WARM_START && area.hasChanged()) {
@@ -81,7 +81,7 @@ public class CollisionTest {
 	 * @param A Le premier solide.
 	 * @param B Le second solide.
 	 */
-	private void convexContact(Wrapper A, Wrapper B, ContactArea contact) {
+	private void convexContact(Wrapper A, Wrapper B, ContactZone contact) {
 
 		// System.out.println("Wrapper vs Wrapper");
 

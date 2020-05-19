@@ -45,7 +45,8 @@ public class DoubleBodyContactArrayBased extends AbstractDoubleBodyContact {
 	public void velocityStart() {
 		super.mixContactProperties(wrapperA.getBody().getContactProperties(),
 				wrapperB.getBody().getContactProperties());
-		Vector3f.negate(area.getNormal(), N);
+		area.getNormal(N);
+		N.negate();
 		MatrixOps.computeOrthogonalComplement(N, T, B);
 
 		for (int i = 0; i < super.area.getContactCount(); i++) {
@@ -60,7 +61,7 @@ public class DoubleBodyContactArrayBased extends AbstractDoubleBodyContact {
 			}
 		}
 	}
-	
+
 	@Override
 	public void resetImpulses() {
 		for (int i = 0; i < super.getMaxContacts(); i++) {
@@ -69,7 +70,7 @@ public class DoubleBodyContactArrayBased extends AbstractDoubleBodyContact {
 			setFloat(FloatData.impulses_B, 0, i);
 		}
 	}
-	
+
 	@Override
 	public void warmStart() {
 		for (int i = 0; i < super.getMaxContacts(); i++) {
@@ -92,7 +93,7 @@ public class DoubleBodyContactArrayBased extends AbstractDoubleBodyContact {
 			// the velocity may have changed due to other constraints, we need to recompute
 			// it.
 			computeVelocityError(i);
-			
+
 			// Normal impulse
 			float prev_impulse_N = getFloat(FloatData.impulses_N, i);
 			float impulse_N = prev_impulse_N - (getFloat(FloatData.deltaV_N, i) + getFloat(FloatData.bias, i))
@@ -128,7 +129,7 @@ public class DoubleBodyContactArrayBased extends AbstractDoubleBodyContact {
 		for (int i = 0; i < super.area.getContactCount(); i++) {
 			setFloat(FloatData.pseudo_impulses, 0, i);
 			float pseudo_bias = (Epsilons.PENETRATION_RECOVERY / timeStep)
-					* Math.min(0, (area.penetrations[i] + Epsilons.ALLOWED_PENETRATION));
+					* Math.min(0, (area.getPenetrationDepth(i) + Epsilons.ALLOWED_PENETRATION));
 			setFloat(FloatData.pseudo_bias, pseudo_bias, i);
 		}
 	}
@@ -153,9 +154,12 @@ public class DoubleBodyContactArrayBased extends AbstractDoubleBodyContact {
 		RigidBody bodyA = wrapperA.getBody();
 		RigidBody bodyB = wrapperB.getBody();
 
-		Vector3f[] contacts = area.getContactPoints();
-		sub(contacts[i], bodyA.getPosition(), VecData.Ra, i);
-		sub(contacts[i], bodyB.getPosition(), VecData.Rb, i);
+		float x = area.getContactPointX(i);
+		float y = area.getContactPointY(i);
+		float z = area.getContactPointZ(i);
+
+		sub(x, y, z, bodyA.getPosition(), VecData.Ra, i);
+		sub(x, y, z, bodyB.getPosition(), VecData.Rb, i);
 
 		cross(VecData.Ra, N, VecData.RaxN, i);
 		cross(VecData.Rb, N, VecData.RbxN, i);
@@ -310,12 +314,12 @@ public class DoubleBodyContactArrayBased extends AbstractDoubleBodyContact {
 
 	}
 
-	private final void sub(Vector3f left, Vector3f right, VecData dest, int i) {
+	private final void sub(float x, float y, float z, Vector3f right, VecData dest, int i) {
 		int iDest = getVecDataIndex(dest, i);
 
-		this.vecData[3 * iDest] = left.x - right.x;
-		this.vecData[3 * iDest + 1] = left.y - right.y;
-		this.vecData[3 * iDest + 2] = left.z - right.z;
+		this.vecData[3 * iDest] = x - right.x;
+		this.vecData[3 * iDest + 1] = y - right.y;
+		this.vecData[3 * iDest + 2] = z - right.z;
 	}
 
 	private final void cross(VecData left, Vector3f right, VecData dest, int i) {

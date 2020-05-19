@@ -11,7 +11,7 @@ class CollideHulls {
 	
 	private final SAT sat = new SAT();
 
-	void test(ConvexHullWrapper A, ConvexHullWrapper B, ContactArea contact) {
+	void test(ConvexHullWrapper A, ConvexHullWrapper B, ContactZone contact) {
 		sat.overlapTest(A, B, contact);
 	}
 

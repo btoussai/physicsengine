@@ -1,14 +1,13 @@
 package cataclysm.quickHull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import cataclysm.wrappers.ConvexHullWrapperData;
-import cataclysm.wrappers.ConvexHullWrapperFace;
-import cataclysm.wrappers.ConvexHullWrapperHalfEdge;
 import math.vector.Vector3f;
 
 /**
@@ -81,7 +80,7 @@ public class ConvexHull {
 	 * 
 	 * @param point
 	 * @param faces
-	 * @param epsilon 
+	 * @param epsilon
 	 */
 	public void assignToConflictList(Vector3f point, List<Face> faces, float epsilon) {
 
@@ -226,87 +225,129 @@ public class ConvexHull {
 		}
 	}
 
+	private static final int E_TAIL = 0;
+	private static final int E_NEXT = 1;
+	private static final int E_TWIN = 2;
+	private static final int E_FACE = 3;
+	private static final int E_SIZE = 4;
+
+	private static final int F_SIZE = 1;
+
 	public ConvexHullWrapperData convertToWrapperData() {
 
-		Map<HalfEdge, ConvexHullWrapperHalfEdge> map = new HashMap<HalfEdge, ConvexHullWrapperHalfEdge>();
+		int faceCount = faces.size();
+		int vertexCount = 0;
+		int edgeCount = 0;
 
-		List<ConvexHullWrapperFace> wFaces = new ArrayList<ConvexHullWrapperFace>();
+		short[] intData;
+		float[] floatData;
 
-		List<Vector3f> wVertices = new ArrayList<Vector3f>();
-		List<Vector3f> wNormals = new ArrayList<Vector3f>();
-		List<Vector3f> wCentroids = new ArrayList<Vector3f>();
+		// Map each edge to its index in the array
+		Map<HalfEdge, Short> edges = new HashMap<HalfEdge, Short>();
+		for (Face f : faces) {
+			HalfEdge e0 = f.getEdge();
+			HalfEdge e = e0;
+			do {
+				if (!edges.containsKey(e)) {// twin and edge are new
+					short edgePtr = (short) edgeCount;
+					short twinPtr = (short) (edgePtr + 1);
+					edgeCount += 2;
+					edges.put(e.getTwin(), twinPtr);
+					edges.put(e, edgePtr);
+				}
 
-		// Build faces and edges
-		for (Face face : this.faces) {
-			face.convertToWrapperFace(map, wFaces, wNormals, wCentroids);
-		}
-
-		// Make twins and give indices.
-		ConvexHullWrapperHalfEdge[] wEdges = new ConvexHullWrapperHalfEdge[map.size()];
-		int i = 0;
-		for (Entry<HalfEdge, ConvexHullWrapperHalfEdge> entry : map.entrySet()) {
-			HalfEdge edge = entry.getKey();
-			ConvexHullWrapperHalfEdge copyEdge = entry.getValue();
-
-			if (copyEdge.getTwinIndex() == -1) {
-				wEdges[i] = copyEdge;
-				copyEdge.setIndex(i);
-				wFaces.get(copyEdge.getFaceIndex()).setEdge0(i);
-
-				ConvexHullWrapperHalfEdge copyTwin = map.get(edge.getTwin());
-				wEdges[i + 1] = copyTwin;
-				copyTwin.setIndex(i + 1);
-				wFaces.get(copyTwin.getFaceIndex()).setEdge0(i + 1);
-
-				copyEdge.setTwin(i + 1);
-				copyTwin.setTwin(i);
-
-				i += 2;
-			}
+				e = e.getNext();
+			} while (e != e0);
 
 		}
 
-		// Resolve prev/next adjacency.
-		for (Entry<HalfEdge, ConvexHullWrapperHalfEdge> entry : map.entrySet()) {
-			HalfEdge edge = entry.getKey();
-			ConvexHullWrapperHalfEdge copyEdge = entry.getValue();
+		intData = new short[F_SIZE * faceCount + E_SIZE * edgeCount];
+		Arrays.fill(intData, (short) -1);
 
-			copyEdge.setNext(map.get(edge.getNext()).getIndex());
-			copyEdge.setPrev(map.get(edge.getPrev()).getIndex());
-		}
+		List<Vector3f> vertices = new ArrayList<Vector3f>();
 
 		// Build vertices
-		for (Entry<HalfEdge, ConvexHullWrapperHalfEdge> entry : map.entrySet()) {
+		for (Entry<HalfEdge, Short> entry : edges.entrySet()) {
 			HalfEdge edge = entry.getKey();
-			ConvexHullWrapperHalfEdge copyEdge = entry.getValue();
+			int edgePtr = entry.getValue();
 
-			int tailIndex = -1;
-			ConvexHullWrapperHalfEdge it = copyEdge;
+			short tailIndex = -1;
+			HalfEdge it = edge;
+			int itPtr = edgePtr;
 			do {
-				if ((tailIndex = it.getTailIndex()) != -1) {
+				if ((tailIndex = intData[F_SIZE * faceCount + E_SIZE * itPtr + E_TAIL]) != -1) {
 					break;
 				}
 
-				it = wEdges[wEdges[it.getTwinIndex()].getNextIndex()];
-			} while (it != copyEdge);
+				it = it.getTwin().getNext();
+				itPtr = edges.get(it);
+			} while (it != edge);
 
 			if (tailIndex == -1) {
-				tailIndex = wVertices.size();
+				tailIndex = (short) vertices.size();
 				Vector3f tail = new Vector3f(edge.getTail().getPosition());
-				wVertices.add(tail);
+				vertices.add(tail);
 			}
 
-			it = copyEdge;
+			it = edge;
+			itPtr = edgePtr;
 			do {
-				it.setTail(tailIndex);
-				it = wEdges[wEdges[it.getTwinIndex()].getNextIndex()];
-			} while (it != copyEdge);
+				intData[F_SIZE * faceCount + E_SIZE * itPtr + E_TAIL] = tailIndex;
+				it = it.getTwin().getNext();
+				itPtr = edges.get(it);
+			} while (it != edge);
 
 		}
 
-		return new ConvexHullWrapperData(wFaces.toArray(new ConvexHullWrapperFace[0]), wEdges,
-				wVertices.toArray(new Vector3f[0]), wNormals.toArray(new Vector3f[] {}),
-				wCentroids.toArray(new Vector3f[] {}));
+		// Vertices, FaceNormals, FaceCentroids, PlaneOffsets, BackupVertices,
+		// BackupFaceNormals, BackupFaceCentroids;
+		vertexCount = vertices.size();
+		floatData = new float[3 * vertexCount + 3 * faceCount + 3 * faceCount + faceCount + 3 * vertexCount
+				+ 3 * faceCount + 3 * faceCount];
+
+		for (int f = 0; f < faces.size(); f++) {
+			Face face = faces.get(f);
+			HalfEdge e0 = face.getEdge();
+
+			intData[f] = edges.get(e0);// Set pointer to e0 int face
+
+			HalfEdge e = e0;
+			do {
+				int edgePtr = edges.get(e);
+				// set edge data, edge tail is already set at this point
+				intData[F_SIZE * faceCount + E_SIZE * edgePtr + E_NEXT] = edges.get(e.getNext());
+				intData[F_SIZE * faceCount + E_SIZE * edgePtr + E_TWIN] = edges.get(e.getTwin());
+				intData[F_SIZE * faceCount + E_SIZE * edgePtr + E_FACE] = (short) f;
+
+				e = e.getNext();
+			} while (e != e0);
+
+			int NStart = 6 * vertexCount + 7 * faceCount + 3 * f;
+			int CStart = 6 * vertexCount + 10 * faceCount + 3 * f;
+			Vector3f N = face.getNormal();
+			Vector3f C = face.getCenter();
+
+			floatData[NStart + 0] = N.x;
+			floatData[NStart + 1] = N.y;
+			floatData[NStart + 2] = N.z;
+
+			floatData[CStart + 0] = C.x;
+			floatData[CStart + 1] = C.y;
+			floatData[CStart + 2] = C.z;
+		}
+
+		float maxRadius = 0;
+		for (int i = 0; i < vertexCount; i++) {
+			Vector3f v = vertices.get(i);
+			int vStart = 3 * vertexCount + 7 * faceCount + 3 * i;
+			floatData[vStart + 0] = v.x;
+			floatData[vStart + 1] = v.y;
+			floatData[vStart + 2] = v.z;
+			maxRadius = Math.max(maxRadius, v.lengthSquared());
+		}
+		maxRadius = (float) Math.sqrt(maxRadius);
+
+		return new ConvexHullWrapperData(faceCount, edgeCount, vertexCount, intData, floatData, maxRadius);
 	}
 
 	@Override

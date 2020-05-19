@@ -61,16 +61,13 @@ final class PhysicsEngine {
 		this.world = world;
 		this.params = world.getParameters();
 		this.forceInegrator = params.getForceIntegrator();
-		
-		switch(Epsilons.solver) {
-		case PARALLEL_IMPULSE:
-			this.solver  = new ParallelImpulseSolver(4);
-			break;
+
+		switch (Epsilons.solver) {
 		case SEQUENTIAL_IMPULSE:
-			this.solver  = new SequentialImpulseSolver();
+			this.solver = new SequentialImpulseSolver();
 			break;
 		default:
-			throw new IllegalArgumentException("Error, invalid enum value: " + Epsilons.solver);
+			this.solver = new ParallelImpulseSolver(Epsilons.solver.ordinal() + 1);
 		}
 	}
 

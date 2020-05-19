@@ -32,7 +32,7 @@ public class Epsilons {
 		 * La vitesse de rotation minimale pour laquelle on considère la rotation
 		 * négligeable.
 		 */
-		public static final float MIN_ROTATION_SPEED = 2.0f * (float)Math.PI / 20.0f;// 10 seconds per rotation
+		public static final float MIN_ROTATION_SPEED = 2.0f * (float) Math.PI / 20.0f;// 10 seconds per rotation
 
 		/**
 		 * La vitesse de translation minimale pour laquelle on considère le déplacement
@@ -53,17 +53,18 @@ public class Epsilons {
 	 * pour la résolution des contraintes.
 	 */
 	public static boolean WARM_START = false;
-	
-	public static ContactSolver solver = ContactSolver.PARALLEL_IMPULSE;
+
+	public static ContactSolver solver = ContactSolver.SEQUENTIAL_IMPULSE;
 
 	public static ContactType contactType = ContactType.SIMPLE;
-	
-	public enum ContactType{
-		SIMPLE, ARRAY_BASED, BLOCK_SOLVER;
+
+	public enum ContactType {
+		SIMPLE, ARRAY_BASED;
 	}
-	
-	public enum ContactSolver{
-		SEQUENTIAL_IMPULSE, PARALLEL_IMPULSE;
+
+	public enum ContactSolver {
+		SEQUENTIAL_IMPULSE, PARALLEL_IMPULSE_2, PARALLEL_IMPULSE_3, PARALLEL_IMPULSE_4, PARALLEL_IMPULSE_5,
+		PARALLEL_IMPULSE_6, PARALLEL_IMPULSE_7, PARALLEL_IMPULSE_8;
 	}
 
 	// ############### SUPER STATIC CONSTS BELOW, SHOULDN'T CHANGE ###############
@@ -116,13 +117,13 @@ public class Epsilons {
 	/**
 	 * L'angle considéré comme minimal
 	 */
-	private static final float MIN_ANGLE = (float)Math.toRadians(1.0);// 1 degree
-	
+	private static final float MIN_ANGLE = (float) Math.toRadians(1.0);// 1 degree
+
 	/**
 	 * Si la valeur absolue du produit scalaire entre deux vecteurs unitaires est
 	 * inf�rieure � cette limite, les vecteurs sont consid�r�s perpendiculaires.
 	 */
-	public static final float ORTHOGONAL_LIMIT = (float)Math.sin(MIN_ANGLE);
+	public static final float ORTHOGONAL_LIMIT = (float) Math.sin(MIN_ANGLE);
 
 	/**
 	 * ORTHOGONAL_LIMIT, au carré.
@@ -133,7 +134,7 @@ public class Epsilons {
 	 * Si la valeur absolue du produit scalaire entre deux vecteurs unitaires est
 	 * sup�rieure � cette limite, les vecteurs sont consid�r�s parall�les.
 	 */
-	public static final float PARALLEL_LIMIT = (float)Math.cos(MIN_ANGLE);
+	public static final float PARALLEL_LIMIT = (float) Math.cos(MIN_ANGLE);
 
 	/**
 	 * PARALLEL_LIMIT, au carré.

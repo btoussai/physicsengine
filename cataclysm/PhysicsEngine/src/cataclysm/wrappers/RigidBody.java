@@ -302,7 +302,7 @@ public class RigidBody extends Identifier {
 			// vertices stay at the same relative position with respect to the center of
 			// mass.
 			if (wrapper instanceof ConvexHullWrapper) {
-				((ConvexHullWrapper) wrapper).getData().translate(dx, dy, dz);
+				((ConvexHullWrapper) wrapper).translate(dx, dy, dz);
 			}
 		}
 

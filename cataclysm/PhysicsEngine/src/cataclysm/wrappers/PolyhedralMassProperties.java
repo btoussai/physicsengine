@@ -1,5 +1,6 @@
 package cataclysm.wrappers;
 
+import cataclysm.wrappers.ConvexHullWrapper.FloatLayout;
 import math.vector.Matrix3f;
 import math.vector.Vector3f;
 
@@ -47,7 +48,7 @@ public class PolyhedralMassProperties {
 	 */
 	public float computeProperties(ConvexHullWrapper hull, Vector3f CM, Matrix3f inertia) {
 
-		computeVolumeIntegrals(hull.getData());
+		computeVolumeIntegrals(hull);
 
 		float rx = 0, ry = 0, rz = 0;
 
@@ -115,14 +116,13 @@ public class PolyhedralMassProperties {
 	private float pi_ab, pi_a2b, pi_ab2;
 	private float a0, a1, b0, b1;
 
-	private void computeVolumeIntegrals(ConvexHullWrapperData data) {
+	private void computeVolumeIntegrals(ConvexHullWrapper hull) {
 
 		T1 = Tx = Ty = Tz = Tx2 = Ty2 = Tz2 = Txy = Tyz = Tzx = 0;
 		U1 = Ux = Uy = Uz = Ux2 = Uy2 = Uz2 = Uxy = Uyz = Uzx = 0;
 
-		for (ConvexHullWrapperFace face : data.faces) {
-
-			computeFaceIntegrals(face);
+		for (int face = 0; face < hull.faceCount; face++) {
+			computeFaceIntegrals(hull, face);
 
 			U1 += F1;
 
@@ -227,20 +227,22 @@ public class PolyhedralMassProperties {
 		Tyz /= 2f;
 		Tzx /= 2f;
 	}
+	
+	private final Vector3f normal = new Vector3f();
 
-	private void computeFaceIntegrals(ConvexHullWrapperFace face) {
+	private void computeFaceIntegrals(ConvexHullWrapper hull, int face) {
 
-		Vector3f normal = face.getNormal();
+		hull.getNormal(face, normal);
 		chooseProjection(normal);
 
-		computeProjectionIntegrals(face);
+		computeProjectionIntegrals(hull, face);
 
 		float na2 = na * na;
 		float na3 = na2 * na;
 		float nb2 = nb * nb;
 		float nb3 = nb2 * nb;
 
-		float w = -face.getPlaneOffset();
+		float w = -hull.getPlaneOffset(face);
 		float w2 = w * w;
 		float w3 = w2 * w;
 		float k1 = 1.0f / nc;
@@ -273,12 +275,14 @@ public class PolyhedralMassProperties {
 				+ w2 * pi_a);
 	}
 
-	private void computeProjectionIntegrals(ConvexHullWrapperFace face) {
+	private void computeProjectionIntegrals(ConvexHullWrapper hull, int face) {
 		pi_1 = pi_a = pi_b = pi_a2 = pi_b2 = pi_a3 = pi_b3 = pi_ab = pi_a2b = pi_ab2 = 0;
-
-		for (ConvexHullWrapperHalfEdge edge : face) {
-
-			loadCoords(edge);
+		
+		int edge0 = hull.getFaceEdge0(face);
+		int edge = edge0;
+		do {
+			
+			loadCoords(hull, edge);
 
 			float Da = a1 - a0;
 			float Db = b1 - b0;
@@ -320,7 +324,8 @@ public class PolyhedralMassProperties {
 			pi_a2b += Db * (b1 * Ca2b + b0 * Ka2b);
 			pi_ab2 += Da * (a1 * Cab2 + a0 * Kab2);
 
-		}
+			edge = hull.getEdgeNext(edge);
+		} while(edge != edge0);
 
 		pi_1 /= 2f;
 		pi_a /= 6f;
@@ -334,11 +339,15 @@ public class PolyhedralMassProperties {
 		pi_ab2 /= -60f;
 
 	}
+	
 
-	private void loadCoords(ConvexHullWrapperHalfEdge edge) {
+	private final Vector3f start = new Vector3f();
+	private final Vector3f end = new Vector3f();
+
+	private void loadCoords(ConvexHullWrapper hull, int edge) {
 		// load a0, a1, b0, b1 from edge's end points
-		Vector3f start = edge.getTail();
-		Vector3f end = edge.getHead();
+		hull.get(FloatLayout.Vertices, hull.getEdgeTail(edge), start);
+		hull.get(FloatLayout.Vertices, hull.getEdgeHead(edge), end);
 		switch (projection) {
 		case XY:
 			a0 = start.x;

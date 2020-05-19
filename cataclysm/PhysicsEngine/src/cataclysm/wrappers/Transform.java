@@ -79,6 +79,18 @@ public final class Transform implements ReadWriteObject {
 		dest.z = z;
 	}
 
+	public void transformVertex(float[] src, int srcIndex, float[] dest, int destIndex) {
+		float sx = src[srcIndex + 0];
+		float sy = src[srcIndex + 1];
+		float sz = src[srcIndex + 2];
+		float x = rotation.m00 * sx + rotation.m10 * sy + rotation.m20 * sz + translation.x;
+		float y = rotation.m01 * sx + rotation.m11 * sy + rotation.m21 * sz + translation.y;
+		float z = rotation.m02 * sx + rotation.m12 * sy + rotation.m22 * sz + translation.z;
+		dest[destIndex + 0] = x;
+		dest[destIndex + 1] = y;
+		dest[destIndex + 2] = z;
+	}
+
 	public void invertTransformVertex(Vector3f vertex, Vector3f dest) {
 		float x = vertex.x - translation.x;
 		float y = vertex.y - translation.y;
@@ -96,6 +108,18 @@ public final class Transform implements ReadWriteObject {
 		dest.x = x;
 		dest.y = y;
 		dest.z = z;
+	}
+
+	public void transformVector(float[] src, int srcIndex, float[] dest, int destIndex) {
+		float sx = src[srcIndex + 0];
+		float sy = src[srcIndex + 1];
+		float sz = src[srcIndex + 2];
+		float x = rotation.m00 * sx + rotation.m10 * sy + rotation.m20 * sz;
+		float y = rotation.m01 * sx + rotation.m11 * sy + rotation.m21 * sz;
+		float z = rotation.m02 * sx + rotation.m12 * sy + rotation.m22 * sz;
+		dest[destIndex + 0] = x;
+		dest[destIndex + 1] = y;
+		dest[destIndex + 2] = z;
 	}
 
 	public void invertTransformVector(Vector3f vector, Vector3f dest) {
@@ -184,7 +208,7 @@ public final class Transform implements ReadWriteObject {
 		MatrixOps.loadMatrix(src, rotation, false);
 		this.translation.set(src.m30, src.m31, src.m32);
 	}
-	
+
 	public void loadFrom(Transform transform) {
 		this.translation.set(transform.translation);
 		this.rotation.load(transform.rotation);
@@ -221,7 +245,7 @@ public final class Transform implements ReadWriteObject {
 
 	@Override
 	public int size() {
-		return 3*4 + 9*4;
+		return 3 * 4 + 9 * 4;
 	}
 
 }

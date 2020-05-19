@@ -160,6 +160,15 @@ public class RecordFile {
 	public int readInt() {
 		return buffer.getInt();
 	}
+	
+	public void writeShort(short i) {
+		flushToFile(4);
+		buffer.putShort(i);
+	}
+
+	public short readShort() {
+		return buffer.getShort();
+	}
 
 	public void writeLong(long l) {
 		flushToFile(8);
@@ -256,6 +265,51 @@ public class RecordFile {
 		for (int i = 0; i < array.length; i++) {
 			array[i].write(this);
 		}
+	}
+	
+	public void writeIntArray(int[] array) {
+		writeInt(array.length);
+		for (int i = 0; i < array.length; i++) {
+			writeInt(array[i]);
+		}
+	}
+	
+	public int[] readIntArray() {
+		int[] array = new int[readInt()];
+		for (int i = 0; i < array.length; i++) {
+			array[i] = readInt();
+		}
+		return array;
+	}
+	
+	public void writeShortArray(short[] array) {
+		writeInt(array.length);
+		for (short i = 0; i < array.length; i++) {
+			writeShort(array[i]);
+		}
+	}
+	
+	public short[] readShortArray() {
+		short[] array = new short[readInt()];
+		for (short i = 0; i < array.length; i++) {
+			array[i] = readShort();
+		}
+		return array;
+	}
+	
+	public void writeFloatArray(float[] array) {
+		writeInt(array.length);
+		for (int i = 0; i < array.length; i++) {
+			writeFloat(array[i]);
+		}
+	}
+	
+	public float[] readFloatArray() {
+		float[] array = new float[readInt()];
+		for (int i = 0; i < array.length; i++) {
+			array[i] = readFloat();
+		}
+		return array;
 	}
 
 	/**

@@ -42,9 +42,9 @@ public class SingleBodyContactArrayBased extends AbstractSingleBodyContact {
 
 	@Override
 	public void velocityStart() {
-		super.mixContactProperties(wrapper.getBody().getContactProperties(),
-				triangle.mesh.getContactProperties());
-		Vector3f.negate(area.getNormal(), N);
+		super.mixContactProperties(wrapper.getBody().getContactProperties(), triangle.mesh.getContactProperties());
+		area.getNormal(N);
+		N.negate();
 		MatrixOps.computeOrthogonalComplement(N, T, B);
 
 		for (int i = 0; i < super.area.getContactCount(); i++) {
@@ -59,7 +59,7 @@ public class SingleBodyContactArrayBased extends AbstractSingleBodyContact {
 			}
 		}
 	}
-	
+
 	@Override
 	public void resetImpulses() {
 		for (int i = 0; i < super.getMaxContacts(); i++) {
@@ -68,7 +68,7 @@ public class SingleBodyContactArrayBased extends AbstractSingleBodyContact {
 			setFloat(FloatData.impulses_B, 0, i);
 		}
 	}
-	
+
 	@Override
 	public void warmStart() {
 		for (int i = 0; i < super.getMaxContacts(); i++) {
@@ -91,7 +91,7 @@ public class SingleBodyContactArrayBased extends AbstractSingleBodyContact {
 			// the velocity may have changed due to other constraints, we need to recompute
 			// it.
 			computeVelocityError(i);
-			
+
 			// Normal impulse
 			float prev_impulse_N = getFloat(FloatData.impulses_N, i);
 			float impulse_N = prev_impulse_N - (getFloat(FloatData.deltaV_N, i) + getFloat(FloatData.bias, i))
@@ -127,7 +127,7 @@ public class SingleBodyContactArrayBased extends AbstractSingleBodyContact {
 		for (int i = 0; i < super.area.getContactCount(); i++) {
 			setFloat(FloatData.pseudo_impulses, 0, i);
 			float pseudo_bias = (Epsilons.PENETRATION_RECOVERY / timeStep)
-					* Math.min(0, (area.penetrations[i] + Epsilons.ALLOWED_PENETRATION));
+					* Math.min(0, (area.getPenetrationDepth(i) + Epsilons.ALLOWED_PENETRATION));
 			setFloat(FloatData.pseudo_bias, pseudo_bias, i);
 		}
 	}
@@ -151,8 +151,10 @@ public class SingleBodyContactArrayBased extends AbstractSingleBodyContact {
 	private final void buildJacobian(int i) {
 		RigidBody body = wrapper.getBody();
 
-		Vector3f[] contacts = area.getContactPoints();
-		sub(contacts[i], body.getPosition(), VecData.R, i);
+		float x = area.getContactPointX(i);
+		float y = area.getContactPointY(i);
+		float z = area.getContactPointZ(i);
+		sub(x, y, z, body.getPosition(), VecData.R, i);
 
 		cross(VecData.R, N, VecData.RxN, i);
 		cross(VecData.R, T, VecData.RxT, i);
@@ -244,12 +246,12 @@ public class SingleBodyContactArrayBased extends AbstractSingleBodyContact {
 		body.getPseudoAngularVelocity().translate(dwx * effect, dwy * effect, dwz * effect);
 	}
 
-	private final void sub(Vector3f left, Vector3f right, VecData dest, int i) {
+	private final void sub(float x, float y, float z, Vector3f right, VecData dest, int i) {
 		int iDest = getVecDataIndex(dest, i);
 
-		this.vecData[3 * iDest] = left.x - right.x;
-		this.vecData[3 * iDest + 1] = left.y - right.y;
-		this.vecData[3 * iDest + 2] = left.z - right.z;
+		this.vecData[3 * iDest] = x - right.x;
+		this.vecData[3 * iDest + 1] = y - right.y;
+		this.vecData[3 * iDest + 2] = z - right.z;
 	}
 
 	private final void cross(VecData left, Vector3f right, VecData dest, int i) {

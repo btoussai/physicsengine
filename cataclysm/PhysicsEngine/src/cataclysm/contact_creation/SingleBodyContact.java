@@ -76,7 +76,8 @@ public class SingleBodyContact extends AbstractSingleBodyContact {
 	public void velocityStart() {
 		super.mixContactProperties(wrapper.getBody().getContactProperties(),
 				triangle.mesh.getContactProperties());
-		Vector3f.negate(area.getNormal(), N);
+		area.getNormal(N);
+		N.negate();
 		MatrixOps.computeOrthogonalComplement(N, T, B);
 
 		for (int i = 0; i < super.area.getContactCount(); i++) {
@@ -158,7 +159,7 @@ public class SingleBodyContact extends AbstractSingleBodyContact {
 		for (int i = 0; i < super.area.getContactCount(); i++) {
 			pseudo_impulses[i] = 0;
 			pseudo_bias[i] = (Epsilons.PENETRATION_RECOVERY / timeStep)
-					* Math.min(0, (area.penetrations[i] + Epsilons.ALLOWED_PENETRATION));
+					* Math.min(0, (area.getPenetrationDepth(i) + Epsilons.ALLOWED_PENETRATION));
 		}
 	}
 
@@ -182,8 +183,7 @@ public class SingleBodyContact extends AbstractSingleBodyContact {
 
 		Vector3f R = this.R[i];
 
-		Vector3f[] contacts = area.getContactPoints();
-		Vector3f.sub(contacts[i], body.getPosition(), R);
+		area.toContactPoint(i, body.getPosition(), R);
 
 		Vector3f.cross(R, N, RxN[i]);
 		Vector3f.cross(R, T, RxT[i]);

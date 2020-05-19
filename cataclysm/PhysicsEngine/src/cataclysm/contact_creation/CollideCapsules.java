@@ -37,7 +37,7 @@ class CollideCapsules {
 
 	private final Vector3f C1C2 = new Vector3f();
 
-	void test(CapsuleWrapper capsule1, CapsuleWrapper capsule2, ContactArea contact) {
+	void test(CapsuleWrapper capsule1, CapsuleWrapper capsule2, ContactZone contact) {
 
 		Vector3f A = capsule1.getCenter1();
 		Vector3f B = capsule1.getCenter2();
@@ -147,21 +147,24 @@ class CollideCapsules {
 						contact.setNoCollision();
 						return;
 					}
+					
+					float x, y, z;
 
 					float toMiddlePointC = R2 + 0.5f * depthC;
-					contact.contactPoints[0].set(Cprime.x - toMiddlePointC * normal.x,
-							Cprime.y - toMiddlePointC * normal.y, Cprime.z - toMiddlePointC * normal.z);
+					x = Cprime.x - toMiddlePointC * normal.x;
+					y = Cprime.y - toMiddlePointC * normal.y;
+					z = Cprime.z - toMiddlePointC * normal.z;
+					contact.setContactPointAndPenetrationDepth(0, x, y, z, depthC);
 					
 					float toMiddlePointD = R2 + 0.5f * depthD;
-					contact.contactPoints[1].set(Dprime.x - toMiddlePointD * normal.x,
-							Dprime.y - toMiddlePointD * normal.y, Dprime.z - toMiddlePointD * normal.z);
-
+					x = Dprime.x - toMiddlePointD * normal.x;
+					y = Dprime.y - toMiddlePointD * normal.y;
+					z = Dprime.z - toMiddlePointD * normal.z;
+					contact.setContactPointAndPenetrationDepth(1, x, y, z, depthD);
 					
 					onA.setFrom(capsule1.getCenter1(), capsule1.getCenter2());
 					onB.setFrom(capsule2.getCenter1(), capsule2.getCenter2());
 					
-					contact.penetrations[0] = depthC;
-					contact.penetrations[1] = depthD;
 					contact.rebuild(normal, Math.min(depthC, depthD), 2, onA, onB);
 				}else {
 					contact.setNoCollision();
@@ -213,7 +216,7 @@ class CollideCapsules {
 
 	}
 
-	private void sphereTest(CapsuleWrapper capsule1, CapsuleWrapper capsule2, ContactArea contact) {
+	private void sphereTest(CapsuleWrapper capsule1, CapsuleWrapper capsule2, ContactZone contact) {
 		Vector3f.sub(C2, C1, C1C2);
 
 		float distance2 = C1C2.lengthSquared();
@@ -236,13 +239,14 @@ class CollideCapsules {
 
 			float toMiddlePoint = R1 + 0.5f * depth;
 
-			contact.contactPoints[0].set(C1.x + normal.x * toMiddlePoint, C1.y + normal.y * toMiddlePoint,
-					C1.z + normal.z * toMiddlePoint);
+			float x = C1.x + normal.x * toMiddlePoint;
+			float y = C1.y + normal.y * toMiddlePoint;
+			float z = C1.z + normal.z * toMiddlePoint;
 			
 			onA.setFrom(capsule1.getCenter1(), capsule1.getCenter2());
 			onB.setFrom(capsule2.getCenter1(), capsule2.getCenter2());
 			
-			contact.penetrations[0] = depth;
+			contact.setContactPointAndPenetrationDepth(0, x, y, z, depth);
 			contact.rebuild(normal, depth, 1, onA, onB);
 		}else {
 			contact.setNoCollision();

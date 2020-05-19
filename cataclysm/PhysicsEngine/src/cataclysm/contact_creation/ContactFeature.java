@@ -1,30 +1,26 @@
 package cataclysm.contact_creation;
 
-import cataclysm.wrappers.ConvexHullWrapperFace;
-import cataclysm.wrappers.ConvexHullWrapperHalfEdge;
 import math.vector.Vector3f;
 
 
 /**
- * Indique quelle partie d'un objet est en collision dans un {@link Contact}.
+ * Tells which part of an object collides in a {@link ContactZone}.
  * @author Briac
  *
  */
 class ContactFeature {
 	
-	/**
-	 * Indique le type de la partie en collision.
-	 * 
-	 * @author Briac
-	 *
-	 */
 	enum FeatureType {
-		Face, HalfEdge, Vertex, Segment, Triangle, None;
+		//Convex hull features
+		HullFace, HullEdge, 
+		//triangle features and other wrapper type
+		TriangleFace, Edge, Vertex, 
+		
+		None;
 	}
 	
 	private FeatureType type = FeatureType.None;
-	private ConvexHullWrapperFace face;
-	private ConvexHullWrapperHalfEdge halfedge;
+	private int hullFeatureIndex;
 	private Vector3f v1;
 	private Vector3f v2;
 	private Vector3f v3;
@@ -35,59 +31,56 @@ class ContactFeature {
 	
 	public void clean() {
 		switch(type) {
-		case Face:
-			face = null;
-			break;
-		case HalfEdge:
-			halfedge = null;
-			break;
-		case Triangle:
+		case HullFace:
+		case HullEdge:
+			hullFeatureIndex = -1;
+		case TriangleFace:
 			v3 = null;
-		case Segment:
+		case Edge:
 			v2 = null;
 		case Vertex:
 			v1 = null;
 			break;
-		default:
+		case None:
 			break;
+		default:
+			throw new IllegalStateException();
 		}
 		type = FeatureType.None;
 	}
 	
 	public void setFrom(ContactFeature other){
 		clean();
-		this.type = other.type;
 		switch(other.type) {
-		case Face:
-			this.face = other.face;
+		case HullFace:
+		case HullEdge:
+			this.hullFeatureIndex = other.hullFeatureIndex;
 			break;
-		case HalfEdge:
-			this.halfedge = other.halfedge;
-			break;
-		case Triangle:
+		case TriangleFace:
 			this.v3 = other.v3;
-		case Segment:
+		case Edge:
 			this.v2 = other.v2;
 		case Vertex:
 			this.v1 = other.v1;
 			break;
 		case None:
-		default:
 			break;
-		
+		default:
+			throw new IllegalStateException();
 		}
+		this.type = other.type;
 	}
 	
-	public void setFrom(ConvexHullWrapperFace face){
+	public void setFromHullFace(int face){
 		clean();
-		this.face = face;
-		this.type = FeatureType.Face;
+		this.hullFeatureIndex = face;
+		this.type = FeatureType.HullFace;
 	}
 	
-	public void setFrom(ConvexHullWrapperHalfEdge halfedge){
+	public void setFromHullEdge(int edge){
 		clean();
-		this.halfedge = halfedge;
-		this.type = FeatureType.HalfEdge;
+		this.hullFeatureIndex = edge;
+		this.type = FeatureType.HullEdge;
 	}
 	
 	public void setFrom(Vector3f v1){
@@ -100,7 +93,7 @@ class ContactFeature {
 		clean();
 		this.v1 = v1;
 		this.v2 = v2;
-		this.type = FeatureType.Segment;
+		this.type = FeatureType.Edge;
 	}
 	
 	public void setFrom(Vector3f v1, Vector3f v2, Vector3f v3){
@@ -108,19 +101,15 @@ class ContactFeature {
 		this.v1 = v1;
 		this.v2 = v2;
 		this.v3 = v3;
-		this.type = FeatureType.Triangle;
+		this.type = FeatureType.TriangleFace;
 	}
 	
 	public FeatureType getType() {
 		return type;
 	}
 
-	public ConvexHullWrapperFace getFace() {
-		return face;
-	}
-
-	public ConvexHullWrapperHalfEdge getHalfedge() {
-		return halfedge;
+	public int getHullFeatureIndex() {
+		return hullFeatureIndex;
 	}
 
 	public Vector3f getV1() {

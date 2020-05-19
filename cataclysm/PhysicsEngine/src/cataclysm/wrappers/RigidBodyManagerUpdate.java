@@ -18,10 +18,8 @@ import cataclysm.contact_creation.AbstractSingleBodyContact;
 import cataclysm.contact_creation.CollisionTest;
 import cataclysm.contact_creation.DoubleBodyContact;
 import cataclysm.contact_creation.DoubleBodyContactArrayBased;
-import cataclysm.contact_creation.DoubleBodyContactBlockSolver;
 import cataclysm.contact_creation.SingleBodyContact;
 import cataclysm.contact_creation.SingleBodyContactArrayBased;
-import cataclysm.contact_creation.SingleBodyContactBlockSolver;
 import math.vector.Vector3f;
 
 /**
@@ -242,9 +240,6 @@ public class RigidBodyManagerUpdate {
 			case ARRAY_BASED:
 				contact = new DoubleBodyContactArrayBased(maxContacts, wrapperA, wrapperB);
 				break;
-			case BLOCK_SOLVER:
-				contact = new DoubleBodyContactBlockSolver(maxContacts, wrapperA, wrapperB);
-				break;
 			case SIMPLE:
 				contact = new DoubleBodyContact(maxContacts, wrapperA, wrapperB);
 				break;
@@ -268,9 +263,6 @@ public class RigidBodyManagerUpdate {
 			switch (Epsilons.contactType) {
 			case ARRAY_BASED:
 				contact = new SingleBodyContactArrayBased(maxContacts, wrapper, triangle);
-				break;
-			case BLOCK_SOLVER:
-				contact = new SingleBodyContactBlockSolver(maxContacts, wrapper, triangle);
 				break;
 			case SIMPLE:
 				contact = new SingleBodyContact(maxContacts, wrapper, triangle);

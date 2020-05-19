@@ -1,12 +1,9 @@
 package cataclysm.wrappers;
 
 import cataclysm.broadphase.staticmeshes.Triangle;
-import math.vector.Vector3f;
 
 /**
- * Repr�sente un triangle sous forme d'une enveloppe convexe. Ceci permet de
- * calculer les collisions entre les wrappers et les triangles en r�utilisant
- * les fonctions de collision contre une enveloppe convexe.
+ * A triangle represented as a convex hull.
  * 
  * @author Briac
  *
@@ -20,75 +17,66 @@ public class TriangleAsHull extends ConvexHullWrapper {
 	}
 
 	private static ConvexHullWrapperData buildBase() {
-		ConvexHullWrapperFace top = new ConvexHullWrapperFace();
-		top.index = 0;
-		top.edge0 = 0;
-		ConvexHullWrapperFace bottom = new ConvexHullWrapperFace();
-		bottom.index = 1;
-		bottom.edge0 = 1;
+		int vertexCount = 3;
+		int edgeCount = 6;
+		int faceCount = 2;
 
-		ConvexHullWrapperHalfEdge e12 = new ConvexHullWrapperHalfEdge();
-		e12.tail = 0;
-		ConvexHullWrapperHalfEdge e21 = new ConvexHullWrapperHalfEdge();
-		e21.tail = 1;
+		// Edge0;
+		// tail, next, prev, twin, face;
 
-		e12.twin = 1;
-		e21.twin = 0;
+		short top_edge0 = 0;
+		short bottom_edge0 = 1;
 
-		ConvexHullWrapperHalfEdge e23 = new ConvexHullWrapperHalfEdge();
-		e23.tail = 1;
-		ConvexHullWrapperHalfEdge e32 = new ConvexHullWrapperHalfEdge();
-		e32.tail = 2;
+		short e12_tail = 0;
+		short e12_next = 2;
+		short e12_twin = 1;
+		short e12_face = 0;
 
-		e23.twin = 3;
-		e32.twin = 2;
+		short e21_tail = 1;
+		short e21_next = 5;
+		short e21_twin = 0;
+		short e21_face = 1;
 
-		ConvexHullWrapperHalfEdge e31 = new ConvexHullWrapperHalfEdge();
-		e31.tail = 2;
-		ConvexHullWrapperHalfEdge e13 = new ConvexHullWrapperHalfEdge();
-		e13.tail = 0;
+		short e23_tail = 1;
+		short e23_next = 4;
+		short e23_twin = 3;
+		short e23_face = 0;
 
-		e31.twin = 5;
-		e13.twin = 4;
+		short e32_tail = 2;
+		short e32_next = 1;
+		short e32_twin = 2;
+		short e32_face = 1;
 
-		e12.face = 0;
-		e23.face = 0;
-		e31.face = 0;
+		short e31_tail = 2;
+		short e31_next = 0;
+		short e31_twin = 5;
+		short e31_face = 0;
 
-		e12.next = 2;
-		e23.next = 4;
-		e31.next = 0;
+		short e13_tail = 0;
+		short e13_next = 3;
+		short e13_twin = 4;
+		short e13_face = 1;
 
-		e12.prev = 4;
-		e23.prev = 0;
-		e31.prev = 2;
+		short[] intData = { top_edge0, bottom_edge0,
 
-		e21.face = 1;
-		e32.face = 1;
-		e13.face = 1;
+				e12_tail, e12_next, e12_twin, e12_face,
 
-		e21.next = 5;
-		e13.next = 3;
-		e32.next = 1;
+				e21_tail, e21_next, e21_twin, e21_face,
 
-		e21.prev = 3;
-		e13.prev = 1;
-		e32.prev = 5;
+				e23_tail, e23_next, e23_twin, e23_face,
 
-		e12.index = 0;
-		e21.index = 1;
-		e23.index = 2;
-		e32.index = 3;
-		e31.index = 4;
-		e13.index = 5;
+				e32_tail, e32_next, e32_twin, e32_face,
 
-		ConvexHullWrapperFace[] faces = new ConvexHullWrapperFace[] { top, bottom };
-		ConvexHullWrapperHalfEdge[] edges = new ConvexHullWrapperHalfEdge[] { e12, e21, e23, e32, e31, e13 };
-		Vector3f[] vertices = new Vector3f[] { new Vector3f(), new Vector3f(), new Vector3f() };
-		Vector3f[] faceNormals = new Vector3f[] { new Vector3f(), new Vector3f() };
-		Vector3f[] faceCentroids = new Vector3f[] { new Vector3f(), new Vector3f() };
+				e31_tail, e31_next, e31_twin, e31_face,
 
-		ConvexHullWrapperData data = new ConvexHullWrapperData(faces, edges, vertices, faceNormals, faceCentroids);
+				e13_tail, e13_next, e13_twin, e13_face };
+
+		// Vertices, FaceNormals, FaceCentroids, PlaneOffsets, BackupVertices,
+		// BackupFaceNormals, BackupFaceCentroids;
+		float[] floatData = new float[3 * vertexCount + 3 * faceCount + 3 * faceCount + faceCount + 3 * vertexCount
+				+ 3 * faceCount + 3 * faceCount];
+		ConvexHullWrapperData data = new ConvexHullWrapperData(faceCount, edgeCount, vertexCount, intData, floatData,
+				0);
 
 		return data;
 	}
@@ -98,20 +86,38 @@ public class TriangleAsHull extends ConvexHullWrapper {
 	}
 
 	public void setFrom(Triangle triangle) {
-		ConvexHullWrapperData data = super.getData();
-		triangle.getV0(data.vertices[0]);
-		triangle.getV1(data.vertices[1]);
-		triangle.getV2(data.vertices[2]);
+		// vertices
+		floatData[0] = triangle.getV0(0);
+		floatData[1] = triangle.getV0(1);
+		floatData[2] = triangle.getV0(2);
+		floatData[3] = triangle.getV1(0);
+		floatData[4] = triangle.getV1(1);
+		floatData[5] = triangle.getV1(2);
+		floatData[6] = triangle.getV2(0);
+		floatData[7] = triangle.getV2(1);
+		floatData[8] = triangle.getV2(2);
 
-		triangle.getNormal(data.faceNormals[0]);
-		Vector3f.negate(data.faceNormals[0], data.faceNormals[1]);
+		// normals
+		floatData[9] = triangle.getNormal(0);
+		floatData[10] = triangle.getNormal(1);
+		floatData[11] = triangle.getNormal(2);
+		floatData[12] = -floatData[9];
+		floatData[13] = -floatData[10];
+		floatData[14] = -floatData[11];
 
-		data.planeOffsets[0] = triangle.getPlaneOffset();
-		data.planeOffsets[1] = -data.planeOffsets[0];
+		// centroids
+		float cx = (1.0f / 3.0f) * (floatData[0] + floatData[3] + floatData[6]);
+		float cy = (1.0f / 3.0f) * (floatData[1] + floatData[4] + floatData[7]);
+		float cz = (1.0f / 3.0f) * (floatData[2] + floatData[5] + floatData[8]);
+		floatData[15] = floatData[18] = cx;
+		floatData[16] = floatData[19] = cy;
+		floatData[17] = floatData[20] = cz;
 
-		this.getCentroid().set((1f / 3f) * (triangle.getV0(0) + triangle.getV1(0) + triangle.getV2(0)),
-				(1f / 3f) * (triangle.getV0(1) + triangle.getV1(1) + triangle.getV2(1)),
-				(1f / 3f) * (triangle.getV0(2) + triangle.getV1(2) + triangle.getV2(2)));
+		// plane offsets
+		floatData[21] = triangle.getPlaneOffset();
+		floatData[22] = -triangle.getPlaneOffset();
+
+		super.getCentroid().set(cx, cy, cz);
 	}
 
 }

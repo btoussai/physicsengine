@@ -27,6 +27,12 @@ public final class WrapperRepr implements ReadWriteObject {
 
 	// ConvexHull
 	public ConvexHullWrapperData data;
+	// ConvexHull with flat layout
+	public int faceCount;
+	public int edgeCount;
+	public int vertexCount;
+	public short[] intData;
+	public float[] floatData;
 
 	public WrapperRepr() {
 	}
@@ -62,7 +68,11 @@ public final class WrapperRepr implements ReadWriteObject {
 			capsuleRadius = f.readFloat();
 			halfLength = f.readFloat();
 		} else if (type == 2) {
-			data = new ConvexHullWrapperData(f);
+			vertexCount = f.readInt();
+			edgeCount = f.readInt();
+			faceCount = f.readInt();
+			intData = f.readShortArray();
+			floatData = f.readFloatArray();
 		} else {
 			throw new RecordFileDecodeError("Error while decoding record file !");
 		}
@@ -82,8 +92,13 @@ public final class WrapperRepr implements ReadWriteObject {
 		} else if (type == 1) {
 			f.writeFloat(capsuleRadius);
 			f.writeFloat(halfLength);
-		} else if (type == 2) {
-			data.write(f);
+		} else if (type == 3) {
+			f.writeInt(vertexCount);
+			f.writeInt(edgeCount);
+			f.writeInt(faceCount);
+
+			f.writeShortArray(intData);
+			f.writeFloatArray(floatData);
 		} else {
 			throw new RecordFileDecodeError("Error while encoding record file !");
 		}
@@ -97,7 +112,7 @@ public final class WrapperRepr implements ReadWriteObject {
 		} else if (type == 1) {
 			typeSize += 8;
 		} else if (type == 2) {
-			typeSize += data.size();
+			typeSize += 12 + (intData.length + 1 + floatData.length + 1) * 4;
 		}
 		return wrapperToBody.size() + centroid.size() + 4 + massProperties.size() + typeSize;
 	}

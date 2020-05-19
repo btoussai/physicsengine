@@ -4,43 +4,41 @@ import math.vector.Matrix3f;
 import math.vector.Vector3f;
 
 /**
- * Représente un contact entre deux solides. Les solides ne se touchent pas
- * forcément, le contact n'est alors pas actif.
+ * Represents a contact between two objects. If they don't collide, the contact
+ * is considered to be 'inactive'
  * 
  * @author Briac
  *
  */
 public abstract class AbstractContact {
 
-	protected final ContactArea area;
+	protected final ContactZone area;
 
 	protected float friction = 0;
 	protected float elasticity = 0;
-	protected float stickiness = 0;
 
 	public AbstractContact(int maxContacts) {
-		area = new ContactArea(maxContacts);
+		area = new ContactZone(maxContacts);
 	}
 
 	protected void mixContactProperties(ContactProperties A, ContactProperties B) {
 		this.friction = 0.5f * (A.getFriction() + B.getFriction());
 		this.elasticity = 0.5f * (A.getElasticity() + B.getElasticity());
 	}
-	
+
 	public abstract void velocityStart();
-	
+
 	public abstract void warmStart();
-	
+
 	public abstract void resetImpulses();
 
 	public abstract void solveVelocity();
-	
+
 	public abstract void positionStart(float timeStep);
 
 	public abstract void solvePosition();
-	
 
-	public ContactArea getContactArea() {
+	public ContactZone getContactArea() {
 		return area;
 	}
 
@@ -51,7 +49,7 @@ public abstract class AbstractContact {
 		}
 		return array;
 	}
-	
+
 	protected Matrix3f[] initMatrixArray(int length) {
 		Matrix3f[] array = new Matrix3f[length];
 		for (int i = 0; i < array.length; i++) {
@@ -61,7 +59,7 @@ public abstract class AbstractContact {
 	}
 
 	public int getMaxContacts() {
-		return area.contactPoints.length;
+		return area.getMaxContacts();
 	}
 
 }

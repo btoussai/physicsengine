@@ -2,10 +2,7 @@ package cataclysm.quickHull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import cataclysm.wrappers.ConvexHullWrapperFace;
-import cataclysm.wrappers.ConvexHullWrapperHalfEdge;
 import math.vector.Vector3f;
 
 /**
@@ -295,33 +292,5 @@ public class Face {
 	public float getArea() {
 		return area;
 	}
-
-	public void convertToWrapperFace(Map<HalfEdge, ConvexHullWrapperHalfEdge> map,
-			List<ConvexHullWrapperFace> wFaces, List<Vector3f> wNormals, List<Vector3f> wCentroids) {
-
-		ConvexHullWrapperFace copyFace = new ConvexHullWrapperFace();
-		copyFace.setIndex(wFaces.size());
-		wFaces.add(copyFace);
-		wNormals.add(new Vector3f(this.getNormal()));
-		wCentroids.add(new Vector3f(this.getCenter()));
-
-		ConvexHullWrapperHalfEdge copyEdgePrev = new ConvexHullWrapperHalfEdge();
-		copyEdgePrev.setFace(wFaces.size()-1);
-
-		map.put(edge, copyEdgePrev);
-
-		HalfEdge edge = this.edge.next;
-		ConvexHullWrapperHalfEdge copyEdge = null;
-
-		do {
-			copyEdge = new ConvexHullWrapperHalfEdge();
-			copyEdge.setFace(wFaces.size()-1);
-
-			map.put(edge, copyEdge);
-
-			edge = edge.next;
-		} while (edge != this.edge);
-
-	}
-
+	
 }

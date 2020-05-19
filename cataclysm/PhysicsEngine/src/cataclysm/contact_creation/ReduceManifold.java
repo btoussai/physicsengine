@@ -10,31 +10,31 @@ class ReduceManifold {
 	/**
 	 * Quelques variables pour reduceManifold.
 	 */
-	private static final Vector3f QA = new Vector3f();
-	private static final Vector3f QB = new Vector3f();
-	private static final Vector3f QC = new Vector3f();
-	private static final Vector3f QX_x_QY = new Vector3f();
+	private final Vector3f QA = new Vector3f();
+	private final Vector3f QB = new Vector3f();
+	private final Vector3f QC = new Vector3f();
+	private final Vector3f QX_x_QY = new Vector3f();
 
-	private static final Vector3f AB = new Vector3f();
-	private static final Vector3f AC = new Vector3f();
+	private final Vector3f AB = new Vector3f();
+	private final Vector3f AC = new Vector3f();
 
-	private static final Vector3f temp = new Vector3f();
+	private final Vector3f temp = new Vector3f();
 
 	/**
 	 * Supprime des points pour obtenir une surface de contact avec 4 points au
 	 * maximum.
 	 * 
 	 * @param inputList
-	 * @param planeNormal 
-	 * @param contactPoints 
+	 * @param planeNormal
+	 * @param contact
 	 * @return le nombre de points de contact.
 	 */
-	static int reduceManifold(List<Vector3f> inputList, Vector3f planeNormal, Vector3f[] contactPoints) {
+	int reduceManifold(List<Vector3f> inputList, Vector3f planeNormal, ContactZone contact) {
 
 		if (inputList.size() <= 4) {
-			
+
 			for (int i = 0; i < inputList.size(); i++) {
-				contactPoints[i].set(inputList.get(i));
+				contact.setContactPoint(i, inputList.get(i));
 			}
 			return inputList.size();
 		}
@@ -54,7 +54,7 @@ class ReduceManifold {
 			}
 		}
 		if (AB2 < Epsilons.MIN_LENGTH_2) {
-			contactPoints[0].set(A);
+			contact.setContactPoint(0, A);
 			return 1;
 		}
 		Vector3f.sub(B, A, AB);
@@ -73,8 +73,8 @@ class ReduceManifold {
 			}
 		}
 		if (Math.abs(areaABC) < Epsilons.MIN_LENGTH) {
-			contactPoints[0].set(A);
-			contactPoints[1].set(B);
+			contact.setContactPoint(0, A);
+			contact.setContactPoint(1, B);
 			return 2;
 		}
 
@@ -94,29 +94,29 @@ class ReduceManifold {
 			Vector3f.sub(A, Q, QA);
 			Vector3f.sub(B, Q, QB);
 			Vector3f.sub(C, Q, QC);
-			
+
 			Vector3f.cross(QA, QB, QX_x_QY);
 			float area = Vector3f.dot(planeNormal, QX_x_QY);
-			
-			//On a area < 0 !
+
+			// On a area < 0 !
 			if (area < areaD) {
 				areaD = area;
 				D = Q;
 			}
-			
+
 			Vector3f.cross(QB, QC, QX_x_QY);
 			area = Vector3f.dot(planeNormal, QX_x_QY);
-			
-			//On a area < 0 !
+
+			// On a area < 0 !
 			if (area < areaD) {
 				areaD = area;
 				D = Q;
 			}
-			
+
 			Vector3f.cross(QC, QA, QX_x_QY);
 			area = Vector3f.dot(planeNormal, QX_x_QY);
-			
-			//On a area < 0 !
+
+			// On a area < 0 !
 			if (area < areaD) {
 				areaD = area;
 				D = Q;
@@ -124,16 +124,16 @@ class ReduceManifold {
 
 		}
 		if (Math.abs(areaD) < Epsilons.MIN_LENGTH) {
-			contactPoints[0].set(A);
-			contactPoints[1].set(B);
-			contactPoints[2].set(C);
+			contact.setContactPoint(0, A);
+			contact.setContactPoint(1, B);
+			contact.setContactPoint(2, C);
 			return 3;
 		}
-		
-		contactPoints[0].set(A);
-		contactPoints[1].set(B);
-		contactPoints[2].set(C);
-		contactPoints[3].set(D);
+
+		contact.setContactPoint(0, A);
+		contact.setContactPoint(1, B);
+		contact.setContactPoint(2, C);
+		contact.setContactPoint(3, D);
 
 		return 4;
 	}

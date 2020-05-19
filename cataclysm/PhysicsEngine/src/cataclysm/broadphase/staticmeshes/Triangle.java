@@ -63,7 +63,7 @@ public final class Triangle {
 		this.n_x = n_x * inv_l;
 		this.n_y = n_y * inv_l;
 		this.n_z = n_z * inv_l;
-		plane_offset = v0_x * n_x + v0_y * n_y + v0_z * n_z;
+		plane_offset = v0_x * this.n_x + v0_y * this.n_y + v0_z * this.n_z;
 
 		this.mesh = mesh;
 	}

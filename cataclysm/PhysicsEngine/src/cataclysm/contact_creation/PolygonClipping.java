@@ -4,22 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cataclysm.Epsilons;
-import cataclysm.wrappers.ConvexHullWrapperFace;
-import cataclysm.wrappers.ConvexHullWrapperHalfEdge;
+import cataclysm.wrappers.ConvexHullWrapper;
+import cataclysm.wrappers.ConvexHullWrapper.FloatLayout;
 import math.vector.Vector3f;
 
 class PolygonClipping {
 
 	// Quelques variables statiques pour �viter des new
-	private static final Vector3f clipPlaneNormal = new Vector3f();
-	private static final Vector3f edgeTail = new Vector3f();
-	private static final Vector3f edgeVec = new Vector3f();
-	private static final Vector3f previousToCurrent = new Vector3f();
+	private final Vector3f clipPlaneNormal = new Vector3f();
+	private final Vector3f edgeTail = new Vector3f();
+	private final Vector3f edgeVec = new Vector3f();
+	private final Vector3f faceNormal = new Vector3f();
+	private final Vector3f previousToCurrent = new Vector3f();
 
-	private static int inputListSize = 0;
-	private static int outputListSize = 0;
-	private static List<Vector3f> inputList = new ArrayList<Vector3f>();
-	private static List<Vector3f> outputList = new ArrayList<Vector3f>();
+	private int inputListSize = 0;
+	private int outputListSize = 0;
+	private List<Vector3f> inputList = new ArrayList<Vector3f>();
+	private List<Vector3f> outputList = new ArrayList<Vector3f>();
 
 	/**
 	 * Clippe la face incidente contre les bords de la face de référence. C'est une
@@ -29,27 +30,28 @@ class PolygonClipping {
 	 * @param referenceFace
 	 * @param clippedVertices
 	 */
-	static void clipIncidentFaceAgainstReferenceFace(ConvexHullWrapperFace incidentFace,
-			ConvexHullWrapperFace referenceFace, List<Vector3f> clippedVertices) {
+	void clipIncidentFaceAgainstReferenceFace(ConvexHullWrapper incident, int incidentFace,
+			ConvexHullWrapper reference, int referenceFace, List<Vector3f> clippedVertices) {
 		inputListSize = 0;
 		outputListSize = 0;
 
 		// On remplit inputList avec les points de incidentFace
-		ConvexHullWrapperHalfEdge edge0 = incidentFace.getEdge0();
-		ConvexHullWrapperHalfEdge edge = edge0;
+		int edge0 = incident.getFaceEdge0(incidentFace);
+		int edge = edge0;
 		do {
-			inputListSize = addVertex(inputList, inputListSize, edge.getTail());
-			edge = edge.getNext();
+			incident.get(FloatLayout.Vertices, incident.getEdgeTail(edge), edgeTail);
+			inputListSize = addVertex(inputList, inputListSize, edgeTail);
+			edge = incident.getEdgeNext(edge);
 		} while (edge != edge0);
 
-		Vector3f faceNormal = referenceFace.getNormal();
+		reference.get(FloatLayout.FaceNormals, referenceFace, faceNormal);
 
-		edge0 = referenceFace.getEdge0();
+		edge0 = reference.getFaceEdge0(referenceFace);
 		edge = edge0;
 		do {
 
-			edgeTail.set(edge.getTail());
-			Vector3f.sub(edge.getHead(), edge.getTail(), edgeVec);
+			reference.get(FloatLayout.Vertices, reference.getEdgeTail(edge), edgeTail);
+			reference.sub(FloatLayout.Vertices, reference.getEdgeHead(edge), edgeTail, edgeVec);
 			Vector3f.cross(faceNormal, edgeVec, clipPlaneNormal);
 
 			float clipPlaneOffset = Vector3f.dot(clipPlaneNormal, edgeTail);
@@ -92,36 +94,16 @@ class PolygonClipping {
 			}
 
 			if (outputListSize == 0) {
-				//the faces aren't overlapping, we return
+				// the faces aren't overlapping, we return
 				clippedVertices.clear();
 				return;
-				/*
-				// On cherche le point le plus proche du plan et on le projette dessus.
-				float bestDistance = Float.NEGATIVE_INFINITY;
-				Vector3f bestVertex = null;
-				for (int i = 0; i < inputListSize; i++) {
-					Vector3f vertex = inputList.get(i);
-					float distance = Vector3f.dot(clipPlaneNormal, vertex) - clipPlaneOffset;
-					if (distance > bestDistance) {
-						bestDistance = distance;
-						bestVertex = vertex;
-					}
-				}
-				if (bestDistance < 0) {
-					bestDistance /= clipPlaneLength2;
-					bestVertex.x -= bestDistance * clipPlaneNormal.x;
-					bestVertex.y -= bestDistance * clipPlaneNormal.y;
-					bestVertex.z -= bestDistance * clipPlaneNormal.z;
-				}
-				outputListSize = addVertex(outputList, outputListSize, bestVertex);
-				*/
 			}
 
 			swapLists();
 			inputListSize = outputListSize;
 			outputListSize = 0;
 
-			edge = edge.getNext();
+			edge = reference.getEdgeNext(edge);
 		} while (edge != edge0);
 
 		clippedVertices.clear();
@@ -137,7 +119,7 @@ class PolygonClipping {
 	 * @param edgeVec
 	 * @param dest
 	 */
-	private static void clipEdgeToPlane(Vector3f planeNormal, float planeOffset, float planeLength2, Vector3f edgeBase,
+	private void clipEdgeToPlane(Vector3f planeNormal, float planeOffset, float planeLength2, Vector3f edgeBase,
 			Vector3f edgeVec, Vector3f dest) {
 
 		float denom = Vector3f.dot(planeNormal, edgeVec);
@@ -156,13 +138,13 @@ class PolygonClipping {
 
 	}
 
-	private static void swapLists() {
+	private void swapLists() {
 		List<Vector3f> temp = inputList;
 		inputList = outputList;
 		outputList = temp;
 	}
 
-	private static int addVertex(List<Vector3f> list, int currentListSize, Vector3f vertex) {
+	private int addVertex(List<Vector3f> list, int currentListSize, Vector3f vertex) {
 		if (list.size() <= currentListSize) {
 			list.add(new Vector3f());
 		}
@@ -170,7 +152,7 @@ class PolygonClipping {
 		return currentListSize + 1;
 	}
 
-	private static Vector3f getNextVertex(List<Vector3f> list, int currentListSize) {
+	private Vector3f getNextVertex(List<Vector3f> list, int currentListSize) {
 		if (list.size() <= currentListSize) {
 			list.add(new Vector3f());
 		}
