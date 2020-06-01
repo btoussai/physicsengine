@@ -34,9 +34,34 @@ public final class Vector2f implements Serializable {
 		set(x, y);
 	}
 
-	public void set(float x, float y) {
+	/**
+	 * 
+	 * @param x
+	 * @param y
+	 * @return this
+	 */
+	public Vector2f set(float x, float y) {
 		this.x = x;
 		this.y = y;
+		return this;
+	}
+	
+	/**
+	 * @param x
+	 * @return this
+	 */
+	public Vector2f setX(float x) {
+		this.x = x;
+		return this;
+	}
+
+	/**
+	 * @param y
+	 * @return this
+	 */
+	public Vector2f setY(float y) {
+		this.y = y;
+		return this;
 	}
 
 	/**

@@ -54,17 +54,10 @@ public class Epsilons {
 	 */
 	public static boolean WARM_START = false;
 
-	public static ContactSolver solver = ContactSolver.SEQUENTIAL_IMPULSE;
-
-	public static ContactType contactType = ContactType.SIMPLE;
+	public static ContactType contactType = ContactType.ARRAY_BASED;
 
 	public enum ContactType {
 		SIMPLE, ARRAY_BASED;
-	}
-
-	public enum ContactSolver {
-		SEQUENTIAL_IMPULSE, PARALLEL_IMPULSE_2, PARALLEL_IMPULSE_3, PARALLEL_IMPULSE_4, PARALLEL_IMPULSE_5,
-		PARALLEL_IMPULSE_6, PARALLEL_IMPULSE_7, PARALLEL_IMPULSE_8;
 	}
 
 	// ############### SUPER STATIC CONSTS BELOW, SHOULDN'T CHANGE ###############

@@ -49,11 +49,11 @@ public class RigidBody extends Identifier {
 		byte setFalse(int flags) {
 			return (byte) (flags & ~(1 << this.ordinal()));
 		}
-		
+
 		void set(RigidBody b, boolean bool) {
-			if(bool) {
+			if (bool) {
 				b.flags = setTrue(b.flags);
-			}else {
+			} else {
 				b.flags = setFalse(b.flags);
 			}
 		}
@@ -161,21 +161,21 @@ public class RigidBody extends Identifier {
 	/**
 	 * Construit un nouveau rigidbody.
 	 * 
-	 * @param transform La position et la rotation de l'objet en world-space.
-	 * @param params    Les param�tres par d�faut.
-	 * @param generator Un g�n�rateur d'ID pour g�n�rer les identifiants de ce
-	 *                  rigidbody et de ses wrappers.
-	 * @param builders  Les enveloppes permettant de calculer les collisions.
+	 * @param transform     La position et la rotation de l'objet en world-space.
+	 * @param params        Les param�tres par d�faut.
+	 * @param bodyGenerator Un g�n�rateur d'ID pour g�n�rer les identifiants de ce
+	 *                      rigidbody et de ses wrappers.
+	 * @param builders      Les enveloppes permettant de calculer les collisions.
 	 */
-	RigidBody(Matrix4f transform, DefaultParameters params, IDGenerator generator, PolyhedralMassProperties poly,
-			WrapperBuilder... builders) {
-		super(generator.nextID());
+	RigidBody(Matrix4f transform, DefaultParameters params, IDGenerator bodyGenerator, IDGenerator wrapperGenerator,
+			PolyhedralMassProperties poly, WrapperBuilder... builders) {
+		super(bodyGenerator.nextID());
 		this.bodyToWorld = new Transform(transform);
 		this.wrappers = new ArrayList<Wrapper>(builders.length);
 		this.anchorPoints = new ArrayList<AnchorPoint>(0);
 
 		for (int i = 0; i < builders.length; i++) {
-			this.wrappers.add(builders[i].build(this, generator.nextID()));
+			this.wrappers.add(builders[i].build(this, wrapperGenerator.nextID()));
 		}
 
 		computeMassProperties(poly);
@@ -209,13 +209,13 @@ public class RigidBody extends Identifier {
 			inv_Iws.setZero();
 		}
 
-		for (int i=0; i<wrappers.size(); i++) {
+		for (int i = 0; i < wrappers.size(); i++) {
 			Wrapper wrapper = wrappers.get(i);
 			Transform.compose(bodyToWorld, wrapper.getTransform(), temp);
 			wrapper.transform(temp);
 		}
 
-		for (int i=0; i<anchorPoints.size(); i++) {
+		for (int i = 0; i < anchorPoints.size(); i++) {
 			AnchorPoint point = anchorPoints.get(i);
 			bodyToWorld.transformVertex(point.getBodySpacePosition(), point.getWorldSpacePosition());
 		}
@@ -312,10 +312,18 @@ public class RigidBody extends Identifier {
 		updateTransform(new Transform());
 	}
 
+	/**
+	 * @return True if the body is subject to external forces such as gravity.
+	 */
 	public boolean isExternalForces() {
 		return SpecialFlags.EXTERNAL_FORCES.get(flags);
 	}
 
+	/**
+	 * Defines is this body is subject to external forces such as gravity.
+	 * 
+	 * @param externalForces
+	 */
 	public void setExternalForces(boolean externalForces) {
 		SpecialFlags.EXTERNAL_FORCES.set(this, externalForces);
 	}
@@ -898,8 +906,8 @@ public class RigidBody extends Identifier {
 		b.flags = flags;
 	}
 
-	RigidBody(DefaultParameters params, IDGenerator generator, RigidBodyRepr b) {
-		super(generator.nextID());
+	RigidBody(DefaultParameters params, IDGenerator bodyGenerator, IDGenerator wrapperGenerator, RigidBodyRepr b) {
+		super(bodyGenerator.nextID());
 		this.bodyToWorld = new Transform(b.bodyToWorld);
 		this.barycentricToWorld.loadFrom(b.barycentricToWorld);
 		this.velocity.set(b.velocity);
@@ -911,7 +919,7 @@ public class RigidBody extends Identifier {
 		this.wrappers = new ArrayList<Wrapper>(b.wrappers.getElementCount());
 
 		for (WrapperRepr w : b.wrappers) {
-			this.wrappers.add(w.build(this, generator.nextID()));
+			this.wrappers.add(w.build(this, wrapperGenerator.nextID()));
 		}
 
 		this.anchorPoints = new ArrayList<AnchorPoint>();
@@ -936,6 +944,15 @@ public class RigidBody extends Identifier {
 		state.bodyToWorld.loadFrom(bodyToWorld);
 		state.velocity.set(getVelocity());
 		state.angularVelocity.set(getAngularVelocity());
+	}
+
+	/**
+	 * @return true if the mass of this body is infinite. A body with infinite mass
+	 *         cannot collide with meshes and ins't affected by collisions with
+	 *         other bodies.
+	 */
+	public boolean isKinematic() {
+		return getInvMass() == 0;
 	}
 
 }

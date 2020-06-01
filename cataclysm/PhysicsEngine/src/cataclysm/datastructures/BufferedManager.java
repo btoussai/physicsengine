@@ -3,6 +3,8 @@ package cataclysm.datastructures;
 import java.util.ArrayList;
 import java.util.List;
 
+import cataclysm.parallel.PhysicsWorkerPool;
+
 /**
  * This class provides buffers to store added and removed elements in order to
  * apply a processing step in the update method before actually adding or
@@ -39,6 +41,28 @@ public abstract class BufferedManager<T extends Identifier> extends Manager<T> {
 	 */
 	protected abstract void processAddedAndRemovedElements(List<T> added, List<T> removed);
 
+	/**
+	 * Performs
+	 */
+	protected abstract void internalUpdate();
+
+	/**
+	 * Same as {@link #processAddedAndRemovedElements(List, List)} but possibly in a
+	 * parallel fashion.
+	 * 
+	 * @param added
+	 * @param removed
+	 * @param workers A group of thread
+	 */
+	protected abstract void processAddedAndRemovedElements(List<T> added, List<T> removed, PhysicsWorkerPool workers);
+
+	/**
+	 * Same as {@link #internalUpdate()} but possibly in a parallel fashion.
+	 * 
+	 * @param workers A group of thread
+	 */
+	protected abstract void internalUpdate(PhysicsWorkerPool workers);
+
 	@Override
 	public void update() {
 		processAddedAndRemovedElements(added, removed);
@@ -50,7 +74,21 @@ public abstract class BufferedManager<T extends Identifier> extends Manager<T> {
 		added.clear();
 		removed.clear();
 
-		super.update();
+		internalUpdate();
+	}
+
+	@Override
+	public void parallelUpdate(PhysicsWorkerPool workers) {
+		processAddedAndRemovedElements(added, removed, workers);
+		removed.forEach(e -> {
+			super.removeElement(e.getID());
+		});
+		added.forEach(e -> super.addElement(e));
+
+		added.clear();
+		removed.clear();
+
+		internalUpdate(workers);
 	}
 
 	@Override

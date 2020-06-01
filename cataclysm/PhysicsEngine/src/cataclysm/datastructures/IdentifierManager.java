@@ -1,5 +1,7 @@
 package cataclysm.datastructures;
 
+import cataclysm.parallel.PhysicsWorkerPool;
+
 /**
  * This class represents an abstract data structure managing identifiers.
  * 
@@ -15,6 +17,13 @@ public interface IdentifierManager<T extends Identifier> extends Iterable<T> {
 	 * Update all the elements
 	 */
 	public void update();
+
+	/**
+	 * Updates all the elements in a parallel fashion
+	 * 
+	 * @param workers A group of thread
+	 */
+	public void parallelUpdate(PhysicsWorkerPool workers);
 
 	/**
 	 * @return The number of elements contained in the data structure

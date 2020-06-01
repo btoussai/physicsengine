@@ -1,6 +1,8 @@
 package cataclysm.broadphase;
 
-import java.util.HashSet;
+import java.util.Set;
+
+import cataclysm.Parallelizable;
 
 /**
  * Représente un noeud du {@link BroadPhaseTree}.
@@ -51,7 +53,8 @@ public class BroadPhaseNode<T> {
 	 * @param box
 	 * @param dest
 	 */
-	void boxTest(AABB box, HashSet<T> dest) {
+	@Parallelizable
+	void boxTest(AABB box, Set<T> dest) {
 
 		if (!AABB.intersect(this.box, box)) {
 			return;

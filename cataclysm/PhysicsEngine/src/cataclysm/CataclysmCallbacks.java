@@ -13,34 +13,39 @@ import cataclysm.wrappers.Wrapper;
  *
  */
 public class CataclysmCallbacks {
-	
+
 	/**
 	 * Cette fonction est appelée dès que deux objets entrent en collision.
 	 */
 	private BiConsumer<Wrapper, Wrapper> onCollision;
-	
+
 	/**
-	 * Cette fonction est appelée dès qu'un objet entre en collision avec un staticmesh.
+	 * Cette fonction est appelée dès qu'un objet entre en collision avec un
+	 * staticmesh.
 	 */
 	private Consumer<Wrapper> onCollisionWithGround;
-	
+
 	public CataclysmCallbacks() {
-		
+
 	}
 
-	public CataclysmCallbacks(BiConsumer<Wrapper, Wrapper> onCollision, Consumer<Wrapper> onCollisionWithGround) {
+	/**
+	 * 
+	 * @param onCollision
+	 * @param onCollisionWithGround
+	 */
+	public CataclysmCallbacks(@Parallelizable BiConsumer<Wrapper, Wrapper> onCollision,
+			@Parallelizable Consumer<Wrapper> onCollisionWithGround) {
 		this.onCollision = onCollision;
 		this.onCollisionWithGround = onCollisionWithGround;
 	}
 
-	public BiConsumer<Wrapper, Wrapper> getOnCollision() {
+	public @Parallelizable BiConsumer<Wrapper, Wrapper> getOnCollision() {
 		return onCollision;
 	}
 
-	public Consumer<Wrapper> getOnCollisionWithGround() {
+	public @Parallelizable Consumer<Wrapper> getOnCollisionWithGround() {
 		return onCollisionWithGround;
 	}
-	
-	
 
 }

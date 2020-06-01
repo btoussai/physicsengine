@@ -5,9 +5,11 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import cataclysm.DefaultParameters;
+import cataclysm.Parallelizable;
 import cataclysm.PhysicsWorld;
 import cataclysm.broadphase.AABB;
 import cataclysm.datastructures.BufferedManager;
+import cataclysm.parallel.PhysicsWorkerPool;
 import cataclysm.record.StaticMeshRepr;
 import math.vector.Matrix4f;
 import math.vector.Vector3f;
@@ -32,7 +34,7 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh> {
 		this.params = world.getParameters();
 		this.mapGrid = new MapGrid(params.getGridCellSize(), params.getMaxOctreeDepth());
 	}
-	
+
 	public StaticMeshManager(DefaultParameters params) {
 		this.world = null;
 		this.params = params;
@@ -87,6 +89,7 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh> {
 	 * @param box
 	 * @param dest
 	 */
+	@Parallelizable
 	public void boxTest(AABB box, HashSet<Triangle> dest) {
 		mapGrid.boxTest(box, dest);
 	}
@@ -170,6 +173,17 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh> {
 
 	public void setCallbackOnRemove(Consumer<StaticMesh> callbackOnRemove) {
 		this.callbackOnRemove = callbackOnRemove;
+	}
+
+	@Override
+	protected void processAddedAndRemovedElements(List<StaticMesh> added, List<StaticMesh> removed,
+			PhysicsWorkerPool workers) {
+		processAddedAndRemovedElements(added, removed);
+	}
+
+	@Override
+	protected void internalUpdate(PhysicsWorkerPool workers) {
+		internalUpdate();
 	}
 
 }

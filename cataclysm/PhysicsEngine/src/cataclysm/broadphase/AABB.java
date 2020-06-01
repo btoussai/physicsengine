@@ -3,7 +3,7 @@ package cataclysm.broadphase;
 import math.vector.Vector3f;
 
 /**
- * Repr�sente une bo�te align�e sur les axes xyz.
+ * Defines a box aligned on the axes xyz
  * 
  * @author Briac
  *
@@ -19,23 +19,30 @@ public class AABB {
 	private float surfaceArea = 0;
 
 	/**
-	 * Initialise l'AABB avec min = max = vec3(0, 0, 0);
+	 * Initializes the box with min = max = vec3(0, 0, 0);
 	 */
 	public AABB() {
 
 	}
 
 	/**
-	 * Construit une AABB � partir d'un point central et d'une taille. <br>
-	 * L'AABB mesurera 2*radius selon chaque direction.
+	 * Builds an AABB from a center point and an extent along each axis. <br>
+	 * Its size will be 2*radius along each axis.
 	 * 
-	 * @param center
-	 * @param radius
+	 * @param center The center position of the AABB
+	 * @param radius The extent of the AABB
 	 */
 	public AABB(Vector3f center, float radius) {
 		set(center, radius);
 	}
-	
+
+	/**
+	 * Sets this AABB from a center point and an extent along each axis. <br>
+	 * Its size will be 2*radius along each axis.
+	 * 
+	 * @param center The center position of the AABB
+	 * @param radius The extent of the AABB
+	 */
 	public void set(Vector3f center, float radius) {
 		minX = center.x - radius;
 		minY = center.y - radius;
@@ -46,11 +53,12 @@ public class AABB {
 	}
 
 	/**
-	 * Teste si cette AABB contient entièrement other.<br>
-	 * Note: {@code this.contains(this)} vaut toujours true.
+	 * Checks if this contains other entirely but not strictly (the sides can have
+	 * equal values). <br>
+	 * Note: {@code this.contains(this)} is always true.
 	 * 
 	 * @param other
-	 * @return true si other est à l'intérieur de cette AABB.
+	 * @return true if other is inside this.
 	 */
 	public boolean contains(AABB other) {
 		if (minX <= other.minX && maxX >= other.maxX) {
@@ -64,31 +72,32 @@ public class AABB {
 	}
 
 	/**
-	 * Calcule l'union de deux AABB.
+	 * Computes the union of two AABBs.
 	 * 
 	 * @param left
 	 * @param right
-	 * @return l'AABB la plus petite telle que left & right soient comprises �
-	 *         l'int�rieur.
+	 * @return The smallest AABB containing both left and right
 	 */
 	public static AABB union(AABB left, AABB right) {
 		AABB dest = new AABB();
 		union(left, right, dest);
 		return dest;
 	}
-	
+
 	private static float min(float a, float b) {
 		return a < b ? a : b;
 	}
+
 	private static float max(float a, float b) {
 		return a > b ? a : b;
 	}
+
 	/**
-	 * Calcule l'union de deux AABB et place le r�sultat dans dest.
+	 * Computes the union of two AABBs and puts the result in dest.
 	 * 
 	 * @param left
 	 * @param right
-	 * @param dest
+	 * @param dest  The smallest AABB containing both left and right
 	 */
 	public static void union(AABB left, AABB right, AABB dest) {
 		dest.minX = min(left.minX, right.minX);
@@ -100,6 +109,14 @@ public class AABB {
 		dest.computeSurfaceArea();
 	}
 
+	/**
+	 * Checks if left and right have a non-empty intersection using strict
+	 * comparisons.
+	 * 
+	 * @param left
+	 * @param right
+	 * @return
+	 */
 	public static boolean intersect(AABB left, AABB right) {
 		if (left.maxX > right.minX && left.minX < right.maxX) {
 			if (left.maxZ > right.minZ && left.minZ < right.maxZ) {
@@ -111,10 +128,18 @@ public class AABB {
 		return false;
 	}
 
+	/**
+	 * @return the surface area of this AABB
+	 */
 	float getSurfaceArea() {
 		return surfaceArea;
 	}
 
+	/**
+	 * Updates the surface area of this AABB
+	 * 
+	 * @return the new surface area
+	 */
 	public float computeSurfaceArea() {
 		float dx = maxX - minX;
 		float dy = maxY - minY;

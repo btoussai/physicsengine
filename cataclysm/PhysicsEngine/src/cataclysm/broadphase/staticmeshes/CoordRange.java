@@ -1,7 +1,7 @@
 package cataclysm.broadphase.staticmeshes;
 
 /**
- * Représente un itervalle entre deux coordonnées entières en 3D.
+ * Reprï¿½sente un itervalle entre deux coordonnï¿½es entiï¿½res en 3D.
  * 
  * @author Briac
  *
@@ -10,19 +10,23 @@ class CoordRange {
 
 	private final Coord start = new Coord(0, 0, 0);
 	private final Coord end = new Coord(0, 0, 0);
+	private final Coord iterator = new Coord(0, 0, 0);
 
 	private int x;
 	private int y;
 	private int z;
 	private int count;
 
-	public CoordRange(Coord start, Coord end) {
-		setFrom(start, end);
+	public CoordRange() {
+		
 	}
-
-	public void setFrom(Coord start, Coord end) {
-		this.start.set(start);
-		this.end.set(end);
+	
+	public void setStart(int x, int y, int z) {
+		start.set(x, y, z);
+	}
+	
+	public void setStop(int x, int y, int z) {
+		end.set(x, y, z);
 	}
 
 	public void startIteration() {
@@ -32,12 +36,12 @@ class CoordRange {
 		count = (end.getX() - x + 1) * (end.getY() - y + 1) * (end.getZ() - z + 1);
 	}
 
-	public boolean next(Coord dest) {
+	public boolean next() {
 		if (count == 0) {
 			return false;
 		}
 
-		dest.set(x, y, z);
+		iterator.set(x, y, z);
 		count--;
 
 		if (count != 0) {
@@ -53,6 +57,10 @@ class CoordRange {
 		}
 
 		return true;
+	}
+	
+	public Coord getIterator() {
+		return iterator;
 	}
 
 	@Override

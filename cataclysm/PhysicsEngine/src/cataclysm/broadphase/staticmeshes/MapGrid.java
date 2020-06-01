@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import cataclysm.Parallelizable;
 import cataclysm.broadphase.AABB;
 import math.vector.Vector2f;
 import math.vector.Vector3f;
@@ -28,11 +29,6 @@ class MapGrid {
 	private final Vector3f axis = new Vector3f();
 	private final Vector3f[] edges = new Vector3f[3];
 
-	private final Coord iterator = new Coord(0, 0, 0);
-	private final Coord start = new Coord(0, 0, 0);
-	private final Coord end = new Coord(0, 0, 0);
-	private final CoordRange range = new CoordRange(start, end);
-
 	public MapGrid(float cellSize, int maxOctreeDepth) {
 		this.GRID_CELL_SIZE = cellSize;
 		this.maxOctreeDepth = maxOctreeDepth;
@@ -51,13 +47,14 @@ class MapGrid {
 	 * @param mesh
 	 */
 	void add(StaticMesh mesh) {
-
-		getCoordRange(mesh);
+		CoordRange range = new CoordRange();
+		
+		getCoordRange(mesh, range);
 		range.startIteration();
-		while (range.next(iterator)) {
-			OctreeBase base = grid.get(iterator);
+		while (range.next()) {
+			OctreeBase base = grid.get(range.getIterator());
 			if (base == null) {
-				base = new OctreeBase(GRID_CELL_SIZE, iterator, maxOctreeDepth);
+				base = new OctreeBase(GRID_CELL_SIZE, range.getIterator(), maxOctreeDepth);
 				grid.put(base.coord, base);
 			}
 
@@ -83,11 +80,11 @@ class MapGrid {
 	 * @param mesh
 	 */
 	void remove(StaticMesh mesh) {
-
-		getCoordRange(mesh);
+		CoordRange range = new CoordRange();
+		getCoordRange(mesh, range);
 		range.startIteration();
-		while (range.next(iterator)) {
-			OctreeBase base = grid.get(iterator);
+		while (range.next()) {
+			OctreeBase base = grid.get(range.getIterator());
 			if (base == null) {
 				continue;
 			}
@@ -123,6 +120,7 @@ class MapGrid {
 	 * @return la distance du premier triangle touché ou maxLength si aucun triangle
 	 *         n'a été trouvé.
 	 */
+	@Parallelizable
 	float rayTest(Vector3f start, Vector3f dir, float maxLength, boolean backfaceCulling, Vector3f normalDest) {
 		
 		Vector2f intersectionTime = new Vector2f();
@@ -154,11 +152,13 @@ class MapGrid {
 	 * @param box
 	 * @param dest
 	 */
+	@Parallelizable
 	void boxTest(AABB box, HashSet<Triangle> dest) {
-		getCoordRange(box);
+		CoordRange range = new CoordRange();
+		getCoordRange(box, range);
 		range.startIteration();
-		while (range.next(iterator)) {
-			OctreeBase base = grid.get(iterator);
+		while (range.next()) {
+			OctreeBase base = grid.get(range.getIterator());
 			if (base != null) {
 				base.rootCell.boxTest(box, dest);
 			}
@@ -181,14 +181,15 @@ class MapGrid {
 	 */
 	void exploreOctree(List<OctreeCellRenderable> boxes, int maxDepth, boolean leavesOnly, boolean nonVoidBoxes,
 			Vector3f position) {
-		getCoord(position, iterator);
-		OctreeBase base = grid.get(iterator);
+		Coord coord = new Coord(0, 0, 0);
+		getCoord(position, coord);
+		OctreeBase base = grid.get(coord);
 		if (base != null) {
 			base.rootCell.exploreHierarchy(boxes, maxDepth, leavesOnly, nonVoidBoxes);
 		}
 	}
 
-	private void getCoordRange(StaticMesh mesh) {
+	private void getCoordRange(StaticMesh mesh, CoordRange range) {
 
 		int minX = toGridCoord(mesh.min.x);
 		int minY = toGridCoord(mesh.min.y);
@@ -198,12 +199,11 @@ class MapGrid {
 		int maxY = toGridCoord(mesh.max.y);
 		int maxZ = toGridCoord(mesh.max.z);
 
-		start.set(minX, minY, minZ);
-		end.set(maxX, maxY, maxZ);
-		range.setFrom(start, end);
+		range.setStart(minX, minY, minZ);
+		range.setStop(maxX, maxY, maxZ);
 	}
 	
-	private void getCoordRange(AABB box) {
+	private void getCoordRange(AABB box, CoordRange range) {
 
 		int minX = toGridCoord(box.minX);
 		int minY = toGridCoord(box.minY);
@@ -213,13 +213,12 @@ class MapGrid {
 		int maxY = toGridCoord(box.maxY);
 		int maxZ = toGridCoord(box.maxZ);
 
-		start.set(minX, minY, minZ);
-		end.set(maxX, maxY, maxZ);
-		range.setFrom(start, end);
+		range.setStart(minX, minY, minZ);
+		range.setStop(maxX, maxY, maxZ);
 	}
 
 	/**
-	 * Calcule la position dans la grille du point. Stocke le r�sultat dans dest
+	 * Calcule la position dans la grille du point. Stocke le résultat dans dest
 	 * 
 	 * @param position
 	 * @param dest

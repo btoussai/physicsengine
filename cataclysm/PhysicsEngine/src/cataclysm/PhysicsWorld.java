@@ -49,7 +49,7 @@ public class PhysicsWorld {
 	 * Le moteur physique permettant de simuler les contacts et les contraintes
 	 * entre les corps.
 	 */
-	private final PhysicsEngine engine;
+	private final AbstractPhysicsEngine engine;
 
 	/**
 	 * Des statistiques sur la simulation.
@@ -72,15 +72,25 @@ public class PhysicsWorld {
 	private List<PhysicsPlayer> recordPlayers;
 
 	/**
-	 * Instancie un nouveau monde pour simuler de la physique.
+	 * Build a new world in which physics will be simulated
 	 * 
-	 * @param params Les paramètres par défaut.
+	 * @param params      The default parameters of the simulation.
+	 * @param threadCount The number of threads used to update the simulation. Must
+	 *                    be > 0
 	 */
-	public PhysicsWorld(DefaultParameters params) {
+	public PhysicsWorld(DefaultParameters params, int threadCount) {
+		if (threadCount <= 0)
+			throw new IllegalArgumentException("Invalid thread count, should be > 0, got " + threadCount);
 		this.params = params;
 		meshes = new StaticMeshManager(this);
-		bodies = new RigidBodyManager(this, meshes, stats);
-		engine = new PhysicsEngine(this);
+		if (threadCount == 1) {
+			bodies = new RigidBodyManager(this, meshes, stats);
+			engine = new PhysicsEngine(this);
+		} else {
+			engine = new ParallelPhysicsEngine(this, threadCount);
+			bodies = new RigidBodyManager(this, meshes, stats, ((ParallelPhysicsEngine) engine).getWorkers());
+		}
+		stats.reset(0, 0, 0, threadCount);
 	}
 
 	/**
@@ -405,6 +415,29 @@ public class PhysicsWorld {
 
 	public List<PhysicsPlayer> getRecordPlayers() {
 		return recordPlayers;
+	}
+
+	/**
+	 * @return The number of threads updating the simulation
+	 */
+	public int getThreadCount() {
+		return stats.threads;
+	}
+
+	/**
+	 * @return The current time step
+	 */
+	public float getTimeStep() {
+		return this.params.getTimeStep();
+	}
+
+	/**
+	 * Sets the time step used at each update of the simulation
+	 * 
+	 * @param timeStep
+	 */
+	public void setTimeStep(float timeStep) {
+		this.params.setTimeStep(timeStep);
 	}
 
 }

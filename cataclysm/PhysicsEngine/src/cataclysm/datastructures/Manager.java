@@ -22,18 +22,6 @@ public abstract class Manager<T extends Identifier> implements IdentifierManager
 	public Manager() {
 
 	}
-	/**
-	 * Update all the elements
-	 */
-	@Override
-	public void update() {
-		internalUpdate();
-	}
-
-	/**
-	 * Custom update function
-	 */
-	protected abstract void internalUpdate();
 
 	@Override
 	public int size() {

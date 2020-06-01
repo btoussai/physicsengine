@@ -38,7 +38,7 @@ public class PhysicsStats {
 		private final TimeUnit unit;
 		private final String name;
 		private final long[] history;
-		private double average = Double.POSITIVE_INFINITY;
+		private double average = 0.0;
 		private double std = 0.0;
 
 		public TimeAverage(TimeUnit unit, String name, int length) {
@@ -105,17 +105,17 @@ public class PhysicsStats {
 
 		public String display(double totalNanoSec, boolean percentage) {
 			if (percentage) {
-				return name + ": " + String.format("%4.2f", average / totalNanoSec * 100.0) + "%" + " +/-"
+				return name + ": " + String.format("%4.1f", average / totalNanoSec * 100.0) + "%" + " +/-"
 						+ String.format("%4.1f", 100.0 * std / totalNanoSec) + "%";
 			} else {
-				return name + ": " + String.format("%4.2f", unit.toUnit(average)) + unit.getUnitRepr() + " +/-"
+				return name + ": " + String.format("%4.1f", unit.toUnit(average)) + unit.getUnitRepr() + " +/-"
 						+ String.format("%4.1f", unit.toUnit(std)) + unit.getUnitRepr();
 			}
 		}
 
 		@Override
 		public String toString() {
-			return name + ": " + String.format("%4.3f", unit.toUnit(average)) + unit.getUnitRepr();
+			return name + ": " + String.format("%4.1f", unit.toUnit(average)) + unit.getUnitRepr();
 		}
 	}
 
@@ -128,6 +128,7 @@ public class PhysicsStats {
 	private int rigidBodies;
 	private int staticMeshes;
 	private int constraints;
+	public int threads;
 
 	public int bodyToBodyContacts;
 	public int bodyToBodyActiveContacts;
@@ -150,17 +151,19 @@ public class PhysicsStats {
 		this.elapsedTime += timeStep;
 	}
 
-	public void reset(int rigidBodies, int staticMeshes, int constraints) {
+	public void reset(int rigidBodies, int staticMeshes, int constraints, int threads) {
 		this.rigidBodies = rigidBodies;
 		this.staticMeshes = staticMeshes;
 		this.constraints = constraints;
+		this.threads = threads;
 	}
 
 	@Override
 	public String toString() {
 		boolean percentage = false;
-		
-		StringBuilder sb = new StringBuilder("\nPhysicsWorld " + globalUpdate + " [\n");
+
+		StringBuilder sb = new StringBuilder(
+				"PhysicsWorld " + globalUpdate + " (" + threads + " thread(s)) [ \n");
 		if (physicsRecorder.getDeltaNanos() != 0)
 			sb.append("\t" + physicsRecorder.display(globalUpdate.average, percentage) + "\n");
 		if (physicsPlayers.getDeltaNanos() != 0)

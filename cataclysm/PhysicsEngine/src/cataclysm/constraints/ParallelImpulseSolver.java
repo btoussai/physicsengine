@@ -3,13 +3,13 @@ package cataclysm.constraints;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
-import java.util.function.Consumer;
 
 import cataclysm.Epsilons;
 import cataclysm.contact_creation.AbstractDoubleBodyContact;
 import cataclysm.contact_creation.AbstractSingleBodyContact;
+import cataclysm.parallel.PhysicsWork;
+import cataclysm.parallel.PhysicsWorkerPool;
+import cataclysm.parallel.PhysicsWorkerThread;
 import math.vector.Vector3f;
 
 /**
@@ -20,99 +20,13 @@ import math.vector.Vector3f;
  *
  */
 public class ParallelImpulseSolver implements ConstraintSolver {
-
+	
 	private static final boolean DEBUG = false;
-
-	private static class WorkerThread extends Thread {
-
-		private final Object monitor = new Object();
-		private final int threadIndex;
-		private final CyclicBarrier allTerminated;
-		private boolean shouldExit = false;
-		private Consumer<WorkerThread> work;
-
-		private int doubleBodyContacts = 0;
-		private int singleBodyContacts = 0;
-		private int constraints = 0;
-
-		public WorkerThread(int threadIndex, CyclicBarrier allTerminated) {
-			this.threadIndex = threadIndex;
-			this.allTerminated = allTerminated;
-			setDaemon(true);
-			setName("ParallelImpulseSolver " + threadIndex);
-			setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-
-				@Override
-				public void uncaughtException(Thread t, Throwable e) {
-					System.err.println("Exception in thread i=" + threadIndex);
-					e.printStackTrace();
-				}
-			});
-		}
-
-		@Override
-		public void run() {
-
-			while (!shouldExit) {
-				waitLoop();
-				if (shouldExit) {
-					break;
-				}
-				work.accept(this);
-				work = null;
-				try {
-					allTerminated.await();
-				} catch (InterruptedException | BrokenBarrierException e) {
-					e.printStackTrace();
-				}
-			}
-
-		}
-
-		private void waitLoop() {
-			while (work == null && !shouldExit) {
-				synchronized (monitor) {
-					try {
-						monitor.wait();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}
-
-		public void setWorkAndWake(Consumer<WorkerThread> work) {
-			this.work = work;
-			synchronized (monitor) {
-				monitor.notify();
-			}
-		}
-
-		public void shouldExit() {
-			shouldExit = true;
-			monitor.notify();
-		}
-
-	}
-
-	private final int threadCount;
-
-	private final List<WorkerThread> threads;
-	private final CyclicBarrier allTerminated;
-	private final CyclicBarrier groupBarrier;
-
-	public ParallelImpulseSolver(int threadCount) {
-		this.threadCount = threadCount;
-		threads = new ArrayList<WorkerThread>(threadCount);
-		allTerminated = new CyclicBarrier(threadCount + 1);
-		groupBarrier = new CyclicBarrier(threadCount);
-
-		for (int i = 0; i < threadCount; i++) {
-			WorkerThread worker = new WorkerThread(i, allTerminated);
-			threads.add(worker);
-			worker.start();
-		}
-
+	
+	private final PhysicsWorkerPool workers;
+	
+	public ParallelImpulseSolver(PhysicsWorkerPool workers) {
+		this.workers = workers;
 	}
 
 	@Override
@@ -120,62 +34,53 @@ public class ParallelImpulseSolver implements ConstraintSolver {
 			List<AbstractDoubleBodyContact> activeBodyContacts, List<AbstractConstraint> constraints, float timeStep,
 			int MAX_ITERATIONS_POSITION, int MAX_ITERATIONS_VELOCITY) {
 
-		for (int i = 0; i < threadCount; i++) {
-			final int threadIndex = i;
-			final List<AbstractSingleBodyContact> meshes = buildSubList(activeMeshContacts, threadIndex, threadCount);
-			final List<AbstractDoubleBodyContact> bodies = buildSubList(activeBodyContacts, threadIndex, threadCount);
+		List<PhysicsWork> tasks = new ArrayList<>();
+		for (int i = 0; i < workers.getThreadCount(); i++) {
+			final List<AbstractSingleBodyContact> meshes = workers.buildSubList(activeMeshContacts, i);
+			final List<AbstractDoubleBodyContact> bodies = workers.buildSubList(activeBodyContacts, i);
 			final List<AbstractConstraint> constraintsSubList;
 			
-			if(threadIndex == 0) {
+			if(i == 0) {
 				constraintsSubList = constraints;
 			}else {
 				constraintsSubList = Collections.emptyList();
 			}
 			
-			Consumer<WorkerThread> work = (worker) -> solve(meshes, bodies, constraintsSubList, timeStep,
-					MAX_ITERATIONS_POSITION, MAX_ITERATIONS_VELOCITY, worker);
+			tasks.add(new PhysicsWork() {
 
-			threads.get(i).setWorkAndWake(work);
+				@Override
+				public void run(PhysicsWorkerThread physicsWorkerThread) {
+					solve(meshes, bodies, constraintsSubList, timeStep,
+							MAX_ITERATIONS_POSITION, MAX_ITERATIONS_VELOCITY, physicsWorkerThread);
+				}
+				
+			});
+
 		}
 
-		try {
-			allTerminated.await();
-		} catch (InterruptedException | BrokenBarrierException e) {
-			e.printStackTrace();
-		}
+		workers.scheduleWork(tasks);
 	}
 
 	private void solve(List<AbstractSingleBodyContact> activeMeshContacts,
 			List<AbstractDoubleBodyContact> activeBodyContacts, List<AbstractConstraint> constraints, float timeStep,
-			int MAX_ITERATIONS_POSITION, int MAX_ITERATIONS_VELOCITY, WorkerThread worker) {
+			int MAX_ITERATIONS_POSITION, int MAX_ITERATIONS_VELOCITY, PhysicsWorkerThread worker) {
 
 		// the velocity must be solved first, since the position correction needs data
 		// computed during the velocity step.
 		for (int iteration = 0; iteration < MAX_ITERATIONS_VELOCITY; iteration++) {
 			solveVelocity(activeMeshContacts, activeBodyContacts, constraints, timeStep, iteration);
-			try {
-				groupBarrier.await();
-			} catch (InterruptedException | BrokenBarrierException e) {
-				e.printStackTrace();
-			}
+			worker.waitForGroup();
 		}
 
 		for (int iteration = 0; iteration < MAX_ITERATIONS_POSITION; iteration++) {
 			solvePosition(activeMeshContacts, activeBodyContacts, constraints, timeStep, iteration == 0);
-			try {
-				groupBarrier.await();
-			} catch (InterruptedException | BrokenBarrierException e) {
-				e.printStackTrace();
-			}
+			worker.waitForGroup();
 		}
 
-		worker.doubleBodyContacts = activeBodyContacts.size();
-		worker.singleBodyContacts = activeMeshContacts.size();
-		worker.constraints = constraints.size();
 
 		if (DEBUG)
-			System.err.println(" ID: " + worker.threadIndex + " DoubleBodies: " + worker.doubleBodyContacts
-					+ " SingleBodies: " + worker.singleBodyContacts + " Constraints: " + worker.constraints);
+			System.err.println(" ID: " + worker.getThreadIndex() + " DoubleBodies: " + activeBodyContacts.size()
+					+ " SingleBodies: " + activeMeshContacts.size() + " Constraints: " + constraints.size());
 	}
 
 	/**
@@ -284,30 +189,9 @@ public class ParallelImpulseSolver implements ConstraintSolver {
 		}
 
 	}
-
-	private static <E> List<E> buildSubList(List<E> list, int threadIndex, int threadCount) {
-		long slice = arraySlice(list.size(), threadIndex, threadCount);
-		int start = (int) (slice >> 32);
-		int stop = (int) slice;
-		return list.subList(start, stop);
-	}
-
-	private static long arraySlice(int arrayLength, int threadIndex, int threadCount) {
-		int size = arrayLength / threadCount;
-		int start = size * threadIndex;
-		int stop = start + size;
-		if (threadIndex + 1 == threadCount) {
-			stop = arrayLength;
-		}
-		return ((long) start) << 32 | stop;
-	}
-
-	public void cleanUp() {
-		for (int i = 0; i < threadCount; i++) {
-			WorkerThread thread = threads.get(i);
-			thread.shouldExit();
-		}
-		threads.clear();
+	
+	public PhysicsWorkerPool getWorkers() {
+		return workers;
 	}
 
 }

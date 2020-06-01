@@ -2,7 +2,7 @@ package cataclysm.contact_creation;
 
 import cataclysm.wrappers.Wrapper;
 
-public abstract class AbstractDoubleBodyContact extends AbstractContact{
+public abstract class AbstractDoubleBodyContact extends AbstractContact {
 
 	protected Wrapper wrapperA;
 	protected Wrapper wrapperB;
@@ -12,14 +12,13 @@ public abstract class AbstractDoubleBodyContact extends AbstractContact{
 	 * à jour le contact.
 	 */
 	private boolean updateFlag = false;
-	
-	
+
 	public AbstractDoubleBodyContact(int maxContacts, Wrapper wrapperA, Wrapper wrapperB) {
 		super(maxContacts);
 		this.wrapperA = wrapperA;
 		this.wrapperB = wrapperB;
 	}
-	
+
 	/**
 	 * Cette fonction est utilisée pour réassigner ce contact à un nouveau couple de
 	 * wrappers en collision.
@@ -33,7 +32,7 @@ public abstract class AbstractDoubleBodyContact extends AbstractContact{
 		super.getContactArea().resetState();
 		resetImpulses();
 	}
-	
+
 	public Wrapper getWrapperA() {
 		return wrapperA;
 	}
@@ -42,12 +41,10 @@ public abstract class AbstractDoubleBodyContact extends AbstractContact{
 		return wrapperB;
 	}
 
-	public boolean getUpdateFlag() {
-		return updateFlag;
-	}
-	
-	public void setUpdateFlag(boolean updateFlag) {
-		this.updateFlag = updateFlag;
+	public boolean getUpdateFlagAndFlip() {
+		boolean prev = updateFlag;
+		updateFlag = !prev;
+		return prev;
 	}
 
 	public void wakeUp() {
@@ -55,6 +52,13 @@ public abstract class AbstractDoubleBodyContact extends AbstractContact{
 		this.wrapperA.getBody().setSleepCounter(0);
 		this.wrapperB.getBody().setSleeping(false);
 		this.wrapperB.getBody().setSleepCounter(0);
+	}
+
+	public Wrapper getOther(Wrapper w) {
+		if (w != wrapperA && w != wrapperB) {
+			throw new IllegalArgumentException("Argument must be in the pair of wrappers of this contact");
+		}
+		return w == wrapperA ? wrapperB : wrapperA;
 	}
 
 }

@@ -6,12 +6,15 @@ import java.util.function.Consumer;
 
 import cataclysm.PhysicsStats;
 import cataclysm.PhysicsWorld;
+import cataclysm.broadphase.BroadPhaseTree;
 import cataclysm.broadphase.staticmeshes.StaticMeshManager;
 import cataclysm.constraints.AbstractConstraint;
 import cataclysm.constraints.AnchorPoint;
 import cataclysm.contact_creation.AbstractDoubleBodyContact;
 import cataclysm.contact_creation.AbstractSingleBodyContact;
 import cataclysm.datastructures.BufferedManager;
+import cataclysm.datastructures.IDGenerator;
+import cataclysm.parallel.PhysicsWorkerPool;
 import cataclysm.record.RigidBodyRepr;
 import math.vector.Matrix4f;
 
@@ -23,7 +26,7 @@ import math.vector.Matrix4f;
  */
 public class RigidBodyManager extends BufferedManager<RigidBody> {
 
-	private final RigidBodyManagerUpdate updator;
+	private final BodyUpdator updator;
 
 	private final PhysicsWorld world;
 
@@ -32,6 +35,8 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 	private final PhysicsStats stats;
 
 	private final PolyhedralMassProperties poly = new PolyhedralMassProperties();
+	
+	private final IDGenerator wrapperGenerator = new IDGenerator();
 
 	/**
 	 * La liste des contacts Wrapper vs Triangle donnant lieu à une pénétration des
@@ -46,7 +51,7 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 	private final List<AbstractDoubleBodyContact> bodyContacts = new ArrayList<AbstractDoubleBodyContact>();
 
 	private Consumer<RigidBody> callbackOnAdd;
-	
+
 	private Consumer<RigidBody> callbackOnRemove;
 
 	public RigidBodyManager(PhysicsWorld world, StaticMeshManager meshes, PhysicsStats stats) {
@@ -54,6 +59,15 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 		this.meshes = meshes;
 		this.stats = stats;
 		this.updator = new RigidBodyManagerUpdate(world.getParameters().getCollisionFilter(),
+				world.getParameters().getPadding());
+	}
+
+	public RigidBodyManager(PhysicsWorld world, StaticMeshManager meshes, PhysicsStats stats,
+			PhysicsWorkerPool workers) {
+		this.world = world;
+		this.meshes = meshes;
+		this.stats = stats;
+		this.updator = new RigidBodyManagerParallelUpdate(workers, world.getParameters().getCollisionFilter(),
 				world.getParameters().getPadding());
 	}
 
@@ -66,13 +80,13 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 	 * @return L'objet nouvellement créé.
 	 */
 	public RigidBody newBody(Matrix4f transform, WrapperBuilder... builders) {
-		RigidBody body = new RigidBody(transform, world.getParameters(), this.generator, poly, builders);
+		RigidBody body = new RigidBody(transform, world.getParameters(), this.generator, wrapperGenerator, poly, builders);
 		addElement(body);
 		return body;
 	}
 
 	public RigidBody newBody(RigidBodyRepr repr) {
-		RigidBody body = new RigidBody(world.getParameters(), this.generator, repr);
+		RigidBody body = new RigidBody(world.getParameters(), this.generator, wrapperGenerator, repr);
 		addElement(body);
 		return body;
 	}
@@ -151,6 +165,7 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 	@Override
 	public void cleanUp() {
 		super.cleanUp();
+		wrapperGenerator.reset();
 	}
 
 	public Consumer<RigidBody> getCallbackOnAdd() {
@@ -168,5 +183,30 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 	public void setCallbackOnRemove(Consumer<RigidBody> callbackOnRemove) {
 		this.callbackOnRemove = callbackOnRemove;
 	}
-	
+
+	public List<RigidBody> getElements() {
+		return super.elements;
+	}
+
+	@Override
+	protected void processAddedAndRemovedElements(List<RigidBody> added, List<RigidBody> removed,
+			PhysicsWorkerPool workers) {
+		processAddedAndRemovedElements(added, removed);
+	}
+
+	@Override
+	protected void internalUpdate(PhysicsWorkerPool workers) {
+		internalUpdate();
+	}
+
+	/**
+	 * 
+	 * @param i
+	 * @return The i-th bvh of the body manager. There are as many bvhs as there are
+	 *         threads.
+	 */
+	public BroadPhaseTree<Wrapper> getBVH(int i) {
+		return updator.getBVH(i);
+	}
+
 }

@@ -2,22 +2,29 @@ package cataclysm.broadphase;
 
 import java.util.ArrayDeque;
 import java.util.HashSet;
+import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Set;
+
+import cataclysm.Parallelizable;
 
 /**
- * Représente un arbre dont les noeuds sont des {@link BroadPhaseNode}. L'arbre
- * représente une BVH (Bounding Volume Hierarchy). Il s'agit d'un arbre binaire
- * dans lequel chaque noeud est une AABB englobant tous ses noeuds fils.
+ * Defines a binary tree whose nodes are {@link BroadPhaseNode}. The tree is a
+ * BVH (Bounding Volume Hierarchy), where each node is an AABB containing its
+ * children nodes. <br>
  * 
  * @author Briac
- * @param <T>
+ * @param <T> The leaf nodes have a reference to an object of type T
  *
  */
 public class BroadPhaseTree<T> {
 
 	private static final boolean DEBUG = false;
 
+	/**
+	 * The root node of the tree. It contains every other node of the tree.
+	 */
 	private BroadPhaseNode<T> root;
 	private BroadPhaseNode<T> tempNode;
 
@@ -26,9 +33,9 @@ public class BroadPhaseTree<T> {
 			(left, right) -> Float.compare(left.cost, right.cost));
 
 	/**
-	 * Ajoute un noeud dans l'arbre.
+	 * Adds a node in the tree
 	 * 
-	 * @param node Le noeud à insérer.
+	 * @param node The node to be inserted
 	 */
 	public void add(BroadPhaseNode<T> node) {
 
@@ -40,6 +47,12 @@ public class BroadPhaseTree<T> {
 		add(node, root);
 	}
 
+	/**
+	 * Adds a node in the tree.
+	 * 
+	 * @param node     The node to be inserted
+	 * @param ancestor A node containing the new node or the root node
+	 */
 	private void add(BroadPhaseNode<T> node, BroadPhaseNode<T> ancestor) {
 
 		// Stage 1: find the best sibling for the new leaf
@@ -83,10 +96,9 @@ public class BroadPhaseTree<T> {
 	}
 
 	/**
+	 * Removes a leaf of the tree
 	 * 
-	 * Supprime une feuille de l'arbre.
-	 * 
-	 * @param node Le noeud à retirer.
+	 * @param node The node to be removed
 	 */
 	public void remove(BroadPhaseNode<T> node) {
 		if (node.parent == null) {
@@ -136,64 +148,68 @@ public class BroadPhaseTree<T> {
 	}
 
 	/**
-	 * Met à jour un noeud. Si le noeud est nouveau, il est inséré dans l'arbre.
+	 * Updates a node. If the node is new, it will be inserted in the tree instead.
 	 * 
 	 * @param node
 	 */
 	public void update(BroadPhaseNode<T> node) {
-		if(node.parent == null) {
+		BroadPhaseNode<T> ancestor = node.parent;
+
+		if (ancestor == null) {
 			remove(node);
 			add(node);
 			return;
 		}
 
 		AABB box = node.getBox();
-		BroadPhaseNode<T> ancestor = node.parent;
-		
-		if(ancestor.box.contains(box)) {
+
+		if (ancestor.box.contains(box)) {
+			// no need to update anything
 			return;
 		}
-		
-		ancestor = ancestor.parent;
-		while (ancestor != null) {
-			if (ancestor.box.contains(box)) {
-				break;
-			} else {
-				ancestor = ancestor.parent;
-			}
-		}
 
-		if (ancestor == null) {
+		// check if the box is at least contained within the root box
+		if (!root.box.contains(box)) {
 			remove(node);
 			add(node);
-		} else {
-			remove(node);
-			add(node, ancestor);
+			return;
 		}
+
+		// walk up the hierarchy until the box is contained in a parent box.
+		do {
+			ancestor = ancestor.parent;
+		} while (!ancestor.box.contains(box));
+
+		remove(node);
+		add(node, ancestor);
 
 	}
 
 	public void rayTest() {
-
+		throw new IllegalStateException("Not implemented");
 	}
 
 	/**
-	 * Récupère l'ensemble des feuilles de l'arbre en intersection avec l'AABB.
+	 * Retrieves all leaf nodes of the tree instersecting box.
 	 * 
 	 * @param box
 	 * @param dest
 	 */
-	public void boxTest(AABB box, HashSet<T> dest) {
+	@Parallelizable
+	public void boxTest(AABB box, Set<T> dest) {
 		if (root != null) {
 			root.boxTest(box, dest);
 		}
 	}
 
 	/**
-	 * Sélectionne un noeud parmi les descendants de ancestor qui deviendra le "frère" de nodeToInsert.
+	 * Selects a node among the children of ancestor which will become a sibling of
+	 * nodeToInsert.
+	 * 
 	 * @param nodeToInsert
-	 * @param ancestor
-	 * @return
+	 * @param ancestor     A node containing the box of nodeToInsert or the root
+	 *                     node
+	 * @return The sibling node for nodeToInsert
 	 */
 	private BroadPhaseNode<T> pickBestSibling(BroadPhaseNode<T> nodeToInsert, BroadPhaseNode<T> ancestor) {
 
@@ -201,12 +217,16 @@ public class BroadPhaseTree<T> {
 			return ancestor;
 		}
 
+		// we first compute a cost metric (i.e. the surface area) of inserting the node
+		// as a sibling of ancestor
 		AABB.union(ancestor.box, nodeToInsert.box, tempBox);
 		ancestor.cost = tempBox.getSurfaceArea();
 
-		float bestCost = ancestor.cost;
-		BroadPhaseNode<T> bestSibling = ancestor;
+		float bestCost = ancestor.cost;// the minimum cost so far
+		BroadPhaseNode<T> bestSibling = ancestor;// the sibling ensuring the minimum cost so far
 
+		// inserting a node will increase the total surface area of the tree, here is a
+		// lower bound on that cost
 		float childLowerBoundCost = nodeToInsert.box.getSurfaceArea() + ancestor.cost - ancestor.box.getSurfaceArea();
 		if (childLowerBoundCost < bestCost) {
 			ancestor.child1.cost = childLowerBoundCost;
@@ -215,6 +235,7 @@ public class BroadPhaseTree<T> {
 			queue.add(ancestor.child2);
 		}
 
+		// we perform a breadth-first search in the children of ancestor
 		while (!queue.isEmpty()) {
 
 			BroadPhaseNode<T> current = queue.poll();
@@ -249,6 +270,10 @@ public class BroadPhaseTree<T> {
 		return bestSibling;
 	}
 
+	/**
+	 * 
+	 * @param node
+	 */
 	private void refitParents(BroadPhaseNode<T> node) {
 		BroadPhaseNode<T> current = node.parent;
 		while (current != null) {
@@ -259,14 +284,16 @@ public class BroadPhaseTree<T> {
 	}
 
 	/**
-	 * Echange un noeud fils avec un noeud petit-fils si cela diminue l'aire totale
-	 * de l'arbre.
+	 * Swaps a child node with a grand-child node if it diminishes the total surface
+	 * area of the tree.
 	 * 
 	 * @param current
 	 */
 	private void rotateTree(BroadPhaseNode<T> current) {
-		// current isn't a leaf itself, so both its children are not null.
+		// current isn't a leaf itself, so we know that both its children are not null.
+
 		if (current.child1.isLeaf && current.child2.isLeaf) {
+			// if both children are leaf nodes then current doesn't have any grand-children.
 			return;
 		}
 
@@ -332,6 +359,12 @@ public class BroadPhaseTree<T> {
 
 	}
 
+	/**
+	 * Checks the validity of the tree: <br>
+	 * i.e. that every box contains its children
+	 * 
+	 * @return true if the tree is valid
+	 */
 	private boolean checkValidity() {
 
 		if (root != null) {
@@ -341,16 +374,23 @@ public class BroadPhaseTree<T> {
 			while (!queue.isEmpty()) {
 
 				BroadPhaseNode<T> node = queue.poll();
-				if (node.child1 != null) {
-					if (!node.box.contains(node.child1.box))
+				if (node.isLeaf) {
+					if (node.child1 != null || node.child2 != null) {
 						return false;
-					queue.add(node.child1);
-				}
-				if (node.child2 != null) {
-					if (!node.box.contains(node.child2.box))
+					}
+				} else {
+					if (node.child1 == null || node.child2 == null) {
 						return false;
-					queue.add(node.child2);
+					}
 				}
+
+				if (!node.box.contains(node.child1.box))
+					return false;
+				queue.add(node.child1);
+				if (!node.box.contains(node.child2.box))
+					return false;
+				queue.add(node.child2);
+
 			}
 		}
 
@@ -387,6 +427,50 @@ public class BroadPhaseTree<T> {
 		sb.append("]\n");
 
 		return sb.toString();
+	}
+
+	private int depthExploration(BroadPhaseNode<T> currentNode, List<BroadPhaseNode<T>> list, int currentDepth,
+			int maxDepth, int[] depths) {
+
+		depths[currentDepth]++;
+
+		if (currentDepth == maxDepth) {
+			list.add(currentNode);
+		}
+		int leafs = 0;
+		if (!currentNode.isLeaf) {
+			leafs += depthExploration(currentNode.child1, list, currentDepth + 1, maxDepth, depths);
+			leafs += depthExploration(currentNode.child2, list, currentDepth + 1, maxDepth, depths);
+		} else {
+			leafs = 1;
+		}
+
+		return leafs;
+	}
+
+	/**
+	 * Performs an exploration of the tree.
+	 * 
+	 * @param list        Fills the list with all nodes having a depth equal to
+	 *                    searchDepth. The root node has a depth of 0.
+	 * @param searchDepth
+	 * @return the maximum depth of the bvh
+	 */
+	public int exploreBVH(List<BroadPhaseNode<T>> list, int searchDepth) {
+		int depths[] = new int[50];
+
+		if (root != null) {
+			int leafs = depthExploration(root, list, 0, searchDepth, depths);
+
+			for (int i = 0; i < depths.length; i++) {
+				if (depths[i] == 0) {
+					// System.out.println("Total leafs = " + leafs);
+					return i - 1;
+				}
+				// System.out.println("Depth " + i + " : " + depths[i]);
+			}
+		}
+		return 0;
 	}
 
 	public void cleanUp() {
