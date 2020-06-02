@@ -1,16 +1,18 @@
 package cataclysm.broadphase.staticmeshes;
 
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import cataclysm.DefaultParameters;
-import cataclysm.Parallelizable;
+import cataclysm.GeometryQuery;
 import cataclysm.PhysicsWorld;
+import cataclysm.RayTest;
 import cataclysm.broadphase.AABB;
 import cataclysm.datastructures.BufferedManager;
 import cataclysm.parallel.PhysicsWorkerPool;
 import cataclysm.record.StaticMeshRepr;
+import cataclysm.wrappers.Wrapper;
 import math.vector.Matrix4f;
 import math.vector.Vector3f;
 
@@ -20,7 +22,7 @@ import math.vector.Vector3f;
  * @author Briac
  *
  */
-public final class StaticMeshManager extends BufferedManager<StaticMesh> {
+public final class StaticMeshManager extends BufferedManager<StaticMesh> implements GeometryQuery{
 
 	private final MapGrid mapGrid;
 	private final PhysicsWorld world;
@@ -81,35 +83,6 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh> {
 		StaticMesh mesh = new StaticMesh(repr, nextID());
 		addElement(mesh);
 		return mesh;
-	}
-
-	/**
-	 * R�cup�re l'ensemble des triangles en intersection avec l'AABB.
-	 * 
-	 * @param box
-	 * @param dest
-	 */
-	@Parallelizable
-	public void boxTest(AABB box, HashSet<Triangle> dest) {
-		mapGrid.boxTest(box, dest);
-	}
-
-	/**
-	 * 
-	 * Calcule la distance entre start et le premier triangle touch� par le rayon
-	 * ray.
-	 * 
-	 * @param start           Le point de d�part du rayon.
-	 * @param dir             La direction du rayon, le vecteur doit �tre unitaire.
-	 * @param maxLength       La distance maximale de recherche.
-	 * @param backfaceCulling Les triangles ne faisant pas face au rayon seront
-	 *                        ignor�s si true.
-	 * @param normalDest      La normale du triangle touch� sera stock�e dedans.
-	 * @return la distance du premier triangle touch� ou maxLength si aucun triangle
-	 *         n'a �t� trouv�.
-	 */
-	public float rayTest(Vector3f start, Vector3f dir, float maxLength, boolean backfaceCulling, Vector3f normalDest) {
-		return mapGrid.rayTest(start, dir, maxLength, backfaceCulling, normalDest);
 	}
 
 	@Override
@@ -184,6 +157,21 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh> {
 	@Override
 	protected void internalUpdate(PhysicsWorkerPool workers) {
 		internalUpdate();
+	}
+
+	@Override
+	public void rayTest(RayTest test) {
+		mapGrid.rayTest(test);
+	}
+
+	@Override
+	public void boxTriangleQuery(AABB box, Set<Triangle> set) {
+		mapGrid.boxTriangleQuery(box, set);
+	}
+	
+	@Override
+	public void boxWrapperQuery(AABB box, Set<Wrapper> set) {
+		throw new IllegalStateException("Not applicable");	
 	}
 
 }

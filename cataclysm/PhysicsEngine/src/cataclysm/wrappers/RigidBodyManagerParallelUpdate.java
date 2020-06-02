@@ -3,12 +3,14 @@ package cataclysm.wrappers;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentHashMap.KeySetView;
 
 import cataclysm.CataclysmCallbacks;
 import cataclysm.CollisionFilter;
 import cataclysm.PhysicsStats;
+import cataclysm.RayTest;
 import cataclysm.broadphase.AABB;
 import cataclysm.broadphase.BroadPhaseNode;
 import cataclysm.broadphase.BroadPhaseTree;
@@ -239,7 +241,7 @@ class RigidBodyManagerParallelUpdate extends BodyUpdator {
 
 				// update intersected triangles
 				intersectedTriangles.clear();
-				meshes.boxTest(box, intersectedTriangles);
+				meshes.boxTriangleQuery(box, intersectedTriangles);
 
 				wrapper.getMeshContacts().removeIf(contact -> {
 					if (!intersectedTriangles.remove(contact.getTriangle())) {
@@ -293,6 +295,21 @@ class RigidBodyManagerParallelUpdate extends BodyUpdator {
 		@Override
 		public BroadPhaseTree<Wrapper> getBVH(int i) {
 			return bvh;
+		}
+
+		@Override
+		public void rayTest(RayTest test) {
+			throw new IllegalStateException("Not applicable");
+		}
+
+		@Override
+		public void boxTriangleQuery(AABB box, Set<Triangle> set) {
+			throw new IllegalStateException("Not applicable");
+		}
+
+		@Override
+		public void boxWrapperQuery(AABB box, Set<Wrapper> set) {
+			throw new IllegalStateException("Not applicable");
 		}
 
 	}
@@ -411,6 +428,27 @@ class RigidBodyManagerParallelUpdate extends BodyUpdator {
 					"Error, there are " + updators.size() + " threads, got asked for bvh n°" + i);
 		}
 		return updators.get(i).getBVH(0);
+	}
+
+	@Override
+	public void rayTest(RayTest test) {
+		int threads = updators.size();
+		for(int i=0; i<threads; i++) {
+			getBVH(i).rayTest(test);
+		}
+	}
+
+	@Override
+	public void boxTriangleQuery(AABB box, Set<Triangle> set) {
+		throw new IllegalStateException("Not applicable");
+	}
+
+	@Override
+	public void boxWrapperQuery(AABB box, Set<Wrapper> set) {
+		int threads = updators.size();
+		for(int i=0; i<threads; i++) {
+			getBVH(i).boxTest(box, set);
+		}
 	}
 
 }

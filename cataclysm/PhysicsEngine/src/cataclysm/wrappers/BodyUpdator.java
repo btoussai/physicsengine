@@ -6,6 +6,7 @@ import java.util.List;
 import cataclysm.CataclysmCallbacks;
 import cataclysm.CollisionFilter;
 import cataclysm.Epsilons;
+import cataclysm.GeometryQuery;
 import cataclysm.PhysicsStats;
 import cataclysm.broadphase.BroadPhaseTree;
 import cataclysm.broadphase.staticmeshes.StaticMeshManager;
@@ -18,7 +19,7 @@ import cataclysm.contact_creation.SingleBodyContact;
 import cataclysm.contact_creation.SingleBodyContactArrayBased;
 
 @SuppressWarnings("unchecked")
-abstract class BodyUpdator {
+abstract class BodyUpdator implements GeometryQuery{
 
 	protected final ArrayList<AbstractDoubleBodyContact>[] bodyContactPool = new ArrayList[Epsilons.MAX_CONTACTS + 1];
 

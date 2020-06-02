@@ -2,12 +2,17 @@ package cataclysm.wrappers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
+import cataclysm.GeometryQuery;
 import cataclysm.PhysicsStats;
 import cataclysm.PhysicsWorld;
+import cataclysm.RayTest;
+import cataclysm.broadphase.AABB;
 import cataclysm.broadphase.BroadPhaseTree;
 import cataclysm.broadphase.staticmeshes.StaticMeshManager;
+import cataclysm.broadphase.staticmeshes.Triangle;
 import cataclysm.constraints.AbstractConstraint;
 import cataclysm.constraints.AnchorPoint;
 import cataclysm.contact_creation.AbstractDoubleBodyContact;
@@ -24,7 +29,7 @@ import math.vector.Matrix4f;
  * @author Briac
  *
  */
-public class RigidBodyManager extends BufferedManager<RigidBody> {
+public class RigidBodyManager extends BufferedManager<RigidBody> implements GeometryQuery{
 
 	private final BodyUpdator updator;
 
@@ -207,6 +212,21 @@ public class RigidBodyManager extends BufferedManager<RigidBody> {
 	 */
 	public BroadPhaseTree<Wrapper> getBVH(int i) {
 		return updator.getBVH(i);
+	}
+
+	@Override
+	public void rayTest(RayTest test) {
+		updator.rayTest(test);
+	}
+
+	@Override
+	public void boxTriangleQuery(AABB box, Set<Triangle> set) {
+		updator.boxTriangleQuery(box, set);
+	}
+
+	@Override
+	public void boxWrapperQuery(AABB box, Set<Wrapper> set) {
+		updator.boxWrapperQuery(box, set);
 	}
 
 }

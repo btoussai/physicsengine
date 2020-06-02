@@ -21,7 +21,11 @@ import java.lang.annotation.Target;
  * This annotation indicates that a method can be called from multiple threads
  * at the same time when the physics engine <b>isn't</b> being updated.
  * Callbacks which are called when the physics engine is updated must also be
- * Parallelisable. 
+ * Parallelisable. <br>
+ * Typical {@link Parallelizable} functions are
+ * {@link PhysicsWorld#rayTest(RayTest)},
+ * {@link PhysicsWorld#boxTriangleQuery(cataclysm.broadphase.AABB, java.util.Set)},
+ * {@link PhysicsWorld#boxWrapperQuery(cataclysm.broadphase.AABB, java.util.Set)}
  * 
  * @author Briac
  *

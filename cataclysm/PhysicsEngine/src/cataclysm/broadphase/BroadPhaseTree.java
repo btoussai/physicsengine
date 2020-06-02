@@ -8,6 +8,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import cataclysm.Parallelizable;
+import cataclysm.RayTest;
 
 /**
  * Defines a binary tree whose nodes are {@link BroadPhaseNode}. The tree is a
@@ -185,7 +186,7 @@ public class BroadPhaseTree<T> {
 
 	}
 
-	public void rayTest() {
+	public void rayTest(RayTest test) {
 		throw new IllegalStateException("Not implemented");
 	}
 

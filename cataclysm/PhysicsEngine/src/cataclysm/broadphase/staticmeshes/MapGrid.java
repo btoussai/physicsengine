@@ -1,12 +1,14 @@
 package cataclysm.broadphase.staticmeshes;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import cataclysm.Parallelizable;
+import cataclysm.GeometryQuery;
+import cataclysm.RayTest;
 import cataclysm.broadphase.AABB;
+import cataclysm.wrappers.Wrapper;
 import math.vector.Vector2f;
 import math.vector.Vector3f;
 
@@ -17,7 +19,7 @@ import math.vector.Vector3f;
  * @author Briac
  *
  */
-class MapGrid {
+class MapGrid implements GeometryQuery{
 
 	private final float GRID_CELL_SIZE;
 	private final int maxOctreeDepth;
@@ -106,63 +108,50 @@ class MapGrid {
 	}
 
 	/**
-	 * 
-	 * Calcule la distance entre start et le premier triangle touch� par le rayon
-	 * ray.
-	 * 
-	 * @param start           Le point de départ du rayon.
-	 * @param dir             La direction du rayon, le vecteur doit �tre unitaire.
-	 * @param maxLength       La distance maximale de recherche, sup�rieure � z�ro.
-	 *                        Ne peut pas être +INF.
-	 * @param backfaceCulling Les triangles ne faisant pas face au rayon seront
-	 *                        ignorés si true.
-	 * @param normalDest      La normale du triangle touché sera stockée dedans.
-	 * @return la distance du premier triangle touché ou maxLength si aucun triangle
-	 *         n'a été trouvé.
+	 * Performs a ray test against static meshes.
+	 * @param test
 	 */
-	@Parallelizable
-	float rayTest(Vector3f start, Vector3f dir, float maxLength, boolean backfaceCulling, Vector3f normalDest) {
+	@Override
+	public void rayTest(RayTest test) {
 		
 		Vector2f intersectionTime = new Vector2f();
 		Coord iterator =  new Coord(0, 0, 0);
-		getCoord(start, iterator);
-		OctreeBase.computeIntersectionTime(start, dir, iterator, GRID_CELL_SIZE, intersectionTime);
+		getCoord(test.getStart(), iterator);
+		OctreeBase.computeIntersectionTime(test.getStart(), test.getDir(), iterator, GRID_CELL_SIZE, intersectionTime);
 		while (true) {
 			//System.out.println(iterator);
 			OctreeBase base = grid.get(iterator);
 			if (base != null) {
-				float length = base.rootCell.rayTest(start, dir, maxLength, intersectionTime.x, intersectionTime.y, backfaceCulling, normalDest);
-				if (length < maxLength) {
-					return length;
+				float length = base.rootCell.rayTest(test.getStart(), test.getDir(), test.getMaxDistance(), intersectionTime.x, intersectionTime.y, test.isBackfaceCulling(), test.getHitNormal());
+				if (length < test.getMaxDistance()) {
+					test.setHitDistance(length);
+					return;
 				}
 			}
 			
-			if(!OctreeBase.nextCell(start, dir, maxLength, this.GRID_CELL_SIZE, iterator, iterator, intersectionTime)) {
+			if(!OctreeBase.nextCell(test.getStart(), test.getDir(), test.getMaxDistance(), this.GRID_CELL_SIZE, iterator, iterator, intersectionTime)) {
 				break;
 			}
 			
 		}
-
-		return maxLength;
 	}
-
-	/**
-	 * Récupère l'ensemble des triangles en intersection avec l'AABB.
-	 * 
-	 * @param box
-	 * @param dest
-	 */
-	@Parallelizable
-	void boxTest(AABB box, HashSet<Triangle> dest) {
+	
+	@Override
+	public void boxTriangleQuery(AABB box, Set<Triangle> set) {
 		CoordRange range = new CoordRange();
 		getCoordRange(box, range);
 		range.startIteration();
 		while (range.next()) {
 			OctreeBase base = grid.get(range.getIterator());
 			if (base != null) {
-				base.rootCell.boxTest(box, dest);
+				base.rootCell.boxTest(box, set);
 			}
 		}
+	}
+	
+	@Override
+	public void boxWrapperQuery(AABB box, Set<Wrapper> set) {
+		throw new IllegalStateException("Not applicable");	
 	}
 
 	void cleanUp() {

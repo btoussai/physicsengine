@@ -3,10 +3,12 @@ package cataclysm.wrappers;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import cataclysm.CataclysmCallbacks;
 import cataclysm.CollisionFilter;
 import cataclysm.PhysicsStats;
+import cataclysm.RayTest;
 import cataclysm.broadphase.AABB;
 import cataclysm.broadphase.BroadPhaseNode;
 import cataclysm.broadphase.BroadPhaseTree;
@@ -35,6 +37,8 @@ class RigidBodyManagerUpdate extends BodyUpdator {
 	private final float PADDING_SQUARED;
 
 	private final CollisionTest collisionTest = new CollisionTest();
+	
+	private boolean firstUpdate = true;
 
 	RigidBodyManagerUpdate(CollisionFilter filter, float padding) {
 		super(filter);
@@ -71,14 +75,25 @@ class RigidBodyManagerUpdate extends BodyUpdator {
 		bodyContacts.clear();
 		stats.bodyToMeshContacts = 0;
 		stats.bodyToBodyContacts = 0;
-
-		for (RigidBody body : bodies) {
-			if (body.isSleeping())
-				continue;
-			ArrayList<Wrapper> wrappers = body.getWrappers();
-			for (int i = 0; i < wrappers.size(); i++) {
-				Wrapper wrapper = wrappers.get(i);
-				updateWrapper(body.getInvMass() == 0, wrapper, meshes, callbacks, stats, meshContacts, bodyContacts);
+		
+		if(firstUpdate) {
+			firstUpdate = false;
+			for (RigidBody body : bodies) {
+				ArrayList<Wrapper> wrappers = body.getWrappers();
+				for (int i = 0; i < wrappers.size(); i++) {
+					Wrapper wrapper = wrappers.get(i);
+					updateWrapper(body.getInvMass() == 0, wrapper, meshes, callbacks, stats, meshContacts, bodyContacts);
+				}
+			}
+		}else {
+			for (RigidBody body : bodies) {
+				if (body.isSleeping())
+					continue;
+				ArrayList<Wrapper> wrappers = body.getWrappers();
+				for (int i = 0; i < wrappers.size(); i++) {
+					Wrapper wrapper = wrappers.get(i);
+					updateWrapper(body.getInvMass() == 0, wrapper, meshes, callbacks, stats, meshContacts, bodyContacts);
+				}
 			}
 		}
 
@@ -122,7 +137,7 @@ class RigidBodyManagerUpdate extends BodyUpdator {
 				//we update the contact when one body is sleeping
 				collisionTest.bodyContacts(contact, callbacks, bodyContacts);
 			}else {
-				// we update the contact only if both bodies are updated, which means the flag
+				// we update the contact if both bodies are updated, which means the flag
 				// will be true the second time the function is called
 				if (contact.getUpdateFlagAndFlip()) {
 				collisionTest.bodyContacts(contact, callbacks, bodyContacts);
@@ -170,7 +185,7 @@ class RigidBodyManagerUpdate extends BodyUpdator {
 		}
 
 		intersectedTriangles.clear();
-		meshes.boxTest(wrapper.getNode().getBox(), intersectedTriangles);
+		meshes.boxTriangleQuery(wrapper.getNode().getBox(), intersectedTriangles);
 
 		ArrayList<AbstractSingleBodyContact> contacts = wrapper.getMeshContacts();
 
@@ -191,6 +206,21 @@ class RigidBodyManagerUpdate extends BodyUpdator {
 			throw new IllegalArgumentException("Error, there is only one thread, got asked for bvh n°" + i);
 		}
 		return bvh;
+	}
+
+	@Override
+	public void rayTest(RayTest test) {
+		bvh.rayTest(test);
+	}
+
+	@Override
+	public void boxTriangleQuery(AABB box, Set<Triangle> set) {
+		throw new IllegalStateException("Not applicable");
+	}
+
+	@Override
+	public void boxWrapperQuery(AABB box, Set<Wrapper> set) {
+		bvh.boxTest(box, set);
 	}
 
 }

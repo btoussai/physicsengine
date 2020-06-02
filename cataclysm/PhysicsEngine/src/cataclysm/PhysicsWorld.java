@@ -3,15 +3,19 @@ package cataclysm;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
+import cataclysm.broadphase.AABB;
 import cataclysm.broadphase.staticmeshes.StaticMesh;
 import cataclysm.broadphase.staticmeshes.StaticMeshData;
 import cataclysm.broadphase.staticmeshes.StaticMeshManager;
+import cataclysm.broadphase.staticmeshes.Triangle;
 import cataclysm.constraints.AbstractConstraint;
 import cataclysm.record.PhysicsPlayer;
 import cataclysm.record.PhysicsRecorder;
 import cataclysm.wrappers.RigidBody;
 import cataclysm.wrappers.RigidBodyManager;
+import cataclysm.wrappers.Wrapper;
 import cataclysm.wrappers.WrapperBuilder;
 import math.MatrixOps;
 import math.vector.Matrix4f;
@@ -23,7 +27,7 @@ import math.vector.Vector3f;
  * @author Briac
  *
  */
-public class PhysicsWorld {
+public class PhysicsWorld implements GeometryQuery{
 
 	/**
 	 * Les paramètres de la simulation.
@@ -94,7 +98,10 @@ public class PhysicsWorld {
 	}
 
 	/**
-	 * This method must be called only once to initialize the simulation.
+	 * This method must be called only once to initialize the simulation. <br>
+	 * Static meshes will be inserted in the octree and contacts will be built for
+	 * all bodies, wether they are sleeping or not. <br>
+	 * No collision will occur and the velocities and positions won't change.
 	 */
 	public void start() {
 		if (activeRecord != null) {
@@ -145,24 +152,6 @@ public class PhysicsWorld {
 		}
 
 		System.out.println(stats);
-	}
-
-	/**
-	 * 
-	 * Calcule la distance entre start et le premier triangle touch� par le rayon
-	 * ray.
-	 * 
-	 * @param start           Le point de d�part du rayon.
-	 * @param dir             La direction du rayon, le vecteur doit �tre unitaire.
-	 * @param maxLength       La distance maximale de recherche.
-	 * @param backfaceCulling Les triangles ne faisant pas face au rayon seront
-	 *                        ignor�s si true.
-	 * @param normalDest      La normale du triangle touch� sera stock�e dedans.
-	 * @return la distance du premier triangle touch� ou maxLength si aucun triangle
-	 *         n'a �t� trouv�.
-	 */
-	public float rayTest(Vector3f start, Vector3f dir, float maxLength, boolean backfaceCulling, Vector3f normalDest) {
-		return meshes.rayTest(start, dir, maxLength, backfaceCulling, normalDest);
 	}
 
 	/**
@@ -438,6 +427,34 @@ public class PhysicsWorld {
 	 */
 	public void setTimeStep(float timeStep) {
 		this.params.setTimeStep(timeStep);
+	}
+
+	@Override
+	public void rayTest(RayTest test) {
+		switch(test.getMode()) {
+		case ALL:
+			meshes.rayTest(test);
+			bodies.rayTest(test);
+			break;
+		case Triangles:
+			meshes.rayTest(test);
+			break;
+		case Wrappers:
+			bodies.rayTest(test);
+			break;
+		default:
+			throw new IllegalStateException("Unknown enum value: " + test.getMode());
+		}
+	}
+
+	@Override
+	public void boxTriangleQuery(AABB box, Set<Triangle> set) {
+		meshes.boxTriangleQuery(box, set);
+	}
+
+	@Override
+	public void boxWrapperQuery(AABB box, Set<Wrapper> set) {
+		bodies.boxWrapperQuery(box, set);
 	}
 
 }

@@ -1,8 +1,8 @@
 package cataclysm.broadphase.staticmeshes;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import cataclysm.broadphase.AABB;
 import math.vector.Vector3f;
@@ -126,7 +126,7 @@ public class OctreeCell {
 	 * @param box
 	 * @param dest
 	 */
-	void boxTest(AABB box, HashSet<Triangle> dest) {
+	void boxTest(AABB box, Set<Triangle> dest) {
 
 		if (depth == 0) {
 			if (triangles != null) {
