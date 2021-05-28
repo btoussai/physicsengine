@@ -8,6 +8,7 @@ import cataclysm.CollisionFilter;
 import cataclysm.Epsilons;
 import cataclysm.GeometryQuery;
 import cataclysm.PhysicsStats;
+import cataclysm.broadphase.ArrayBasedBroadPhaseTree;
 import cataclysm.broadphase.BroadPhaseTree;
 import cataclysm.broadphase.staticmeshes.StaticMeshManager;
 import cataclysm.broadphase.staticmeshes.Triangle;
@@ -19,7 +20,7 @@ import cataclysm.contact_creation.SingleBodyContact;
 import cataclysm.contact_creation.SingleBodyContactArrayBased;
 
 @SuppressWarnings("unchecked")
-abstract class BodyUpdator implements GeometryQuery{
+abstract class BodyUpdator implements GeometryQuery {
 
 	protected final ArrayList<AbstractDoubleBodyContact>[] bodyContactPool = new ArrayList[Epsilons.MAX_CONTACTS + 1];
 
@@ -89,7 +90,7 @@ abstract class BodyUpdator implements GeometryQuery{
 			contact = pool.remove(pool.size() - 1);
 			contact.refresh(wrapperA, wrapperB);
 		}
-		
+
 		return contact;
 	}
 
@@ -115,11 +116,10 @@ abstract class BodyUpdator implements GeometryQuery{
 		wrapper.getMeshContacts().add(contact);
 	}
 
-	/**
-	 * 
-	 * @param i
-	 * @return The i-th bvh of the body manager. There are as many bvhs as there are
-	 *         threads.
-	 */
-	public abstract BroadPhaseTree<Wrapper> getBVH(int i);
+//	public abstract ArrayBasedBroadPhaseTree<Wrapper> getBVH();
+	public abstract BroadPhaseTree<Wrapper> getBVH();
+
+	public CollisionFilter getFilter() {
+		return filter;
+	}
 }

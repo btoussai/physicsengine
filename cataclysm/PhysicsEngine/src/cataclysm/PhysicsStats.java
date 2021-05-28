@@ -69,7 +69,7 @@ public class PhysicsStats {
 			if (history != null) {
 				update(accumulatedDelta);
 			} else {
-				average = Math.min(average, accumulatedDelta);
+				average = accumulatedDelta;
 			}
 			accumulatedDelta = 0;
 		}
@@ -85,11 +85,11 @@ public class PhysicsStats {
 			average += deltaNanoSec;
 			history[history.length - 1] = deltaNanoSec;
 
-			long length = updateCount < history.length ? updateCount : history.length;
+			int length = (int) (updateCount < history.length ? updateCount : history.length);
 			average /= length;
 
 			std = 0;
-			for (int i = history.length - 1; i >= history.length - length; i--) {
+			for (int i = history.length - length; i < history.length; i++) {
 				std += (history[i] - average) * (history[i] - average);
 			}
 			std = Math.sqrt(std / length);
@@ -105,10 +105,10 @@ public class PhysicsStats {
 
 		public String display(double totalNanoSec, boolean percentage) {
 			if (percentage) {
-				return name + ": " + String.format("%4.1f", average / totalNanoSec * 100.0) + "%" + " +/-"
+				return name + ": " + String.format("%4.1f", average / totalNanoSec * 100.0) + "%" + " std: "
 						+ String.format("%4.1f", 100.0 * std / totalNanoSec) + "%";
 			} else {
-				return name + ": " + String.format("%4.1f", unit.toUnit(average)) + unit.getUnitRepr() + " +/-"
+				return name + ": " + String.format("%4.1f", unit.toUnit(average)) + unit.getUnitRepr() + " std: "
 						+ String.format("%4.1f", unit.toUnit(std)) + unit.getUnitRepr();
 			}
 		}
@@ -120,10 +120,17 @@ public class PhysicsStats {
 	}
 
 	/**
-	 * Le nombre de frame simulées depuis le lancement de la simulation.
+	 * the number of frames simulated from the begining of the simulation.
 	 */
 	private long frame_count = 0;
-	private double elapsedTime = 0;
+	/**
+	 * The time (in ms) in the simulation from the begining.
+	 */
+	private double simulationTime = 0;
+	/**
+	 * How much time (in ms) was spent updating the simulation from the begining.
+	 */
+	private double userTime = 0;
 
 	private int rigidBodies;
 	private int staticMeshes;
@@ -136,7 +143,7 @@ public class PhysicsStats {
 	public int bodyToMeshContacts;
 	public int bodyToMeshActiveContacts;
 
-	private final int smooth = 5;
+	private final int smooth = 1;
 
 	public final TimeAverage globalUpdate = new TimeAverage(TimeUnit.MILLISEC, "Global update", smooth);
 	public final TimeAverage broadAndNarrowphase = new TimeAverage(TimeUnit.MILLISEC, "Broad & Narrow phase", smooth);
@@ -148,7 +155,8 @@ public class PhysicsStats {
 
 	public void step(float timeStep) {
 		this.frame_count++;
-		this.elapsedTime += timeStep;
+		this.simulationTime += timeStep;
+		userTime += globalUpdate.getDeltaNanos() * 1.0E-6;
 	}
 
 	public void reset(int rigidBodies, int staticMeshes, int constraints, int threads) {
@@ -162,8 +170,7 @@ public class PhysicsStats {
 	public String toString() {
 		boolean percentage = false;
 
-		StringBuilder sb = new StringBuilder(
-				"PhysicsWorld " + globalUpdate + " (" + threads + " thread(s)) [ \n");
+		StringBuilder sb = new StringBuilder("PhysicsWorld " + globalUpdate + " (" + threads + " thread(s)) [ \n");
 		if (physicsRecorder.getDeltaNanos() != 0)
 			sb.append("\t" + physicsRecorder.display(globalUpdate.average, percentage) + "\n");
 		if (physicsPlayers.getDeltaNanos() != 0)
@@ -176,6 +183,7 @@ public class PhysicsStats {
 				"\n\tRigidBodies: " + rigidBodies + " StaticMeshes: " + staticMeshes + " Constraints: " + constraints);
 		sb.append("\n\tBody to Body contacts: " + bodyToBodyContacts + " (" + bodyToBodyActiveContacts + " active)");
 		sb.append("\n\tBody to Mesh contacts: " + bodyToMeshContacts + " (" + bodyToMeshActiveContacts + " active)");
+		sb.append("\n\tCPU user time: " + String.format("%4.1f", userTime*1.0E-3) + "s");
 		sb.append("\n] frame " + frame_count);
 		return sb.toString();
 	}
@@ -185,7 +193,7 @@ public class PhysicsStats {
 	}
 
 	public double getElapsedTime() {
-		return elapsedTime;
+		return simulationTime;
 	}
 
 }

@@ -1,11 +1,16 @@
 package cataclysm.contact_creation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cataclysm.wrappers.Wrapper;
 
 public abstract class AbstractDoubleBodyContact extends AbstractContact {
 
 	protected Wrapper wrapperA;
 	protected Wrapper wrapperB;
+	
+	protected List<Wrapper> previousOwners = new ArrayList<>();
 
 	/**
 	 * Permet de déterminer si les deux wrappers ont été mis à jour avant de mettre
@@ -13,8 +18,28 @@ public abstract class AbstractDoubleBodyContact extends AbstractContact {
 	 */
 	private boolean updateFlag = false;
 
+	/**
+	 * Builds an abstract contact with a contact zone having at most maxContacts
+	 * contact points.
+	 * 
+	 * @param maxContacts
+	 * @param wrapperA
+	 * @param wrapperB
+	 */
 	public AbstractDoubleBodyContact(int maxContacts, Wrapper wrapperA, Wrapper wrapperB) {
 		super(maxContacts);
+		this.wrapperA = wrapperA;
+		this.wrapperB = wrapperB;
+	}
+
+	/**
+	 * Builds an abstract contact without a contact zone. Reserved for internal use.
+	 * 
+	 * @param wrapperA
+	 * @param wrapperB
+	 */
+	protected AbstractDoubleBodyContact(Wrapper wrapperA, Wrapper wrapperB) {
+		super();
 		this.wrapperA = wrapperA;
 		this.wrapperB = wrapperB;
 	}
@@ -27,10 +52,15 @@ public abstract class AbstractDoubleBodyContact extends AbstractContact {
 	 * @param wrapperB
 	 */
 	public void refresh(Wrapper wrapperA, Wrapper wrapperB) {
+		previousOwners.add(this.wrapperA);
+		previousOwners.add(this.wrapperB);
+		
 		this.wrapperA = wrapperA;
 		this.wrapperB = wrapperB;
-		super.getContactArea().resetState();
-		resetImpulses();
+		if (super.getContactArea() != null) {// we have to check in case this is a ContactProxy
+			super.getContactArea().resetState();
+			resetImpulses();
+		}
 	}
 
 	public Wrapper getWrapperA() {
@@ -59,6 +89,11 @@ public abstract class AbstractDoubleBodyContact extends AbstractContact {
 			throw new IllegalArgumentException("Argument must be in the pair of wrappers of this contact");
 		}
 		return w == wrapperA ? wrapperB : wrapperA;
+	}
+
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName() + ": " + wrapperA + " | " + wrapperB;
 	}
 
 }

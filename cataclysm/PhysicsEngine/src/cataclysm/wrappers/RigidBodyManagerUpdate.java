@@ -10,6 +10,7 @@ import cataclysm.CollisionFilter;
 import cataclysm.PhysicsStats;
 import cataclysm.RayTest;
 import cataclysm.broadphase.AABB;
+import cataclysm.broadphase.ArrayBasedBroadPhaseTree;
 import cataclysm.broadphase.BroadPhaseNode;
 import cataclysm.broadphase.BroadPhaseTree;
 import cataclysm.broadphase.staticmeshes.StaticMeshManager;
@@ -32,6 +33,7 @@ class RigidBodyManagerUpdate extends BodyUpdator {
 	private final HashSet<Triangle> intersectedTriangles = new HashSet<Triangle>();
 
 	private final BroadPhaseTree<Wrapper> bvh = new BroadPhaseTree<Wrapper>();
+//	private final ArrayBasedBroadPhaseTree<Wrapper> bvh = new ArrayBasedBroadPhaseTree<Wrapper>((i) -> new Wrapper[i]);
 
 	private final float PADDING;
 	private final float PADDING_SQUARED;
@@ -60,6 +62,13 @@ class RigidBodyManagerUpdate extends BodyUpdator {
 
 		for (RigidBody body : added) {
 			for (Wrapper wrapper : body.getWrappers()) {
+				
+				wrapper.placeBox(PADDING);
+				bvh.add(wrapper.getNode());
+//				AABB box = wrapper.getBox();
+//				wrapper.setNode(bvh.add(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ, wrapper));
+				
+				
 				recomputeDoubleBodyContactList(wrapper);
 				recomputeSingleBodyContactList(wrapper, meshes);
 			}
@@ -105,6 +114,7 @@ class RigidBodyManagerUpdate extends BodyUpdator {
 	private void updateWrapper(boolean isKinematic, Wrapper wrapper, StaticMeshManager meshes,
 			CataclysmCallbacks callbacks, PhysicsStats stats, List<AbstractSingleBodyContact> meshContacts,
 			List<AbstractDoubleBodyContact> bodyContacts) {
+//		AABB box = wrapper.getBox();
 		AABB box = wrapper.getNode().getBox();
 		Vector3f centroid = wrapper.getCentroid();
 
@@ -151,9 +161,14 @@ class RigidBodyManagerUpdate extends BodyUpdator {
 
 		BroadPhaseNode<Wrapper> node = wrapper.getNode();
 		wrapper.placeBox(PADDING);
-
 		bvh.update(node);
 		bvh.boxTest(node.getBox(), intersectedWrappers);
+		
+//		final int node = wrapper.getNode();
+//		wrapper.placeBox(PADDING);
+//		bvh.update(node, wrapper.getBox());
+//		bvh.boxTest(wrapper.getBox(), intersectedWrappers);
+		
 		intersectedWrappers.remove(wrapper);
 
 		ArrayList<AbstractDoubleBodyContact> contacts = wrapper.getBodyContacts();
@@ -185,6 +200,7 @@ class RigidBodyManagerUpdate extends BodyUpdator {
 		}
 
 		intersectedTriangles.clear();
+//		meshes.boxTriangleQuery(wrapper.getBox(), intersectedTriangles);
 		meshes.boxTriangleQuery(wrapper.getNode().getBox(), intersectedTriangles);
 
 		ArrayList<AbstractSingleBodyContact> contacts = wrapper.getMeshContacts();
@@ -200,11 +216,13 @@ class RigidBodyManagerUpdate extends BodyUpdator {
 		intersectedTriangles.forEach(triangle -> createMeshContact(wrapper, triangle));
 	}
 
+//	@Override
+//	public ArrayBasedBroadPhaseTree<Wrapper> getBVH() {
+//		return bvh;
+//	}
+	
 	@Override
-	public BroadPhaseTree<Wrapper> getBVH(int i) {
-		if(i != 0) {
-			throw new IllegalArgumentException("Error, there is only one thread, got asked for bvh n°" + i);
-		}
+	public BroadPhaseTree<Wrapper> getBVH() {
 		return bvh;
 	}
 

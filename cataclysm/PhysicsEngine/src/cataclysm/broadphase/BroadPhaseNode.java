@@ -78,7 +78,7 @@ public class BroadPhaseNode<T> {
 
 	@Override
 	public String toString() {
-		return (isLeaf ? "Leaf " : "Node ") + super.toString();
+		return (isLeaf ? "Leaf " + handle : "Node " + super.toString());
 	}
 
 }

@@ -29,7 +29,7 @@ final class ParallelPhysicsEngine extends AbstractPhysicsEngine{
 	 * @param params
 	 */
 	ParallelPhysicsEngine(PhysicsWorld world, int threads) {
-		super(world, new ParallelImpulseSolver(new PhysicsWorkerPool(threads)));
+		super(world, new ParallelImpulseSolver(new PhysicsWorkerPool(threads, threads*10)));
 		workers = ((ParallelImpulseSolver)super.solver).getWorkers();
 	}
 
@@ -83,7 +83,7 @@ final class ParallelPhysicsEngine extends AbstractPhysicsEngine{
 			});
 		}
 		forceInegrator.prepare();
-		workers.scheduleWork(tasks);
+		workers.scheduleWork(tasks, "applyForces", 1);
 	}
 
 	private void integrateVelocity(RigidBodyManager bodies, float timeStep, boolean gyroscopicIntegration) {
@@ -100,7 +100,7 @@ final class ParallelPhysicsEngine extends AbstractPhysicsEngine{
 
 			});
 		}
-		workers.scheduleWork(tasks);
+		workers.scheduleWork(tasks, "integrateVelocity", 1);
 		workers.waitForTaskTermination();
 	}
 

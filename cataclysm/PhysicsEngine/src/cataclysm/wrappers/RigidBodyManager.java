@@ -10,6 +10,7 @@ import cataclysm.PhysicsStats;
 import cataclysm.PhysicsWorld;
 import cataclysm.RayTest;
 import cataclysm.broadphase.AABB;
+import cataclysm.broadphase.ArrayBasedBroadPhaseTree;
 import cataclysm.broadphase.BroadPhaseTree;
 import cataclysm.broadphase.staticmeshes.StaticMeshManager;
 import cataclysm.broadphase.staticmeshes.Triangle;
@@ -204,14 +205,12 @@ public class RigidBodyManager extends BufferedManager<RigidBody> implements Geom
 		internalUpdate();
 	}
 
-	/**
-	 * 
-	 * @param i
-	 * @return The i-th bvh of the body manager. There are as many bvhs as there are
-	 *         threads.
-	 */
-	public BroadPhaseTree<Wrapper> getBVH(int i) {
-		return updator.getBVH(i);
+//	public ArrayBasedBroadPhaseTree<Wrapper> getBVH() {
+//		return updator.getBVH();
+//	}
+	
+	public BroadPhaseTree<Wrapper> getBVH() {
+		return updator.getBVH();
 	}
 
 	@Override

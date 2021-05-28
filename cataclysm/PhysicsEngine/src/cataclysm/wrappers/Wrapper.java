@@ -60,6 +60,8 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	 * collision.
 	 */
 	private final BroadPhaseNode<Wrapper> node;
+//	private int node;
+//	private final AABB box;
 
 	/**
 	 * Le rayon maximal de l'enveloppe, i.e. la taille de la {@link WrapperBox}.
@@ -87,7 +89,7 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	 * 
 	 * @param body           Le corps rigide possédant cette enveloppe.
 	 * @param wrapperToBody  La transformation indiquant la position et
-	 *                       l'orientation de l'enveloppe dans le rep�re du corps
+	 *                       l'orientation de l'enveloppe dans le repère du corps
 	 *                       rigide.
 	 * @param massProperties Les propriétés massiques du builder.
 	 * @param maxRadius      Le rayon maximal de l'enveloppe, c'est à dire la
@@ -103,6 +105,8 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 		this.body = body;
 		this.maxRadius = maxRadius;
 		this.node = new BroadPhaseNode<Wrapper>(new AABB(), this);
+//		this.node = -1;
+//		this.box = new AABB();
 		this.massProperties = new MassProperties(massProperties);
 	}
 
@@ -115,6 +119,8 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 		this.body = null;
 		this.maxRadius = 0;
 		this.node = null;
+//		this.node = -1;
+//		this.box = new AABB();
 		this.wrapperToBody = null;
 		this.massProperties = null;
 	}
@@ -141,6 +147,7 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 		Vector3f centroid = this.getCentroid();
 		float halfSize = maxRadius + padding;
 		node.getBox().set(centroid, halfSize);
+//		box.set(centroid, halfSize);
 	}
 
 	/**
@@ -152,6 +159,19 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 
 	public BroadPhaseNode<Wrapper> getNode() {
 		return node;
+	}
+	
+//	public int getNode() {
+//		return node;
+//	}
+//	
+//	public void setNode(int node) {
+//		this.node = node;
+//	}
+	
+	public AABB getBox() {
+//		return box;
+		return node.getBox();
 	}
 
 	/**
@@ -234,6 +254,7 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 	public void scale(float scaleFactor) {
 		this.massProperties.scale(scaleFactor);
 		float padding = 0.5f * (node.getBox().minX + node.getBox().maxX) - this.maxRadius;
+//		float padding = 0.5f * (box.minX + box.maxX) - this.maxRadius;
 		this.maxRadius *= scaleFactor;
 		placeBox(padding);
 	}
@@ -259,9 +280,10 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder("Wrapper " + getType() + " : \n");
-		sb.append("\nMeshContacts:" + meshContacts.size());
-		sb.append("\nBodyContacts:" + bodyContacts.size());
+		StringBuilder sb = new StringBuilder("Wrapper " + getType() + " : [ ");
+		sb.append(super.toString());
+		sb.append(" MeshContacts:" + meshContacts.size());
+		sb.append(" BodyContacts:" + bodyContacts.size() + " ]");
 		return sb.toString();
 	}
 
@@ -273,6 +295,8 @@ public abstract class Wrapper extends Identifier implements Comparable<Wrapper> 
 		this.body = body;
 		this.maxRadius = w.maxRadius;
 		this.node = new BroadPhaseNode<Wrapper>(new AABB(), this);
+//		this.node = -1;
+//		this.box = new AABB();
 		this.massProperties = new MassProperties(w.massProperties);
 	}
 

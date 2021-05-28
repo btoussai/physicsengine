@@ -6,14 +6,24 @@ package cataclysm.parallel;
  * @author Briac
  *
  */
-@FunctionalInterface
-public interface PhysicsWork {
+public abstract class PhysicsWork {
+
+	String name;
 
 	/**
 	 * The task to be run.
 	 * 
 	 * @param worker The thread running this task
 	 */
-	public void run(PhysicsWorkerThread worker);
+	public abstract void run(PhysicsWorkerThread worker);
+
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public String toString() {
+		return name == null ? super.toString() : name;
+	}
 
 }

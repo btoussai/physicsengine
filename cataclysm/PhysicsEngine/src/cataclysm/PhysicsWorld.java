@@ -86,6 +86,12 @@ public class PhysicsWorld implements GeometryQuery{
 		if (threadCount <= 0)
 			throw new IllegalArgumentException("Invalid thread count, should be > 0, got " + threadCount);
 		this.params = params;
+		
+		if(threadCount > 1) {
+			threadCount = 1;
+			System.out.println("Multithreading is not yet supported, defaulting to 1 thread");
+		}
+		
 		meshes = new StaticMeshManager(this);
 		if (threadCount == 1) {
 			bodies = new RigidBodyManager(this, meshes, stats);

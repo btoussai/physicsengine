@@ -20,6 +20,13 @@ public abstract class AbstractContact {
 	public AbstractContact(int maxContacts) {
 		area = new ContactZone(maxContacts);
 	}
+	
+	/**
+	 * Builds a contact without a contact zone. Reserved for internal use.
+	 */
+	AbstractContact() {
+		area = null;
+	}
 
 	protected void mixContactProperties(ContactProperties A, ContactProperties B) {
 		this.friction = 0.5f * (A.getFriction() + B.getFriction());

@@ -53,6 +53,20 @@ public class AABB {
 	}
 
 	/**
+	 * Sets this AABB from another one.
+	 * 
+	 * @param box
+	 */
+	public void set(AABB box) {
+		minX = box.minX;
+		minY = box.minY;
+		minZ = box.minZ;
+		maxX = box.maxX;
+		maxY = box.maxY;
+		maxZ = box.maxZ;
+	}
+
+	/**
 	 * Checks if this contains other entirely but not strictly (the sides can have
 	 * equal values). <br>
 	 * Note: {@code this.contains(this)} is always true.
@@ -84,11 +98,11 @@ public class AABB {
 		return dest;
 	}
 
-	private static float min(float a, float b) {
+	static float min(float a, float b) {
 		return a < b ? a : b;
 	}
 
-	private static float max(float a, float b) {
+	static float max(float a, float b) {
 		return a > b ? a : b;
 	}
 

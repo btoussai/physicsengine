@@ -4,6 +4,12 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
+/**
+ * Represents a thread part of a {@link PhysicsWorkerPool}.
+ * 
+ * @author Briac
+ *
+ */
 public class PhysicsWorkerThread extends Thread {
 
 	private final int threadIndex;
@@ -23,9 +29,11 @@ public class PhysicsWorkerThread extends Thread {
 	/**
 	 * A queue in which the work to be done is stored temporarily
 	 */
-	private ArrayBlockingQueue<PhysicsWork> queue = new ArrayBlockingQueue<PhysicsWork>(20);
+	private final ArrayBlockingQueue<PhysicsWork> queue;
 
-	public PhysicsWorkerThread(int threadIndex, int threadCount, CyclicBarrier waitForTermination, CyclicBarrier waitForGroup) {
+	public PhysicsWorkerThread(int threadIndex, int threadCount, CyclicBarrier waitForTermination,
+			CyclicBarrier waitForGroup, int maxWorks) {
+		this.queue = new ArrayBlockingQueue<PhysicsWork>(maxWorks);
 		this.threadIndex = threadIndex;
 		this.threadCount = threadCount;
 		this.waitForTermination = waitForTermination;
@@ -52,19 +60,24 @@ public class PhysicsWorkerThread extends Thread {
 				e.printStackTrace();
 				break;
 			}
+			//System.out.println(this.toString() + ": " + w.toString());
 			w.run(this);
 		}
 
 	}
 
-	void scheduleWork(PhysicsWork w) throws InterruptedException {
-		queue.put(w);
+	void scheduleWork(PhysicsWork w) {
+		queue.add(w);
 	}
 
 	public int getThreadIndex() {
 		return threadIndex;
 	}
 
+	/**
+	 * Wait for the other threads of the {@link PhysicsWorkerPool} and for the main
+	 * thread to call {@link PhysicsWorkerPool#waitForTaskTermination()}.
+	 */
 	public void waitForTermination() {
 		try {
 			waitForTermination.await();
@@ -73,6 +86,9 @@ public class PhysicsWorkerThread extends Thread {
 		}
 	}
 
+	/**
+	 * Wait for the other threads of the {@link PhysicsWorkerPool}.
+	 */
 	public void waitForGroup() {
 		try {
 			waitForGroup.await();
@@ -91,6 +107,11 @@ public class PhysicsWorkerThread extends Thread {
 
 	public int getThreadCount() {
 		return threadCount;
+	}
+
+	@Override
+	public String toString() {
+		return "PhysicsWorkerThread " + threadIndex;
 	}
 
 }

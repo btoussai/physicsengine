@@ -1,5 +1,6 @@
 package cataclysm;
 
+import cataclysm.quickHull.Face;
 import math.vector.Vector3f;
 
 public class RayTest {
@@ -15,8 +16,12 @@ public class RayTest {
 	private float hitDistance = Float.POSITIVE_INFINITY;
 	private Mode mode;
 
-	public RayTest(Mode mode) {
-		this.mode = mode;
+	public RayTest() {
+		setMode(Mode.Triangles, true);
+	}
+	
+	public RayTest(Mode mode, boolean backfaceCulling) {
+		setMode(mode, backfaceCulling);
 	}
 
 	public void setMode(Mode mode, boolean backfaceCulling) {
@@ -32,8 +37,8 @@ public class RayTest {
 	}
 
 	public void reset(Vector3f start, Vector3f dir, float maxDistance) {
-		start.set(start);
-		dir.set(dir);
+		this.start.set(start);
+		this.dir.set(dir);
 		this.maxDistance = maxDistance;
 		this.hitDistance = Float.POSITIVE_INFINITY;
 	}

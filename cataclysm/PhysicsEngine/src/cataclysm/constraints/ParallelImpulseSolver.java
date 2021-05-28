@@ -20,11 +20,11 @@ import math.vector.Vector3f;
  *
  */
 public class ParallelImpulseSolver implements ConstraintSolver {
-	
+
 	private static final boolean DEBUG = false;
-	
+
 	private final PhysicsWorkerPool workers;
-	
+
 	public ParallelImpulseSolver(PhysicsWorkerPool workers) {
 		this.workers = workers;
 	}
@@ -39,48 +39,40 @@ public class ParallelImpulseSolver implements ConstraintSolver {
 			final List<AbstractSingleBodyContact> meshes = workers.buildSubList(activeMeshContacts, i);
 			final List<AbstractDoubleBodyContact> bodies = workers.buildSubList(activeBodyContacts, i);
 			final List<AbstractConstraint> constraintsSubList;
-			
-			if(i == 0) {
+
+			if (i == 0) {
 				constraintsSubList = constraints;
-			}else {
+			} else {
 				constraintsSubList = Collections.emptyList();
 			}
-			
+
 			tasks.add(new PhysicsWork() {
 
 				@Override
-				public void run(PhysicsWorkerThread physicsWorkerThread) {
-					solve(meshes, bodies, constraintsSubList, timeStep,
-							MAX_ITERATIONS_POSITION, MAX_ITERATIONS_VELOCITY, physicsWorkerThread);
+				public void run(PhysicsWorkerThread worker) {
+					// the velocity must be solved first, since the position correction needs data
+					// computed during the velocity step.
+					for (int iteration = 0; iteration < MAX_ITERATIONS_VELOCITY; iteration++) {
+						solveVelocity(meshes, bodies, constraintsSubList, timeStep, iteration);
+						worker.waitForGroup();
+					}
+
+					for (int iteration = 0; iteration < MAX_ITERATIONS_POSITION; iteration++) {
+						solvePosition(meshes, bodies, constraintsSubList, timeStep, iteration == 0);
+						worker.waitForGroup();
+					}
+
+					if (DEBUG)
+						System.err.println(" ID: " + worker.getThreadIndex() + " DoubleBodies: "
+								+ activeBodyContacts.size() + " SingleBodies: " + activeMeshContacts.size()
+								+ " Constraints: " + constraints.size());
 				}
-				
+
 			});
 
 		}
 
-		workers.scheduleWork(tasks);
-	}
-
-	private void solve(List<AbstractSingleBodyContact> activeMeshContacts,
-			List<AbstractDoubleBodyContact> activeBodyContacts, List<AbstractConstraint> constraints, float timeStep,
-			int MAX_ITERATIONS_POSITION, int MAX_ITERATIONS_VELOCITY, PhysicsWorkerThread worker) {
-
-		// the velocity must be solved first, since the position correction needs data
-		// computed during the velocity step.
-		for (int iteration = 0; iteration < MAX_ITERATIONS_VELOCITY; iteration++) {
-			solveVelocity(activeMeshContacts, activeBodyContacts, constraints, timeStep, iteration);
-			worker.waitForGroup();
-		}
-
-		for (int iteration = 0; iteration < MAX_ITERATIONS_POSITION; iteration++) {
-			solvePosition(activeMeshContacts, activeBodyContacts, constraints, timeStep, iteration == 0);
-			worker.waitForGroup();
-		}
-
-
-		if (DEBUG)
-			System.err.println(" ID: " + worker.getThreadIndex() + " DoubleBodies: " + activeBodyContacts.size()
-					+ " SingleBodies: " + activeMeshContacts.size() + " Constraints: " + constraints.size());
+		workers.scheduleWork(tasks, "solve constraints", MAX_ITERATIONS_VELOCITY + MAX_ITERATIONS_POSITION);
 	}
 
 	/**
@@ -189,7 +181,7 @@ public class ParallelImpulseSolver implements ConstraintSolver {
 		}
 
 	}
-	
+
 	public PhysicsWorkerPool getWorkers() {
 		return workers;
 	}

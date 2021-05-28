@@ -1,7 +1,6 @@
 package cataclysm.broadphase;
 
 import java.util.ArrayDeque;
-import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -26,8 +25,8 @@ public class BroadPhaseTree<T> {
 	/**
 	 * The root node of the tree. It contains every other node of the tree.
 	 */
-	private BroadPhaseNode<T> root;
-	private BroadPhaseNode<T> tempNode;
+	BroadPhaseNode<T> root;
+	BroadPhaseNode<T> tempNode;
 
 	private final AABB tempBox = new AABB();
 	private final PriorityQueue<BroadPhaseNode<T>> queue = new PriorityQueue<BroadPhaseNode<T>>(
@@ -212,7 +211,7 @@ public class BroadPhaseTree<T> {
 	 *                     node
 	 * @return The sibling node for nodeToInsert
 	 */
-	private BroadPhaseNode<T> pickBestSibling(BroadPhaseNode<T> nodeToInsert, BroadPhaseNode<T> ancestor) {
+	protected BroadPhaseNode<T> pickBestSibling(BroadPhaseNode<T> nodeToInsert, BroadPhaseNode<T> ancestor) {
 
 		if (ancestor.isLeaf) {
 			return ancestor;
@@ -438,15 +437,15 @@ public class BroadPhaseTree<T> {
 		if (currentDepth == maxDepth) {
 			list.add(currentNode);
 		}
-		int leafs = 0;
+		int leaves = 0;
 		if (!currentNode.isLeaf) {
-			leafs += depthExploration(currentNode.child1, list, currentDepth + 1, maxDepth, depths);
-			leafs += depthExploration(currentNode.child2, list, currentDepth + 1, maxDepth, depths);
+			leaves += depthExploration(currentNode.child1, list, currentDepth + 1, maxDepth, depths);
+			leaves += depthExploration(currentNode.child2, list, currentDepth + 1, maxDepth, depths);
 		} else {
-			leafs = 1;
+			leaves = 1;
 		}
 
-		return leafs;
+		return leaves;
 	}
 
 	/**
@@ -461,11 +460,11 @@ public class BroadPhaseTree<T> {
 		int depths[] = new int[50];
 
 		if (root != null) {
-			int leafs = depthExploration(root, list, 0, searchDepth, depths);
+			int leaves = depthExploration(root, list, 0, searchDepth, depths);
 
 			for (int i = 0; i < depths.length; i++) {
 				if (depths[i] == 0) {
-					// System.out.println("Total leafs = " + leafs);
+					// System.out.println("Total leaves = " + leaves);
 					return i - 1;
 				}
 				// System.out.println("Depth " + i + " : " + depths[i]);
@@ -476,6 +475,24 @@ public class BroadPhaseTree<T> {
 
 	public void cleanUp() {
 		root = null;
+	}
+
+	/**
+	 * Aggregates the leaves of the tree in a list.
+	 * 
+	 * @param node
+	 * @param leaves
+	 */
+	public void getLeaves(BroadPhaseNode<T> node, List<T> leaves) {
+		if (node == null) {
+			node = root;
+		}
+		if (node.isLeaf) {
+			leaves.add(node.getHandle());
+		} else {
+			getLeaves(node.child1, leaves);
+			getLeaves(node.child2, leaves);
+		}
 	}
 
 }

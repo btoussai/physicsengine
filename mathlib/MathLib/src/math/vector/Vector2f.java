@@ -301,6 +301,18 @@ public final class Vector2f implements Serializable {
 		Vector2f.scale(this, this, scale);
 		return this;
 	}
+	
+	/**
+	 * Computes {@code this *= scale}
+	 * 
+	 * @param scaleX
+	 * @param scaleY
+	 * @return this
+	 */
+	public Vector2f scale(float scaleX, float scaleY) {
+		Vector2f.scale(this, this, scaleX, scaleY);
+		return this;
+	}
 
 	/**
 	 * Computes {@code src * scale} and puts the result in a new vector
@@ -323,6 +335,19 @@ public final class Vector2f implements Serializable {
 	public static void scale(Vector2f src, Vector2f dest, float scale) {
 		dest.x = src.x * scale;
 		dest.y = src.y * scale;
+	}
+	
+	/**
+	 * Computes {@code dest = src*scale}
+	 * 
+	 * @param src
+	 * @param dest
+	 * @param scaleX 
+	 * @param scaleY 
+	 */
+	public static void scale(Vector2f src, Vector2f dest, float scaleX, float scaleY) {
+		dest.x = src.x * scaleX;
+		dest.y = src.y * scaleY;
 	}
 
 	/**
