@@ -22,12 +22,17 @@ import math.vector.Matrix4f;
 import math.vector.Vector3f;
 
 /**
- * Repr�sente l'ensemble des objets sur lesquels de la physique est appliquée.
+ * Represents a set of undeformable dynamic objects (rigid bodies) and static
+ * objects (also undeformable) onto which the laws of newtonian dynamics will be
+ * unleashed. 
  * 
+ * 
+ * @see RigidBody
+ * @see StaticMesh
  * @author Briac
  *
  */
-public class PhysicsWorld implements GeometryQuery{
+public class PhysicsWorld implements GeometryQuery {
 
 	/**
 	 * Les paramètres de la simulation.
@@ -86,12 +91,12 @@ public class PhysicsWorld implements GeometryQuery{
 		if (threadCount <= 0)
 			throw new IllegalArgumentException("Invalid thread count, should be > 0, got " + threadCount);
 		this.params = params;
-		
-		if(threadCount > 1) {
+
+		if (threadCount > 1) {
 			threadCount = 1;
 			System.out.println("Multithreading is not yet supported, defaulting to 1 thread");
 		}
-		
+
 		meshes = new StaticMeshManager(this);
 		if (threadCount == 1) {
 			bodies = new RigidBodyManager(this, meshes, stats);
@@ -157,7 +162,7 @@ public class PhysicsWorld implements GeometryQuery{
 			stats.globalUpdate.stop();
 		}
 
-		System.out.println(stats);
+//		System.out.println(stats);
 	}
 
 	/**
@@ -437,7 +442,7 @@ public class PhysicsWorld implements GeometryQuery{
 
 	@Override
 	public void rayTest(RayTest test) {
-		switch(test.getMode()) {
+		switch (test.getMode()) {
 		case ALL:
 			meshes.rayTest(test);
 			bodies.rayTest(test);

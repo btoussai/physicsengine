@@ -8,23 +8,23 @@ import math.vector.Matrix4f;
 import math.vector.Vector3f;
 
 /**
- * Représente une transformation d'un repère vers un autre.
+ * Defines a euclidean transform from one reference frame to another.
  * 
  * @author Briac
  *
  */
 public final class Transform implements ReadWriteObject {
 
-	private final Matrix3f rotation = new Matrix3f();
-	private final Vector3f translation = new Vector3f();
+	private final Matrix3f r = new Matrix3f();
+	private final Vector3f t = new Vector3f();
 
 	public Transform() {
 
 	}
 
 	public Transform(Matrix3f rotation, Vector3f translation) {
-		Matrix3f.load(rotation, this.rotation);
-		this.translation.set(translation);
+		Matrix3f.load(rotation, this.r);
+		this.t.set(translation);
 	}
 
 	public Transform(Matrix4f transform) {
@@ -32,48 +32,48 @@ public final class Transform implements ReadWriteObject {
 	}
 
 	public Transform(Transform transform) {
-		this.translation.set(transform.translation);
-		this.rotation.load(transform.rotation);
+		this.t.set(transform.t);
+		this.r.load(transform.r);
 	}
 
 	public Transform translate(Vector3f translation) {
-		this.translation.x += translation.x;
-		this.translation.y += translation.y;
-		this.translation.z += translation.z;
+		this.t.x += translation.x;
+		this.t.y += translation.y;
+		this.t.z += translation.z;
 		return this;
 	}
 
 	public Transform translate(float x, float y, float z) {
-		this.translation.x += x;
-		this.translation.y += y;
-		this.translation.z += z;
+		this.t.x += x;
+		this.t.y += y;
+		this.t.z += z;
 		return this;
 	}
 
 	public Transform rotateLeft(Matrix3f rotation) {
-		Matrix3f.mul(rotation, this.rotation, this.rotation);
+		Matrix3f.mul(rotation, this.r, this.r);
 		return this;
 	}
 
 	public Transform rotateLeft(Matrix4f rotation) {
-		MatrixOps.matrixMult(rotation, this.rotation, this.rotation);
+		MatrixOps.matrixMult(rotation, this.r, this.r);
 		return this;
 	}
 
 	public Transform rotateRight(Matrix3f rotation) {
-		Matrix3f.mul(this.rotation, rotation, this.rotation);
+		Matrix3f.mul(this.r, rotation, this.r);
 		return this;
 	}
 
 	public Transform rotateRight(Matrix4f rotation) {
-		MatrixOps.matrixMult(this.rotation, rotation, this.rotation);
+		MatrixOps.matrixMult(this.r, rotation, this.r);
 		return this;
 	}
 
 	public void transformVertex(Vector3f vertex, Vector3f dest) {
-		float x = rotation.m00 * vertex.x + rotation.m10 * vertex.y + rotation.m20 * vertex.z + translation.x;
-		float y = rotation.m01 * vertex.x + rotation.m11 * vertex.y + rotation.m21 * vertex.z + translation.y;
-		float z = rotation.m02 * vertex.x + rotation.m12 * vertex.y + rotation.m22 * vertex.z + translation.z;
+		float x = r.m00 * vertex.x + r.m10 * vertex.y + r.m20 * vertex.z + t.x;
+		float y = r.m01 * vertex.x + r.m11 * vertex.y + r.m21 * vertex.z + t.y;
+		float z = r.m02 * vertex.x + r.m12 * vertex.y + r.m22 * vertex.z + t.z;
 		dest.x = x;
 		dest.y = y;
 		dest.z = z;
@@ -83,28 +83,28 @@ public final class Transform implements ReadWriteObject {
 		float sx = src[srcIndex + 0];
 		float sy = src[srcIndex + 1];
 		float sz = src[srcIndex + 2];
-		float x = rotation.m00 * sx + rotation.m10 * sy + rotation.m20 * sz + translation.x;
-		float y = rotation.m01 * sx + rotation.m11 * sy + rotation.m21 * sz + translation.y;
-		float z = rotation.m02 * sx + rotation.m12 * sy + rotation.m22 * sz + translation.z;
+		float x = r.m00 * sx + r.m10 * sy + r.m20 * sz + t.x;
+		float y = r.m01 * sx + r.m11 * sy + r.m21 * sz + t.y;
+		float z = r.m02 * sx + r.m12 * sy + r.m22 * sz + t.z;
 		dest[destIndex + 0] = x;
 		dest[destIndex + 1] = y;
 		dest[destIndex + 2] = z;
 	}
 
 	public void invertTransformVertex(Vector3f vertex, Vector3f dest) {
-		float x = vertex.x - translation.x;
-		float y = vertex.y - translation.y;
-		float z = vertex.z - translation.z;
+		float x = vertex.x - t.x;
+		float y = vertex.y - t.y;
+		float z = vertex.z - t.z;
 
-		dest.x = rotation.m00 * x + rotation.m01 * y + rotation.m02 * z;
-		dest.y = rotation.m10 * x + rotation.m11 * y + rotation.m12 * z;
-		dest.z = rotation.m20 * x + rotation.m21 * y + rotation.m22 * z;
+		dest.x = r.m00 * x + r.m01 * y + r.m02 * z;
+		dest.y = r.m10 * x + r.m11 * y + r.m12 * z;
+		dest.z = r.m20 * x + r.m21 * y + r.m22 * z;
 	}
 
 	public void transformVector(Vector3f vector, Vector3f dest) {
-		float x = rotation.m00 * vector.x + rotation.m10 * vector.y + rotation.m20 * vector.z;
-		float y = rotation.m01 * vector.x + rotation.m11 * vector.y + rotation.m21 * vector.z;
-		float z = rotation.m02 * vector.x + rotation.m12 * vector.y + rotation.m22 * vector.z;
+		float x = r.m00 * vector.x + r.m10 * vector.y + r.m20 * vector.z;
+		float y = r.m01 * vector.x + r.m11 * vector.y + r.m21 * vector.z;
+		float z = r.m02 * vector.x + r.m12 * vector.y + r.m22 * vector.z;
 		dest.x = x;
 		dest.y = y;
 		dest.z = z;
@@ -114,18 +114,18 @@ public final class Transform implements ReadWriteObject {
 		float sx = src[srcIndex + 0];
 		float sy = src[srcIndex + 1];
 		float sz = src[srcIndex + 2];
-		float x = rotation.m00 * sx + rotation.m10 * sy + rotation.m20 * sz;
-		float y = rotation.m01 * sx + rotation.m11 * sy + rotation.m21 * sz;
-		float z = rotation.m02 * sx + rotation.m12 * sy + rotation.m22 * sz;
+		float x = r.m00 * sx + r.m10 * sy + r.m20 * sz;
+		float y = r.m01 * sx + r.m11 * sy + r.m21 * sz;
+		float z = r.m02 * sx + r.m12 * sy + r.m22 * sz;
 		dest[destIndex + 0] = x;
 		dest[destIndex + 1] = y;
 		dest[destIndex + 2] = z;
 	}
 
 	public void invertTransformVector(Vector3f vector, Vector3f dest) {
-		float x = rotation.m00 * vector.x + rotation.m01 * vector.y + rotation.m02 * vector.z;
-		float y = rotation.m10 * vector.x + rotation.m11 * vector.y + rotation.m12 * vector.z;
-		float z = rotation.m20 * vector.x + rotation.m21 * vector.y + rotation.m22 * vector.z;
+		float x = r.m00 * vector.x + r.m01 * vector.y + r.m02 * vector.z;
+		float y = r.m10 * vector.x + r.m11 * vector.y + r.m12 * vector.z;
+		float z = r.m20 * vector.x + r.m21 * vector.y + r.m22 * vector.z;
 		dest.x = x;
 		dest.y = y;
 		dest.z = z;
@@ -140,9 +140,9 @@ public final class Transform implements ReadWriteObject {
 			dest = new Transform();
 		}
 
-		Matrix3f.transpose(src.rotation, dest.rotation);
-		Matrix3f.transform(dest.rotation, src.translation, dest.translation);
-		dest.translation.negate();
+		Matrix3f.transpose(src.r, dest.r);
+		Matrix3f.transform(dest.r, src.t, dest.t);
+		dest.t.negate();
 
 		return dest;
 	}
@@ -152,12 +152,12 @@ public final class Transform implements ReadWriteObject {
 			dest = new Transform();
 		}
 		// In case dest == left
-		float x = left.translation.x;
-		float y = left.translation.y;
-		float z = left.translation.z;
-		Matrix3f.transform(left.rotation, right.translation, dest.translation);
-		dest.translation.translate(x, y, z);
-		Matrix3f.mul(left.rotation, right.rotation, dest.rotation);
+		float x = left.t.x;
+		float y = left.t.y;
+		float z = left.t.z;
+		Matrix3f.transform(left.r, right.t, dest.t);
+		dest.t.translate(x, y, z);
+		Matrix3f.mul(left.r, right.r, dest.r);
 
 		return dest;
 	}
@@ -167,12 +167,12 @@ public final class Transform implements ReadWriteObject {
 			dest = new Matrix4f();
 		}
 
-		Matrix3f rotation = left.rotation;
+		Matrix3f rotation = left.r;
 		MatrixOps.matrixMult(rotation, right, dest);
 
-		float x = rotation.m00 * right.m30 + rotation.m10 * right.m31 + rotation.m20 * right.m32 + left.translation.x;
-		float y = rotation.m01 * right.m30 + rotation.m11 * right.m31 + rotation.m21 * right.m32 + left.translation.y;
-		float z = rotation.m02 * right.m30 + rotation.m21 * right.m31 + rotation.m22 * right.m32 + left.translation.z;
+		float x = rotation.m00 * right.m30 + rotation.m10 * right.m31 + rotation.m20 * right.m32 + left.t.x;
+		float y = rotation.m01 * right.m30 + rotation.m11 * right.m31 + rotation.m21 * right.m32 + left.t.y;
+		float z = rotation.m02 * right.m30 + rotation.m21 * right.m31 + rotation.m22 * right.m32 + left.t.z;
 
 		dest.m30 = x;
 		dest.m31 = y;
@@ -183,48 +183,48 @@ public final class Transform implements ReadWriteObject {
 	}
 
 	public void loadTo(Matrix4f dest) {
-		dest.m00 = rotation.m00;
-		dest.m01 = rotation.m01;
-		dest.m02 = rotation.m02;
+		dest.m00 = r.m00;
+		dest.m01 = r.m01;
+		dest.m02 = r.m02;
 		dest.m03 = 0;
 
-		dest.m10 = rotation.m10;
-		dest.m11 = rotation.m11;
-		dest.m12 = rotation.m12;
+		dest.m10 = r.m10;
+		dest.m11 = r.m11;
+		dest.m12 = r.m12;
 		dest.m13 = 0;
 
-		dest.m20 = rotation.m20;
-		dest.m21 = rotation.m21;
-		dest.m22 = rotation.m22;
+		dest.m20 = r.m20;
+		dest.m21 = r.m21;
+		dest.m22 = r.m22;
 		dest.m23 = 0;
 
-		dest.m30 = translation.x;
-		dest.m31 = translation.y;
-		dest.m32 = translation.z;
+		dest.m30 = t.x;
+		dest.m31 = t.y;
+		dest.m32 = t.z;
 		dest.m33 = 1.0f;
 	}
 
 	public void loadFrom(Matrix4f src) {
-		MatrixOps.loadMatrix(src, rotation, false);
-		this.translation.set(src.m30, src.m31, src.m32);
+		MatrixOps.loadMatrix(src, r, false);
+		this.t.set(src.m30, src.m31, src.m32);
 	}
 
 	public void loadFrom(Transform transform) {
-		this.translation.set(transform.translation);
-		this.rotation.load(transform.rotation);
+		this.t.set(transform.t);
+		this.r.load(transform.r);
 	}
 
 	public Matrix3f getRotation() {
-		return rotation;
+		return r;
 	}
 
 	public Vector3f getTranslation() {
-		return translation;
+		return t;
 	}
 
 	@Override
 	public String toString() {
-		return "Transform: Rotation =\n" + this.rotation + "Translation = " + this.translation + "\n";
+		return "Transform: Rotation =\n" + this.r + "Translation = " + this.t + "\n";
 	}
 
 	public Transform(RecordFile f) {
@@ -233,14 +233,14 @@ public final class Transform implements ReadWriteObject {
 
 	@Override
 	public void read(RecordFile f) {
-		f.readMatrix3f(rotation);
-		f.readVector3f(translation);
+		f.readMatrix3f(r);
+		f.readVector3f(t);
 	}
 
 	@Override
 	public void write(RecordFile f) {
-		f.writeMatrix3f(rotation);
-		f.writeVector3f(translation);
+		f.writeMatrix3f(r);
+		f.writeVector3f(t);
 	}
 
 	@Override

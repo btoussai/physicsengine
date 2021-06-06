@@ -2,7 +2,7 @@ package cataclysm.wrappers;
 
 import math.vector.Matrix4f;
 
-class SphereBuilder extends WrapperBuilder {
+final class SphereBuilder extends WrapperBuilder {
 	
 	private float radius;
 

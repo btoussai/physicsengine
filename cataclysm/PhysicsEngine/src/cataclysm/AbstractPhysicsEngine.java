@@ -111,7 +111,7 @@ public abstract class AbstractPhysicsEngine {
 		
 		for (RigidBody body : bodies) {
 			if (body.isSkipIntegration()) {
-				body.updateTransform(temp);
+				body.updateTransforms(temp);
 				continue;
 			}
 
@@ -172,7 +172,7 @@ public abstract class AbstractPhysicsEngine {
 				body.rotateAboutCenterOfMass(rotation);
 			}
 
-			body.updateTransform(temp);
+			body.updateTransforms(temp);
 
 			pseudoVel.set(0, 0, 0);
 			pseudoAngVel.set(0, 0, 0);

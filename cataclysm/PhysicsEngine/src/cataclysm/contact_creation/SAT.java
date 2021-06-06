@@ -12,12 +12,12 @@ import math.vector.Vector3f;
 
 /**
  * 
- * Cette classe contient une impl�mentation de l'algorithme SAT, d'apr�s la
- * pr�sentation "Dirk Gregorius � The Separating Axis Test", disponible ici:
+ * This class contains an implementation of the SAT algorithm, see
+ * the presentation "Dirk Gregorius, The Separating Axis Test", available here:
  * <li><a href=
  * "https://box2d.org/downloads/">https://box2d.org/downloads/</a></li>
  *
- * @author Briac
+ * @author Briac Toussaint
  *
  */
 class SAT {
@@ -153,8 +153,8 @@ class SAT {
 			ContactZone contact) {
 		if (DEBUG) {
 			System.out.println("Fail fast check: previous distance:" + contact.getPenetrationDepth());
-			System.out.println("ContactFeature sur A:" + contact.getFeatureOnA().getType());
-			System.out.println("ContactFeature sur B:" + contact.getFeatureOnB().getType());
+			System.out.println("ContactFeature on A:" + contact.getFeatureOnA().getType());
+			System.out.println("ContactFeature on B:" + contact.getFeatureOnB().getType());
 		}
 
 		if (contact.getPenetrationDepth() >= 0) {
@@ -168,8 +168,8 @@ class SAT {
 				float distance = hullA.signedDistance(supportPoint, face);
 
 				if (DEBUG) {
-					System.out.println("pr�c�dente collision sur une face");
-					System.out.println("referenceFace dans hullA : dist = " + distance);
+					System.out.println("previous collision on a side");
+					System.out.println("referenceFace inhullA : dist = " + distance);
 				}
 
 				if (distance > 0) {
@@ -183,8 +183,8 @@ class SAT {
 				float distance = hullB.signedDistance(supportPoint, face);
 
 				if (DEBUG) {
-					System.out.println("pr�c�dente collision sur une face");
-					System.out.println("referenceFace dans hullB : dist = " + distance);
+					System.out.println("previous collision on a side");
+					System.out.println("referenceFace on hullB : dist = " + distance);
 				}
 
 				if (distance > 0) {
@@ -193,7 +193,7 @@ class SAT {
 				}
 			} else if (onA.getType() == FeatureType.HullEdge && onB.getType() == FeatureType.HullEdge) {
 				if (DEBUG) {
-					System.out.println("pr�c�dente collision sur une ar�te");
+					System.out.println("previous collision on an edge");
 				}
 				
 				int edgeA = onA.getHullFeatureIndex();
@@ -203,7 +203,7 @@ class SAT {
 
 				if (!isMinkowskiFace(hullA, edgeA, vecEdgeA, hullB, edgeB, vecEdgeB)) {
 					if (DEBUG) {
-						System.out.println("Les arêtes ne forment plus une face sur la différence de Minkowski.");
+						System.out.println("The edges no longer form a face in the Minkowski sum");
 					}
 					return false;
 				}

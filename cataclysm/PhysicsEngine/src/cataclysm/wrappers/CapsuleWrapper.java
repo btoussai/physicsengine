@@ -6,13 +6,12 @@ import math.vector.Matrix3f;
 import math.vector.Vector3f;
 
 /**
- * Repr�sente une enveloppe allong�e pour les collisions. Utile pour repr�senter
- * les membres d'un ragdoll.
+ * This collision shape is a simple cylinder with round end caps.
  * 
  * @author Briac
  *
  */
-public class CapsuleWrapper extends Wrapper {
+public final class CapsuleWrapper extends Wrapper {
 
 	private final TransformableVec3 center1 = new TransformableVec3();
 
@@ -22,16 +21,6 @@ public class CapsuleWrapper extends Wrapper {
 
 	private float halfLength;
 
-	/**
-	 * Construit une enveloppe en forme de capsule.
-	 * 
-	 * @param body               Le corps rigide poss�dant cette enveloppe.
-	 * @param wrapperToBody La matrice de transformation indiquant la
-	 *                           positionet l'orientation de l'enveloppe dans le
-	 *                           rep�re ducorps rigide.
-	 * @param radius             Le rayon de la capsule.
-	 * @param halfLength         La demi-longueur de la partie cylindrique.
-	 */
 	CapsuleWrapper(RigidBody body, Transform wrapperToBody, MassProperties massProperties, float radius, float halfLength, long ID) {
 		super(body, wrapperToBody, massProperties, halfLength + radius, ID);
 		this.radius = radius;

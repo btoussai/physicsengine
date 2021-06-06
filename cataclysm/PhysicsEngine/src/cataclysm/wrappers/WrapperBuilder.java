@@ -3,33 +3,49 @@ package cataclysm.wrappers;
 import math.vector.Matrix4f;
 
 /**
- * Cette classe permet d'instancier une enveloppe de collision pour un
- * rigidbody.
+ * This class serves as a factory to give a {@link RigidBody} a {@link Wrapper}.
  * 
  * @author Briac
  *
  */
-public abstract class WrapperBuilder {
+@SuppressWarnings("preview")
+public abstract sealed class WrapperBuilder permits SphereBuilder, CapsuleBuilder, ConvexHullWrapperBuilder{
 
 	protected final Transform wrapperToBody;
 	protected final MassProperties massProperties;
 
+	/**
+	 * Package-private constructor, called by subclasses.
+	 * 
+	 * @param wrapperToBody
+	 */
 	WrapperBuilder(Matrix4f wrapperToBody) {
 		this.wrapperToBody = new Transform(wrapperToBody);
 		this.massProperties = new MassProperties(0, 0, false, 1);
 	}
-	
+
+	/**
+	 * @return The bodyspace transforms of the wrappers that will be built from this
+	 *         factory.
+	 */
 	public Transform getTransform() {
 		return wrapperToBody;
 	}
-	
+
+	/**
+	 * Sets the bodyspace transforms of the wrappers that will be built from this
+	 * factory. Previously built wrappers will not be affected.
+	 * 
+	 * @param transform
+	 */
 	public void setTransform(Matrix4f transform) {
 		this.wrapperToBody.loadFrom(transform);
 	}
 
 	/**
-	 * Les enveloppes construites par ce builder seront vide ou pleines. Ceci
-	 * n'influence que le tenseur d'inertie du rigidbody poss�dent l'enveloppe.
+	 * The wrappers built from this factory can be solid or hollow. This only affects the
+	 * inertia tensor of the rigid body. Previously built wrappers will not be affected.
+	 * Wrappers are solid by default.
 	 * 
 	 * @param hollow
 	 * @return this
@@ -40,10 +56,11 @@ public abstract class WrapperBuilder {
 	}
 
 	/**
-	 * Change la densit� des enveloppes construites par ce builder. La masse des
-	 * enveloppes sera d�duite de la densit�. <br>
-	 * Si l'enveloppe est pleine, la densit� correspond � la masse surfacique. <br>
-	 * Si l'enveloppe est creuse, la densit� correspond � la masse volumique.
+	 * Changes the density of the wrappers built from this factory. <br>
+	 * If the hollow parameter is true, this parameter is understood as the mass per
+	 * surface unit.<br>
+	 * If the hollow parameter is false, this parameter is understood as the mass
+	 * per volume unit.
 	 * 
 	 * @param density
 	 * @return this
@@ -55,10 +72,12 @@ public abstract class WrapperBuilder {
 	}
 
 	/**
-	 * Change la masse des enveloppes construites par ce builder. La densit� sera
-	 * d�duite de la masse. <br>
-	 * Si l'enveloppe est pleine, la densit� correspond � la masse surfacique. <br>
-	 * Si l'enveloppe est creuse, la densit� correspond � la masse volumique.
+	 * Changes the mass of the wrappers built from this factory. <br>
+	 * If the hollow parameter is true, the density is computed as the ratio of the
+	 * mass to the surface area.<br>
+	 * If the hollow parameter is false, the density is computed as the ratio of the
+	 * mass to the volume.
+	 * 
 	 * 
 	 * @param mass
 	 */
@@ -68,20 +87,20 @@ public abstract class WrapperBuilder {
 	}
 
 	/**
-	 * Construit une nouvelle enveloppe de collision pour le corps rigide pass� en
-	 * param�tre.
+	 * Builds a new {@link Wrapper} for the given {@link RigidBody}.
 	 * 
-	 * @param body Le corps rigide pour lequel l'enveloppe est construite.
+	 * @param body
 	 * @param ID
-	 * @return Une nouvelle enveloppe de collision.
+	 * @return the newly built wrapper.
 	 */
 	abstract Wrapper build(RigidBody body, long ID);
 
 	/**
-	 * Applique un facteur d'�chelle sur ce builder. Toute les enveloppes
-	 * construites par la suite seront soumises au changement d'�chelle. Le
-	 * changement d'�chelle ne modifie pas la position et l'orientation en bodyspace
-	 * des enveloppes cr��es. Pour cela, voir {@link #setTransform(Matrix4f)}.
+	 * Applies a scaling on this builder. All {@link Wrapper}s built subsequently
+	 * will be affected by this scaling. Previously built wrappers will not be
+	 * affected. Note that the translation and rotation of the wrappers in bodyspace
+	 * will stay unchanged. To achieve a true scaling, the translation vector should
+	 * also be modified, see {@link #setTransform(Matrix4f)}.
 	 * 
 	 * @param scaleFactor
 	 */

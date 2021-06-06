@@ -4,9 +4,9 @@ import cataclysm.record.ReadWriteObject;
 import cataclysm.record.RecordFile;
 
 /**
- * Contient les informations permettant de calculer la masse d'un wrapper.
+ * This class holds the mass properties of a {@link Wrapper}.
  * 
- * @author Briac
+ * @author Briac Toussaint
  *
  */
 public final class MassProperties implements ReadWriteObject {
@@ -92,22 +92,18 @@ public final class MassProperties implements ReadWriteObject {
 	}
 
 	/**
-	 * Indique si la masse est calcul�e � partir de la densit� ou l'inverse.
-	 * 
-	 * @return true si la masse est calcul�e � partir de la densit�, false si la
-	 *         densit� est calcul�e � partir de la masse.
+	 * @return whether the mass should be computed from the density parameter. 
 	 */
 	public boolean useDensity() {
 		return useDensity;
 	}
 
 	/**
-	 * Change la fa�on dont sont calcul�es la masse et la densit�.
+	 * Defines whether the mass should be computed from the density parameter. 
 	 * 
 	 * @param useDensity <br>
-	 *                   Si true --> la masse est calcul�e � partir de la
-	 *                   densit�.<br>
-	 *                   Si false --> la densit� est calcul�e � partir de la masse.
+	 *                   If true --> The mass is computed from the density<br>
+	 *                   If false --> The density is computed from the mass.
 	 */
 	public void setUseDensity(boolean useDensity) {
 		this.useDensity = useDensity;

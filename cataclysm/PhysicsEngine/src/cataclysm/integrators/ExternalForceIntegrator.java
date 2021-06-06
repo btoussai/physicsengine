@@ -1,6 +1,6 @@
 package cataclysm.integrators;
 
-import cataclysm.Parallelizable;
+import cataclysm.annotations.Parallelizable;
 import cataclysm.wrappers.RigidBody;
 
 /**

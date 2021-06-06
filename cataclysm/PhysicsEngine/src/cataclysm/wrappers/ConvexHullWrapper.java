@@ -9,40 +9,38 @@ import math.vector.Matrix3f;
 import math.vector.Vector3f;
 
 /**
- * Repr�sente une enveloppe convexe pour les collisions.
+ * Defines a convex polyhedra used as a collision shape for a {@link RigidBody}.
  * 
- * @author Briac
+ * @author Briac Toussaint
  *
  */
-public class ConvexHullWrapper extends Wrapper {
+@SuppressWarnings("preview")
+public sealed class ConvexHullWrapper extends Wrapper permits TriangleAsHull {
 
 	public final int faceCount;
 	public final int edgeCount;
 	public final int vertexCount;
 	public final short[] intData;
 	public final float[] floatData;
+	
+	private final ConvexHullWrapperData data;
 
 	/**
+	 * The scale factor between the backup data and the wrapper.
 	 * Le facteur d'échelle entre le modèle 3D et les coordonnées réelles du wrapper
 	 */
 	private float scale;
 
-	/**
-	 * Construit une nouvelle enveloppe convexe pour les collisions.
-	 * 
-	 * @param body
-	 * @param wrapperToBody
-	 * @param data
-	 */
 	protected ConvexHullWrapper(RigidBody body, Transform wrapperToBody, MassProperties massProperties,
-			ConvexHullWrapperData data, long ID) {
+			ConvexHullWrapperData data, float scale, long ID) {
 		super(body, wrapperToBody, massProperties, data.maxRadius, ID);
 		this.faceCount = data.faceCount;
 		this.edgeCount = data.edgeCount;
 		this.vertexCount = data.vertexCount;
 		this.intData = Arrays.copyOf(data.intData, data.intData.length);
 		this.floatData = Arrays.copyOf(data.floatData, data.floatData.length);
-		this.scale = 1.0f;
+		this.data = data;
+		this.scale = scale;
 	}
 
 	public ConvexHullWrapper(RigidBody body, WrapperRepr w, long ID) {
@@ -52,6 +50,7 @@ public class ConvexHullWrapper extends Wrapper {
 		this.vertexCount = w.vertexCount;
 		this.intData = Arrays.copyOf(w.intData, w.intData.length);
 		this.floatData = Arrays.copyOf(w.floatData, w.floatData.length);
+		this.data = w.data;
 		this.scale = 1.0f;
 	}
 
@@ -65,6 +64,7 @@ public class ConvexHullWrapper extends Wrapper {
 		this.vertexCount = w.vertexCount;
 		this.intData = Arrays.copyOf(w.intData, w.intData.length);
 		this.floatData = Arrays.copyOf(w.floatData, w.floatData.length);
+		this.data = w;
 		this.scale = 1.0f;
 	}
 
@@ -102,7 +102,6 @@ public class ConvexHullWrapper extends Wrapper {
 
 		Vector3f wrapperCenterOfMass = new Vector3f();
 		wrapperToBody.invertTransformVertex(centerOfMass, wrapperCenterOfMass);
-		// On indique la position du centre de masse en wrapper-space.
 		super.placeCentroid(wrapperCenterOfMass);
 
 		return mass;

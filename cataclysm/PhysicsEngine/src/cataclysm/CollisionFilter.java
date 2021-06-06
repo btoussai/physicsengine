@@ -5,7 +5,9 @@ import cataclysm.wrappers.RigidBody;
 /**
  * 
  * 
- * Permet de déterminer si deux rigidbody doivent ou non enter en collision.
+ * Determines whether two rigid bodies can collide.
+ * 
+ * @see DefaultCollisionFilter
  * 
  * @author Briac
  *

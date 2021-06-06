@@ -2,7 +2,7 @@ package cataclysm.wrappers;
 
 import math.vector.Matrix4f;
 
-class CapsuleBuilder extends WrapperBuilder{
+final class CapsuleBuilder extends WrapperBuilder{
 	
 	private float radius;
 	private float halfLength;

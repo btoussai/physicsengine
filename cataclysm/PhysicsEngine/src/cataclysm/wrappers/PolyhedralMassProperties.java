@@ -5,46 +5,33 @@ import math.vector.Matrix3f;
 import math.vector.Vector3f;
 
 /**
- * Cette classe fournit une impl�mentation de l'algorithme de B. Mirtich pour le
- * calcul des propri�t�s massiques d'un solide polygonal. D'apr�s l'article
- * "Fast and Accurate Computation of Polyhedral Mass Properties".
+ * An implementation of B. Mirtich's algorithm for the computation of the mass
+ * properties of a polyhedra. From the article "Fast and Accurate Computation of
+ * Polyhedral Mass Properties".
  * 
- * Un ajout personnel permet de traiter le cas d'un solide creux, o� la mati�re
- * se concentre sur la surface.
+ * The original algorithm has been slightly modified by myself to treat the case
+ * of a hollow polyhedra, on which the mass is concentrated on its outer shell.
  * 
- * @author Briac
+ * @author Briac Toussaint
  *
  */
 public class PolyhedralMassProperties {
 
-	/**
-	 * Repr�sente le plan de projection utilis� pour calculer les int�grales
-	 * surfaciques sur une face. La projection maximise l'aire de la face sur le
-	 * plan de projection.
-	 * 
-	 * @author Briac
-	 *
-	 */
 	private static enum Projection {
 		XY, YZ, ZX;
 	}
 
-	/**
-	 * La plan de projection actuel.
-	 */
 	private Projection projection;
 
 	/**
-	 * Calcule le volume, la position du centre de masse et le tenseur d'inertie du
-	 * solide. On suppose le solide de densit� uniforme.
+	 * Computes the inertia tensor and the center of mass of a convex polyhedra.
+	 * The inertia tensor is computed about the origin, not about the center of mass!
+	 * The mass properties of the wrapper are also updated (mass, volume, surface area).
 	 * 
-	 * @param hull    Le solide dont on souhaite caculer les propri�t�s.
-	 * @param CM      Le vecteur dans lequel stocker les coordonn�es du centre de
-	 *                masse.
-	 * @param inertia La matrice dans laquelle stocker les coordonn�es du tenseur
-	 *                d'inertie. Le tenseur d'inertie est exprim� par rapport �
-	 *                l'origine du rep�re.
-	 * @return la masse du solide.
+	 * @param hull    The convex polyhedra.
+	 * @param CM      A destination vector for the center of mass.
+	 * @param inertia A destination matrix for the inertia tensor.
+	 * @return the mass of the convex polyhedra
 	 */
 	public float computeProperties(ConvexHullWrapper hull, Vector3f CM, Matrix3f inertia) {
 
@@ -103,15 +90,15 @@ public class PolyhedralMassProperties {
 		return mass;
 	}
 
-	// U<x> --> int�grale sur la surface de <x>.
+	// U<x> --> integrale sur la surface de <x>.
 	private float U1, Ux, Uy, Uz, Ux2, Uy2, Uz2, Uxy, Uyz, Uzx;
-	// T<x> --> in�grale sur le volume de <x>.
+	// T<x> --> inegrale sur le volume de <x>.
 	private float T1, Tx, Ty, Tz, Tx2, Ty2, Tz2, Txy, Tyz, Tzx;
-	// F<x> --> int�grale sur la surface de <x>
+	// F<x> --> integrale sur la surface de <x>
 	private float F1, Fa, Fb, Fc, Fab, Fbc, Fca, Fa2, Fb2, Fc2, Fa3, Fb3, Fc3, Fa2b, Fb2c, Fc2a;
 	// Composantes de la normale d'une face
 	private float na, nb, nc;
-	// PI<x> --> int�grale sur le contour d'une face de <x>
+	// PI<x> --> integrale sur le contour d'une face de <x>
 	private float pi_1, pi_a, pi_b, pi_a2, pi_b2, pi_a3, pi_b3;
 	private float pi_ab, pi_a2b, pi_ab2;
 	private float a0, a1, b0, b1;
@@ -227,7 +214,7 @@ public class PolyhedralMassProperties {
 		Tyz /= 2f;
 		Tzx /= 2f;
 	}
-	
+
 	private final Vector3f normal = new Vector3f();
 
 	private void computeFaceIntegrals(ConvexHullWrapper hull, int face) {
@@ -277,11 +264,11 @@ public class PolyhedralMassProperties {
 
 	private void computeProjectionIntegrals(ConvexHullWrapper hull, int face) {
 		pi_1 = pi_a = pi_b = pi_a2 = pi_b2 = pi_a3 = pi_b3 = pi_ab = pi_a2b = pi_ab2 = 0;
-		
+
 		int edge0 = hull.getFaceEdge0(face);
 		int edge = edge0;
 		do {
-			
+
 			loadCoords(hull, edge);
 
 			float Da = a1 - a0;
@@ -325,7 +312,7 @@ public class PolyhedralMassProperties {
 			pi_ab2 += Da * (a1 * Cab2 + a0 * Kab2);
 
 			edge = hull.getEdgeNext(edge);
-		} while(edge != edge0);
+		} while (edge != edge0);
 
 		pi_1 /= 2f;
 		pi_a /= 6f;
@@ -339,7 +326,6 @@ public class PolyhedralMassProperties {
 		pi_ab2 /= -60f;
 
 	}
-	
 
 	private final Vector3f start = new Vector3f();
 	private final Vector3f end = new Vector3f();
@@ -405,12 +391,11 @@ public class PolyhedralMassProperties {
 	}
 
 	/**
-	 * Exprime le tenseur d'inertie apr�s une translation de l'objet.
+	 * Translates the inertia tensor.
 	 * 
-	 * @param inertia     Le tenseur d'inertie exprim� par rapport au centre de
-	 *                    masse de l'objet.
-	 * @param translation La transation � appliquer.
-	 * @param mass        La masse de l'objet.
+	 * @param inertia     The inertia tensor about the center of mass of the object, to be modified in-place.
+	 * @param translation The translation vector.
+	 * @param mass        The mass of the object.
 	 */
 	static void translateInertia(Matrix3f inertia, Vector3f translation, float mass) {
 		float rx2 = translation.x * translation.x;

@@ -11,9 +11,10 @@ import math.vector.Matrix4f;
 import math.vector.Vector3f;
 
 /**
- * Repr�sente un maillage statique de collision pour les d�cors.
+ * Defines a static collision mesh in the simulation. As the name implies, these
+ * collision meshes are undeformable and cannot be moved.
  * 
- * @author Briac
+ * @author Briac Toussaint
  *
  */
 public class StaticMesh extends Identifier {

@@ -6,12 +6,12 @@ import math.vector.Matrix3f;
 import math.vector.Vector3f;
 
 /**
- * Repr�sente une enveloppe sph�rique utilis�e pour les collisions.
+ * Defines a spherical {@link Wrapper} for a {@link RigidBody}.
  * 
- * @author Briac
+ * @author Briac Toussaint
  *
  */
-public class SphereWrapper extends Wrapper {
+public final class SphereWrapper extends Wrapper {
 
 	private float radius;
 

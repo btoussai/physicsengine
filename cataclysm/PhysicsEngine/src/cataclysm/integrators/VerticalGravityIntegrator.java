@@ -40,7 +40,6 @@ public class VerticalGravityIntegrator implements ExternalForceIntegrator {
 
 	@Override
 	public void prepare() {
-		// TODO Auto-generated method stub
 		
 	}
 

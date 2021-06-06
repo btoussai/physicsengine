@@ -35,14 +35,10 @@ import java.io.Serializable;
 import java.nio.FloatBuffer;
 
 /**
+ * Defines a 3x3 matrix
+ * @author Briac Toussaint
  *
- * Holds a 3x3 matrix.
- *
- * @author cix_foo <cix_foo@users.sourceforge.net>
- * @version $Revision$
- * $Id$
  */
-
 public class Matrix3f extends Matrix implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -58,7 +54,7 @@ public class Matrix3f extends Matrix implements Serializable {
 		m22;
 
 	/**
-	 * Constructor for Matrix3f. Matrix is initialised to the identity.
+	 * Constructor for Matrix3f. The matrix is initialised to the identity.
 	 */
 	public Matrix3f() {
 		super();
@@ -66,7 +62,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Load from another matrix
+	 * Loads from another matrix
 	 * @param src The source matrix
 	 * @return this
 	 */
@@ -75,7 +71,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Copy source matrix to destination matrix
+	 * Copies src matrix to dest matrix
 	 * @param src The source matrix
 	 * @param dest The destination matrix, or null of a new matrix is to be created
 	 * @return The copied matrix
@@ -98,7 +94,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Load from a float buffer. The buffer stores the matrix in column major
+	 * Loads from a float buffer. The buffer stores the matrix in column major
 	 * (OpenGL) order.
 	 *
 	 * @param buf A float buffer to read from
@@ -120,8 +116,8 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Load from a float buffer. The buffer stores the matrix in row major
-	 * (maths) order.
+	 * Loads from a float buffer. The buffer stores the matrix in row major
+	 * order.
 	 *
 	 * @param buf A float buffer to read from
 	 * @return this
@@ -142,7 +138,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Store this matrix in a float buffer. The matrix is stored in column
+	 * Stores this matrix in a float buffer. The matrix is stored in column
 	 * major (openGL) order.
 	 * @param buf The buffer to store this matrix in
 	 */
@@ -160,8 +156,8 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Store this matrix in a float buffer. The matrix is stored in row
-	 * major (maths) order.
+	 * Stores this matrix in a float buffer. The matrix is stored in row
+	 * major order.
 	 * @param buf The buffer to store this matrix in
 	 */
 	public Matrix storeTranspose(FloatBuffer buf) {
@@ -178,7 +174,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Add two matrices together and place the result in a third matrix.
+	 * Adds two matrices together and places the result in a third matrix.
 	 * @param left The left source matrix
 	 * @param right The right source matrix
 	 * @param dest The destination matrix, or null if a new one is to be created
@@ -202,7 +198,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Subtract the right matrix from the left and place the result in a third matrix.
+	 * Subtracts the right matrix from the left and places the result in a third matrix.
 	 * @param left The left source matrix
 	 * @param right The right source matrix
 	 * @param dest The destination matrix, or null if a new one is to be created
@@ -226,7 +222,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Multiply the right matrix by the left and place the result in a third matrix.
+	 * Multiplies the right matrix by the left and places the result in the dest matrix.
 	 * @param left The left source matrix
 	 * @param right The right source matrix
 	 * @param dest The destination matrix, or null if a new one is to be created
@@ -269,7 +265,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Transform a Vector by a matrix and return the result in a destination
+	 * Transforms a Vector by a matrix and returns the result in a destination
 	 * vector.
 	 * @param left The left matrix
 	 * @param right The right vector
@@ -300,7 +296,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Transpose this matrix and place the result in another matrix
+	 * Transposes this matrix and places the result in another matrix
 	 * @param dest The destination matrix or null if a new matrix is to be created
 	 * @return the transposed matrix
 	 */
@@ -309,7 +305,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Transpose the source matrix and place the result into the destination matrix
+	 * Transposes the source matrix and places the result into the destination matrix
 	 * @param src The source matrix to be transposed
 	 * @param dest The destination matrix or null if a new matrix is to be created
 	 * @return the transposed matrix
@@ -351,7 +347,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Returns a string representation of this matrix
+	 * @return a string representation of this matrix
 	 */
 	public String toString() {
 		StringBuilder buf = new StringBuilder();
@@ -362,7 +358,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Invert this matrix
+	 * Inverts this matrix
 	 * @return this if successful, null otherwise
 	 */
 	public Matrix invert() {
@@ -370,7 +366,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Invert the source matrix and put the result into the destination matrix
+	 * Inverts the source matrix and puts the result into the destination matrix
 	 * @param src The source matrix to be inverted
 	 * @param dest The destination matrix, or null if a new one is to be created
 	 * @return The inverted matrix if successful, null otherwise
@@ -418,7 +414,7 @@ public class Matrix3f extends Matrix implements Serializable {
 
 
 	/**
-	 * Negate this matrix
+	 * Negates this matrix
 	 * @return this
 	 */
 	public Matrix negate() {
@@ -426,7 +422,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Negate this matrix and place the result in a destination matrix.
+	 * Negates this matrix and places the result in a destination matrix.
 	 * @param dest The destination matrix, or null if a new matrix is to be created
 	 * @return the negated matrix
 	 */
@@ -435,7 +431,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Negate the source matrix and place the result in the destination matrix.
+	 * Negates the source matrix and places the result in the destination matrix.
 	 * @param src The source matrix
 	 * @param dest The destination matrix, or null if a new matrix is to be created
 	 * @return the negated matrix
@@ -457,7 +453,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Set this matrix to be the identity matrix.
+	 * Sets this matrix to be the identity matrix.
 	 * @return this
 	 */
 	public Matrix setIdentity() {
@@ -465,7 +461,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Set the matrix to be the identity matrix.
+	 * Sets the matrix to be the identity matrix.
 	 * @param m The matrix to be set to the identity
 	 * @return m
 	 */
@@ -483,7 +479,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Set this matrix to 0.
+	 * Sets this matrix to 0.
 	 * @return this
 	 */
 	public Matrix setZero() {
@@ -491,7 +487,7 @@ public class Matrix3f extends Matrix implements Serializable {
 	}
 
 	/**
-	 * Set the matrix matrix to 0.
+	 * Sets the matrix matrix to 0.
 	 * @param m The matrix to be set to 0
 	 * @return m
 	 */

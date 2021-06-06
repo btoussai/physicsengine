@@ -4,7 +4,8 @@ import cataclysm.constraints.AnchorPoint;
 import cataclysm.wrappers.RigidBody;
 
 /**
- * Permet de décider si deux rigidbody peuvent entrer en collision.
+ * Determines if two rigid bodies can collide by applying the following rule: <br>
+ * {@code boolean canCollide = (maskA & categoryB) != 0 && (maskB & categoryA) != 0;}
  * 
  * @author Briac
  *

@@ -4,12 +4,11 @@ import cataclysm.wrappers.RigidBody;
 import math.vector.Vector3f;
 
 /**
- * Repr�sente un point d'ancrage d'une contrainte. Un point d'ancrage peut �tre
- * une coordonn�e sur un RigidBody exprim�e en model-space ou bien une
- * coordonn�e fixe en world-space. Un point d'ancrage ne peut appartenir qu'�
- * une seule contrainte.
+ * Defines an anchor point for a constraint. An anchor point can be given in
+ * body-space or in world-space. An instance of an anchor point cannot be shared
+ * between constraints.
  * 
- * @author Briac
+ * @author Briac Toussaint
  *
  */
 public class AnchorPoint {
@@ -21,11 +20,11 @@ public class AnchorPoint {
 	private AbstractConstraint constraint;
 
 	/**
-	 * Construit un nouveau point d'ancrage pour une contrainte. <br>
-	 * Ce point d'ancrage est consid�r� comme statique, c'est � dire qu'il ne peut
-	 * pas bouger et la position doit �tre exprim�e en world-space.
+	 * Builds a new anchor point for a constraint. <br>
+	 * This anchor point is static, it means that it is given in world space and
+	 * that it cannot move.
 	 * 
-	 * @param position
+	 * @param position the position of the anchor point in world-space.
 	 */
 	public AnchorPoint(Vector3f position) {
 		this.bodySpacePos.set(position);
@@ -35,12 +34,12 @@ public class AnchorPoint {
 	}
 
 	/**
-	 * Construit un nouveau point d'ancrage pour une contrainte. <br>
-	 * Ce point d'ancrage est fixe dans le rep�re du solide, mais le solide peut
-	 * tr�s bien se d�placer. La position doit �tre exprim�e en model-space.
+	 * Builds a new anchor point for a constraint. <br>
+	 * The position of this anchor point is fixed in the reference frame of the
+	 * rigid body it is attached to.
 	 * 
-	 * @param position
-	 * @param body
+	 * @param position the position of the anchor point in body-space.
+	 * @param body     the rigid body onto which the anchor point is attached.
 	 */
 	public AnchorPoint(Vector3f position, RigidBody body) {
 		this.bodySpacePos.set(position);
@@ -56,9 +55,7 @@ public class AnchorPoint {
 	}
 
 	/**
-	 * Ce constructeur permet de dupliquer un point d'ancrage. Ceci permet de
-	 * construire une nouvelle contrainte ayant un point d'ancrage localis� au m�me
-	 * endroit qu'un contrainte construite pr�c�demment.
+	 * Duplicates an anchor point.
 	 * 
 	 * @param other
 	 */
@@ -78,7 +75,7 @@ public class AnchorPoint {
 	}
 
 	/**
-	 * Calcule la distance entre les deux points d'ancrage.
+	 * Compute the distance between two anchor points.
 	 * 
 	 * @param pointA
 	 * @param pointB
@@ -99,6 +96,10 @@ public class AnchorPoint {
 		return body;
 	}
 
+	/**
+	 * @return true if the anchor point is static, that is to say, the anchor point
+	 *         is attached to a fixed location in world-space.
+	 */
 	public boolean isStatic() {
 		return isStatic;
 	}
@@ -116,20 +117,19 @@ public class AnchorPoint {
 	}
 
 	/**
-	 * @return La contrainte � laquelle ce point d'ancrage appartient.
+	 * @return The constraint owning this anchor point.
 	 */
 	public AbstractConstraint getConstraint() {
 		return constraint;
 	}
 
 	/**
-	 * D�finit l'unique constrainte poss�dant ce point d'ancrage.
+	 * Sets the constraint owning this anchor point.
+	 * Use {@link #AnchorPoint(AnchorPoint)} or {@link #copy()} to duplicate an anchor point.
 	 * 
 	 * @param constraint
-	 * @throws IllegalStateException si ce point d'ancrage appartient d�j� � une
-	 *                               contrainte.
+	 * @throws IllegalStateException If this anchor point is already in use.
 	 * 
-	 * @see #AnchorPoint(AnchorPoint) pour dupliquer un point d'ancrage.
 	 */
 	public void setConstraint(AbstractConstraint constraint) throws IllegalStateException {
 		if (this.constraint == null) {
@@ -139,10 +139,9 @@ public class AnchorPoint {
 
 		}
 	}
-	
+
 	/**
-	 * 
-	 * @return une copie de ce point d'ancrage.
+	 * @return a copy of this anchor point.
 	 */
 	public AnchorPoint copy() {
 		return new AnchorPoint(this);

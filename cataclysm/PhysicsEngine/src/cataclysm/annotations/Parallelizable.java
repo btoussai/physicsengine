@@ -1,4 +1,4 @@
-package cataclysm;
+package cataclysm.annotations;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.CONSTRUCTOR;
@@ -17,9 +17,12 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import cataclysm.PhysicsWorld;
+import cataclysm.RayTest;
+
 /**
  * This annotation indicates that a method can be called from multiple threads
- * at the same time when the physics engine <b>isn't</b> being updated.
+ * at the same time when the physics engine <b>is not</b> being updated.
  * Callbacks which are called when the physics engine is updated must also be
  * Parallelisable. <br>
  * Typical {@link Parallelizable} functions are
@@ -27,7 +30,7 @@ import java.lang.annotation.Target;
  * {@link PhysicsWorld#boxTriangleQuery(cataclysm.broadphase.AABB, java.util.Set)},
  * {@link PhysicsWorld#boxWrapperQuery(cataclysm.broadphase.AABB, java.util.Set)}
  * 
- * @author Briac
+ * @author Briac Toussaint
  *
  */
 @Documented

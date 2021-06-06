@@ -3,11 +3,19 @@ package cataclysm.contact_creation;
 import cataclysm.record.ReadWriteObject;
 import cataclysm.record.RecordFile;
 
-public final class ContactProperties implements ReadWriteObject{
-	
+/**
+ * This class holds some basic properties of the object's surface such as its
+ * elasticity coefficient (how much energy is conserved during a collision) and its friction
+ * coefficient.
+ * 
+ * @author Briac Toussaint
+ *
+ */
+public final class ContactProperties implements ReadWriteObject {
+
 	private float elasticity;
 	private float friction;
-	
+
 	public ContactProperties(float elasticity, float friction) {
 		this.elasticity = elasticity;
 		this.friction = friction;
@@ -35,11 +43,11 @@ public final class ContactProperties implements ReadWriteObject{
 		this.friction = friction;
 		return this;
 	}
-	
+
 	public ContactProperties(RecordFile f) {
 		read(f);
 	}
-	
+
 	@Override
 	public void read(RecordFile f) {
 		elasticity = f.readFloat();
@@ -61,6 +69,5 @@ public final class ContactProperties implements ReadWriteObject{
 	public int size() {
 		return 8;
 	}
-	
 
 }

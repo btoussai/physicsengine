@@ -5,10 +5,10 @@ import cataclysm.broadphase.staticmeshes.Triangle;
 /**
  * A triangle represented as a convex hull.
  * 
- * @author Briac
+ * @author Briac Toussaint
  *
  */
-public class TriangleAsHull extends ConvexHullWrapper {
+public final class TriangleAsHull extends ConvexHullWrapper {
 
 	private static final ConvexHullWrapperData data = buildBase();
 

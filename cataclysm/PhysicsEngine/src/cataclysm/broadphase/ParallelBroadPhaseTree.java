@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import cataclysm.Parallelizable;
 import cataclysm.RayTest;
+import cataclysm.annotations.Parallelizable;
 import cataclysm.parallel.PhysicsWork;
 import cataclysm.parallel.PhysicsWorkerPool;
 import cataclysm.parallel.PhysicsWorkerThread;

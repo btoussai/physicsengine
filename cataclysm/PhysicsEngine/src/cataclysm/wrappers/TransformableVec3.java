@@ -5,10 +5,9 @@ import cataclysm.record.RecordFile;
 import math.vector.Vector3f;
 
 /**
- * Repr�sente un ensemble de deux {@link Vector3f} repr�sentant un m�me vecteur
- * dans deux rep�res.
+ * Defines the association of two {@link Vector3f} as the representation of the same vector quantity in two reference frames.
  * 
- * @author Briac
+ * @author Briac Toussaint
  *
  */
 public final class TransformableVec3 implements ReadWriteObject {
@@ -54,7 +53,7 @@ public final class TransformableVec3 implements ReadWriteObject {
 
 	@Override
 	public String toString() {
-		return "ModelSpace: " + inputSpaceCoord + "    WorldSpace: " + outputSpaceCoord;
+		return "InputSpace: " + inputSpaceCoord + "    OutputSpace: " + outputSpaceCoord;
 	}
 
 	@Override

@@ -6,15 +6,15 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 
-import cataclysm.Parallelizable;
 import cataclysm.RayTest;
+import cataclysm.annotations.Parallelizable;
 
 /**
  * Defines a binary tree whose nodes are {@link BroadPhaseNode}. The tree is a
  * BVH (Bounding Volume Hierarchy), where each node is an AABB containing its
  * children nodes. <br>
  * 
- * @author Briac
+ * @author Briac Toussaint
  * @param <T> The leaf nodes have a reference to an object of type T
  *
  */

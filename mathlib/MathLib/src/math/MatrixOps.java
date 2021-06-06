@@ -1418,13 +1418,12 @@ public class MatrixOps {
 	}
 
 	/**
-	 * Permet de charger la sous-matrice 3x3 (coin haut gauche) de src dans dest.
+	 * Loads the 3x3 upper left block of src into dest.
 	 * 
-	 * @param src       La matrice source.
-	 * @param dest      La matrice de destination ou null si une nouvelle matrice
-	 *                  doit �tre cr��e.
-	 * @param transpose Indique s'il faut transposer dest.
-	 * @return dest La matrice de destination.
+	 * @param src       The src matrix.
+	 * @param dest      The dest matrix or null if a new matrix should be created.
+	 * @param transpose true if the transpose of src should be loaded into dest.
+	 * @return dest The destination matrix.
 	 */
 	public static Matrix3f loadMatrix(Matrix4f src, Matrix3f dest, boolean transpose) {
 		if (dest == null) {

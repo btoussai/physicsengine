@@ -4,12 +4,11 @@ import cataclysm.wrappers.Wrapper;
 import math.vector.Vector3f;
 
 /**
- * Cette classe contient une impl�mentation de l'algorithme GJK permettant de
- * calculer la distance entre deux convexes. D'apr�s la pr�sentation "Erin Catto
- * � Computing Distance using GJK" disponible ici <a
+ * This class contains an implementation of the GJK algorithm which is used to compute the distance between two convex shapes. 
+ * See the presentation "Erin Catto - Computing Distance using GJK" available here <a
  * href=https://box2d.org/downloads/>https://box2d.org/downloads/</a>.
  * 
- * @author Briac
+ * @author Briac Toussaint
  *
  */
 class GJK {
@@ -38,8 +37,6 @@ class GJK {
 	/**
 	 * Repr�sente un sommet du simplex.
 	 * 
-	 * @author Briac
-	 *
 	 */
 	private static class SimplexVertex {
 
@@ -96,8 +93,6 @@ class GJK {
 	 * Repr�sente le simplex utilis� dans l'algorithme: un point, un segment, un
 	 * triangle ou un t�trah�dre.
 	 * 
-	 * @author Briac
-	 *
 	 */
 	private static class Simplex {
 
@@ -578,7 +573,7 @@ class GJK {
 		float uAD = Vector3f.dot(OD, AD) / AD2;
 		if (uAC >= 1.0f && uAB >= 1.0f && uAD >= 1.0f) {
 			if (DEBUG)
-				System.out.println("Tetra�dre --> A");
+				System.out.println("Tetraedre --> A");
 			simplex.closest.set(simplex.A);
 			simplex.type = Simplex.SimplexType.Vertex;
 			return;
@@ -599,7 +594,7 @@ class GJK {
 
 		if (wABC <= 0.0f && vADB <= 0.0f) {
 			if (DEBUG)
-				System.out.println("Tetra�dre --> AB");
+				System.out.println("Tetraedre --> AB");
 			if (uAB < 0.0f)
 				uAB = 0.0f;
 			simplex.closest.blend2(simplex.A, uAB, simplex.B, 1.0f - uAB);
@@ -613,7 +608,7 @@ class GJK {
 
 		if (wACD <= 0.0f && vABC <= 0.0f) {
 			if (DEBUG)
-				System.out.println("Tetra�dre --> AC");
+				System.out.println("Tetraedre --> AC");
 			if (uAC < 0.0f)
 				uAC = 0.0f;
 			simplex.closest.blend2(simplex.A, uAC, simplex.C, 1.0f - uAC);
@@ -627,7 +622,7 @@ class GJK {
 
 		if (wADB <= 0.0f && vACD <= 0.0f) {
 			if (DEBUG)
-				System.out.println("Tetra�dre --> AD");
+				System.out.println("Tetraedre --> AD");
 			if (uAD < 0.0f)
 				uAD = 0.0f;
 			simplex.closest.blend2(simplex.A, uAD, simplex.D, 1.0f - uAD);
@@ -637,7 +632,7 @@ class GJK {
 
 		if (vABC >= 0.0f && wABC >= 0.0f && Vector3f.dot(ABC_normal, OA) < 0.0f) {// origin above ABC
 			if (DEBUG)
-				System.out.println("Tetra�dre --> ABC");
+				System.out.println("Tetraedre --> ABC");
 			simplex.closest.blend3(simplex.A, 1.0f - vABC - wABC, simplex.B, vABC, simplex.C, wABC);
 			simplex.type = Simplex.SimplexType.Triangle;
 			return;
@@ -645,7 +640,7 @@ class GJK {
 
 		if (vACD >= 0.0f && wACD >= 0.0f && Vector3f.dot(ACD_normal, OA) < 0.0f) {// origin above ACD
 			if (DEBUG)
-				System.out.println("Tetra�dre --> ACD");
+				System.out.println("Tetraedre --> ACD");
 			simplex.closest.blend3(simplex.A, 1.0f - vACD - wACD, simplex.C, vACD, simplex.D, wACD);
 			simplex.permutation(simplex.A, simplex.C, simplex.D, simplex.B, Simplex.SimplexType.Triangle);
 			return;
@@ -653,7 +648,7 @@ class GJK {
 
 		if (vADB >= 0.0f && wADB >= 0.0f && Vector3f.dot(ADB_normal, OA) < 0.0f) {// origin above ADB
 			if (DEBUG)
-				System.out.println("Tetra�dre --> ADB");
+				System.out.println("Tetraedre --> ADB");
 			simplex.closest.blend3(simplex.A, 1.0f - vADB - wADB, simplex.D, vADB, simplex.B, wADB);
 			simplex.permutation(simplex.A, simplex.D, simplex.B, simplex.C, Simplex.SimplexType.Triangle);
 			return;

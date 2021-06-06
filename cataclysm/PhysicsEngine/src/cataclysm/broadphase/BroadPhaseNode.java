@@ -2,12 +2,12 @@ package cataclysm.broadphase;
 
 import java.util.Set;
 
-import cataclysm.Parallelizable;
+import cataclysm.annotations.Parallelizable;
 
 /**
- * Représente un noeud du {@link BroadPhaseTree}.
+ * Defines a node of the {@link BroadPhaseTree}.
  * 
- * @author Briac
+ * @author Briac Toussaint
  * @param <T>
  *
  */
@@ -23,7 +23,7 @@ public class BroadPhaseNode<T> {
 	private final T handle;
 
 	/**
-	 * Construit un nouveau noeud qui pourra être inséré dans l'arbre.
+	 * Builds a new node which can be placed in the {@link BroadPhaseTree} subsequently.
 	 * 
 	 * @param box
 	 * @param handle
@@ -35,7 +35,7 @@ public class BroadPhaseNode<T> {
 	}
 
 	/**
-	 * Ce constructeur permet de construire les noeuds intérieur de l'arbre.
+	 * This constructor is called by the {@link BroadPhaseTree} to create interior nodes.
 	 * 
 	 * @param parent
 	 * @param box
@@ -48,8 +48,6 @@ public class BroadPhaseNode<T> {
 	}
 
 	/**
-	 * Récupère l'ensemble des feuilles de l'arbre en intersection avec l'AABB.
-	 * 
 	 * @param box
 	 * @param dest
 	 */

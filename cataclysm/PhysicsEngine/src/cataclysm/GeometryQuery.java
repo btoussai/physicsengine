@@ -2,6 +2,7 @@ package cataclysm;
 
 import java.util.Set;
 
+import cataclysm.annotations.Parallelizable;
 import cataclysm.broadphase.AABB;
 import cataclysm.broadphase.staticmeshes.Triangle;
 import cataclysm.wrappers.Wrapper;

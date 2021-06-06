@@ -1,7 +1,5 @@
 package cataclysm.wrappers;
 
-import math.vector.Vector3f;
-
 public class ConvexHullWrapperData {
 	
 	public final int faceCount;
@@ -20,11 +18,5 @@ public class ConvexHullWrapperData {
 		this.floatData = floatData;
 		this.maxRadius = maxRadius;
 	}
-
-	public void scale(float scaleFactor, Vector3f vector3f) {
-		throw new IllegalStateException("Not implemented !");
-	}
-	
-	
 
 }

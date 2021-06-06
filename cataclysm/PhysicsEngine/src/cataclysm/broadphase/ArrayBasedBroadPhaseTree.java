@@ -8,8 +8,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.function.IntFunction;
 
-import cataclysm.Parallelizable;
 import cataclysm.RayTest;
+import cataclysm.annotations.Parallelizable;
 import cataclysm.datastructures.IntPriorityQueue;
 import cataclysm.datastructures.IntStack;
 

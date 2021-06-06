@@ -2,9 +2,13 @@ package cataclysm.wrappers;
 
 import java.util.ArrayList;
 
+import cataclysm.CollisionFilter;
 import cataclysm.DefaultCollisionFilter;
 import cataclysm.DefaultParameters;
 import cataclysm.Epsilons.Sleep;
+import cataclysm.annotations.Internal;
+import cataclysm.annotations.ReadOnly;
+import cataclysm.PhysicsWorld;
 import cataclysm.constraints.AnchorPoint;
 import cataclysm.contact_creation.ContactProperties;
 import cataclysm.datastructures.IDGenerator;
@@ -18,27 +22,51 @@ import math.vector.Matrix4f;
 import math.vector.Vector3f;
 
 /**
- * Représente un corps rigide.
+ * This class defines a rigid body. All dynamic objects in a
+ * {@link PhysicsWorld} are rigid bodies. The actual collision shape of a rigid
+ * body can be created from several convex primitives called {@link Wrapper}s.
+ * <br>
  * 
- * @author Briac
+ * A rigid body has two reference frames. The first one is called "body-space",
+ * whose associated transform can be obtained with
+ * {@link #getOriginTransform()}. The second one is barycentric, whose
+ * associated transform can be obtained with {@link #getBarycentricTransform()}.
+ * The center of mass is the zero vector in the barycentric reference frame and
+ * the inertia tensor is diagonal. The physics engine only cares about the
+ * barycentric reference frame whereas the programmer prefers the body-space
+ * reference frame since the position of each wrapper is defined in body-space.
+ * <br>
+ * 
+ * Both of these transforms are updated and managed by the physics engine and
+ * must not be modified manually. They can however be read from without any
+ * worries. For instance, the object simulated by a rigid body can be rendered
+ * using the body-space transform. <br>
+ * 
+ * @author Briac Toussaint
  *
  */
 public class RigidBody extends Identifier {
 
+	/**
+	 * A set of flags which customize the dynamic behavior of a rigid body.
+	 * 
+	 * @author Briac Toussaint
+	 *
+	 */
 	public enum SpecialFlags {
 
 		/**
-		 * Indique si l'objet est soumis aux forces extérieures (gravité).
+		 * Indicates if this rigid body is affected by external forces such as gravity.
 		 */
 		EXTERNAL_FORCES,
 		/**
-		 * Indique si la rotation pour ce rigidbody doit être bloquée ou non.
+		 * Indicates if this rigid body is allowed to rotate or not.
 		 */
 		ROTATION_BLOCKED,
 
 		/**
-		 * Indique si la vitesse doit être integrée (utilisé pour les objets contrôlés
-		 * par un enregistrement)
+		 * Indicates if the velocity should be computed as the integral of the
+		 * acceleration or if it should be read from a recording.
 		 */
 		SKIP_INTEGRATION;
 
@@ -64,109 +92,99 @@ public class RigidBody extends Identifier {
 	}
 
 	/**
-	 * La position et la rotation de l'objet en world-space
+	 * The position and rotation of the body in world-space.
 	 */
 	private final Transform bodyToWorld;
 
 	/**
-	 * La position et la rotation du centre de masse en world-space. Le tenseur
-	 * d'inertie est diagonal dans le repère barycentrique.
+	 * The position and rotation of the reference frame attached to the center of
+	 * mass, in world-space. The inertia tensor is diagonal in that reference frame.
 	 */
 	private final Transform barycentricToWorld = new Transform();
 
 	/**
-	 * Le vecteur vitesse du centre de masse en m/s (world-space)
+	 * The velocity of the center of mass in m/s (world-space).
 	 */
 	private final Vector3f velocity = new Vector3f();
 
 	/**
-	 * Le vecteur vitesse angulaire du centre de masse en rad/s (world-space)
+	 * The angular velocity at the center of mass in radians/s (world-space)
 	 */
 	private final Vector3f angularVelocity = new Vector3f();
 
 	/**
-	 * La friction et l'élasticité de l'objet.
+	 * The friction and elasticity of the object.
 	 */
 	private final ContactProperties contactProperties;
 
 	/**
-	 * La masse inverse de l'objet: 1.0f / mass.
+	 * The inverse of the mass: 1.0f / mass.
 	 */
 	private float inv_mass;
 
 	/**
-	 * Les 3 moments principaux d'inertie de l'objet, rangés par ordre croissant et
-	 * divisés par la masse totale de l'objet.
+	 * The inertia moments of the object divided by its mass, in increasing order.
 	 */
 	private final Vector3f inertia = new Vector3f();
 
 	/**
-	 * Le tenseur d'inertie inversé, en world-space. <br>
-	 * Plus précis�ment:<br>
+	 * The inverse of the inertia tensor, in world-space. <br>
+	 * More specifically:<br>
 	 * <br>
-	 * inv_Iws = Orientation^T * diag( 1 / inertia ) * Orientation
+	 * inv_Iws = Orientation^T * diag( 1.0f / {@link #inertia} ) * Orientation
 	 */
 	private final Matrix3f inv_Iws = new Matrix3f();
 
 	/**
-	 * Les enveloppes utilisées pour les collisions.
+	 * The collision shapes of this object.
 	 */
 	private final ArrayList<Wrapper> wrappers;
 
 	/**
-	 * Les points d'ancrage des contraintes attachées à ce rigidbody.
+	 * The anchor points of the constraints attached to that object.
 	 */
 	private final ArrayList<AnchorPoint> anchorPoints;
 
 	/**
-	 * Un vecteur vitesse ne persistant pas d'une frame à l'autre. Il permet de
-	 * corriger les erreurs de position.
+	 * A pseudo velocity, which does not persist across frames.
 	 */
 	private final Vector3f pseudoVel = new Vector3f();
 
 	/**
-	 * Un vecteur vitesse angulaire ne persistant pas d'une frame à l'autre. Il
-	 * permet de corriger les erreurs de rotation.
+	 * A pseudo angular velocity, which does not persist across frames.
 	 */
 	private final Vector3f pseudoAngVel = new Vector3f();
 
 	/**
-	 * Permet de créer des masques pour filter les collisions avec les objets de la
-	 * catégorie correspondante.
+	 * A mask to filter collisions with other rigid bodies.
 	 */
 	private int mask = 0xFFFFFFFF;
 
 	/**
-	 * Représente la catégorie de l'objet. Ceci permet de filter les collisions.
+	 * A category to filter collisions with other rigid bodies.
 	 */
 	private int category = 0xFFFFFFFF;
 
 	/**
-	 * Indique si le rigidbody est considéré comme totalement immobile.
+	 * true if the rigid body is at rest.
 	 */
 	private boolean sleeping = false;
 
 	/**
-	 * Le nombre de frame consécutives passées 'immobile'. Lorsque le compteur
-	 * dépasse {@link Sleep#FRAMES_SPENT_AT_REST} et que
-	 * {@link Sleep#SLEEPING_ALLOWED} vaut true, le rigidbody est placé en sommeil.
+	 * The number of frames during which the rigid body has not moved significantly.
+	 * The rigid body is put at rest when this counter is above
+	 * {@link Sleep#FRAMES_SPENT_AT_REST} (if {@link Sleep#SLEEPING_ALLOWED} is
+	 * true).
 	 */
 	private int sleepCounter = 0;
 
 	/**
-	 * Indique si la rotation pour ce rigidbody doit être bloquée ou non.
+	 * A set of flags for this rigid body.
+	 * 
+	 * @see SpecialFlags
 	 */
 	private byte flags;
 
-	/**
-	 * Construit un nouveau rigidbody.
-	 * 
-	 * @param transform     La position et la rotation de l'objet en world-space.
-	 * @param params        Les param�tres par d�faut.
-	 * @param bodyGenerator Un g�n�rateur d'ID pour g�n�rer les identifiants de ce
-	 *                      rigidbody et de ses wrappers.
-	 * @param builders      Les enveloppes permettant de calculer les collisions.
-	 */
 	RigidBody(Matrix4f transform, DefaultParameters params, IDGenerator bodyGenerator, IDGenerator wrapperGenerator,
 			PolyhedralMassProperties poly, WrapperBuilder... builders) {
 		super(bodyGenerator.nextID());
@@ -180,7 +198,7 @@ public class RigidBody extends Identifier {
 
 		computeMassProperties(poly);
 
-		updateTransform(new Transform());
+		updateTransforms(new Transform());
 
 		for (Wrapper wrapper : wrappers) {
 			wrapper.placeBox(params.getPadding());
@@ -191,14 +209,21 @@ public class RigidBody extends Identifier {
 	}
 
 	/**
-	 * Met à jour les enveloppes de l'objet avec la position et la rotation actuelle
-	 * de l'objet. Met également à jour le tenseur d'inertie et les points d'ancrage
-	 * des contraintes liées à ce rigidbody. Cette fonction est appelée
-	 * automatiquement lors de la mise à jour de la simulation.
+	 * Updates the transforms of the reference frames of the rigid body. The
+	 * position of the anchor points of the constraints in world-space will also be
+	 * updated.
 	 * 
-	 * @param temp Une variable de travail pour les calculs intermédiaires.
+	 * This function is called by the physics engine and must not be called
+	 * manually.
+	 * 
+	 * @param temp A temporary variable
+	 * 
+	 * @see #getOriginTransform()
+	 * @see #getBarycentricTransform()
+	 * @see #getAnchorPoints()
 	 */
-	public void updateTransform(Transform temp) {
+	@Internal
+	public void updateTransforms(Transform temp) {
 		if (!isRotationBlocked()) {
 			float I1 = 1.0f / inertia.x;
 			float I2 = 1.0f / inertia.y;
@@ -223,14 +248,14 @@ public class RigidBody extends Identifier {
 	}
 
 	/**
-	 * Recalcule la masse, le centre de masse, le tenseur d'inertie, etc... <br>
-	 * Si un des wrappers a subi une modification manuelle après la création du
-	 * rigidbody (déplacement / rotation, modification de la masse, ou changement
-	 * d'échelle) il faut appeler cette fonction pour mettre à jour l'objet.
-	 * L'addition ou la suppression d'une enveloppe modifie également la répartition
-	 * des masses, il faut donc également appeler cette fonction dans ce cas.
+	 * Recomputes the mass properties of the rigid body (i.e its mass and inertia tensor). <br>
+	 * This method is applied automatically when a rigid body is created. However, this method must be called explicitly under the following circumstances: <br>
 	 * 
-	 * @param poly Permet de calculer les propriétés massiques de l'objet
+	 * <li> One or more wrappers have been added to or removed from this rigid body after its creation. </li>
+	 * <li> One or more wrappers of this rigid body have been moved, rotated or scaled. </li>
+	 * <li> The mass properties of one or more wrappers of this rigid body have changed. </li>
+	 * 
+	 * @param poly
 	 */
 	public void computeMassProperties(PolyhedralMassProperties poly) {
 		float mass = 0;
@@ -267,8 +292,8 @@ public class RigidBody extends Identifier {
 	 * fonction.<br>
 	 * <br>
 	 * 
-	 * La fonction {@link #updateTransform(Transform)} est automatiquement appelée à
-	 * la fin de la fonction pour finir la mise à jour de l'enveloppe.
+	 * La fonction {@link #updateTransforms(Transform)} est automatiquement appelée
+	 * à la fin de la fonction pour finir la mise à jour de l'enveloppe.
 	 * 
 	 * @param scaleFactor
 	 */
@@ -309,7 +334,7 @@ public class RigidBody extends Identifier {
 		setSleeping(false);
 		setSleepCounter(0);
 
-		updateTransform(new Transform());
+		updateTransforms(new Transform());
 	}
 
 	/**
@@ -329,7 +354,7 @@ public class RigidBody extends Identifier {
 	}
 
 	/**
-	 * Déplace le rigidbody du vecteur translation.
+	 * Translates the object to a new location.
 	 * 
 	 * @param translation
 	 */
@@ -339,7 +364,7 @@ public class RigidBody extends Identifier {
 	}
 
 	/**
-	 * Déplace le rigidbody du vecteur translation.
+	 * Translates the object to a new location.
 	 * 
 	 * @param x
 	 * @param y
@@ -351,7 +376,7 @@ public class RigidBody extends Identifier {
 	}
 
 	/**
-	 * Fait tourner le rigidbody autour de son centre de masse.
+	 * Applies a rotation about the center of mass of the rigid body.
 	 * 
 	 * @param rotation
 	 */
@@ -369,6 +394,12 @@ public class RigidBody extends Identifier {
 		v1.z = v0.z + rotation.m02 * x + rotation.m12 * y + rotation.m22 * z;
 	}
 
+	/**
+	 * Applies a compound rotation and translation at the center of mass of the
+	 * rigid body.
+	 * 
+	 * @param transform
+	 */
 	public void transformCenterOfMass(Matrix4f transform) {
 		barycentricToWorld.rotateLeft(transform);
 		bodyToWorld.rotateLeft(transform);
@@ -387,7 +418,7 @@ public class RigidBody extends Identifier {
 	}
 
 	/**
-	 * Fait tourner le rigidbody autour de son origine.
+	 * Applies a rotation at the origin of the rigid body.
 	 * 
 	 * @param rotation
 	 */
@@ -405,6 +436,11 @@ public class RigidBody extends Identifier {
 		v1.z = v0.z + rotation.m02 * x + rotation.m12 * y + rotation.m22 * z;
 	}
 
+	/**
+	 * Applies a compound rotation and translation at the origin of the rigid body.
+	 * 
+	 * @param transform
+	 */
 	public void transformOrigin(Matrix4f transform) {
 		bodyToWorld.rotateLeft(transform);
 		barycentricToWorld.rotateLeft(transform);
@@ -423,138 +459,153 @@ public class RigidBody extends Identifier {
 	}
 
 	/**
-	 * @return La position du centre de masse. i.e. L'origine du repère
-	 *         barycentrique.
+	 * @return The position of the center of mass (the origin of the barycentric
+	 *         reference-frame) in world-space. Must not be modified manually.<br>
+	 *         Use {@link #translate(Vector3f)} to move the object to a new
+	 *         location. Use {@link #transformCenterOfMass(Matrix4f)} or
+	 *         {@link #transformOrigin(Matrix4f)} to apply a rotation and
+	 *         translation.
 	 */
+	@ReadOnly
 	public Vector3f getPosition() {
 		return barycentricToWorld.getTranslation();
 	}
 
 	/**
-	 * @return La rotation du repère barycentrique.
+	 * @return The rotation of the barycentric reference frame in world-space.
 	 */
+	@ReadOnly
 	public Matrix3f getOrientation() {
 		return barycentricToWorld.getRotation();
 	}
 
 	/**
-	 * @return Le repère barycentrique du rigidbody.
+	 * @return The transform of the barycentric reference frame in world-space.
 	 */
+	@ReadOnly
 	public Transform getBarycentricTransform() {
 		return barycentricToWorld;
 	}
 
 	/**
-	 * @return L'origine du rigidbody en world-space, correspond à la position du
-	 *         repère body-space.
+	 * @return The origin of the rigid-body in world-space. Use
+	 *         {@link #translate(Vector3f)} to move the object to a new location.
 	 */
+	@ReadOnly
 	public Vector3f getOriginPosition() {
 		return bodyToWorld.getTranslation();
 	}
 
 	/**
-	 * @return La rotation du repère body-space.
+	 * @return The rotation of the rigid body in world-space.
 	 */
+	@ReadOnly
 	public Matrix3f getOriginOrientation() {
 		return bodyToWorld.getRotation();
 	}
 
 	/**
-	 * @return Le repère body-space du rigidbody.
+	 * @return The position and rotation of the body in world-space.
 	 */
+	@ReadOnly
 	public Transform getOriginTransform() {
 		return bodyToWorld;
 	}
 
+	/**
+	 * @return The velocity of the center of mass in m/s (world-space).
+	 */
 	public Vector3f getVelocity() {
 		return velocity;
 	}
 
+	/**
+	 * @return The angular velocity at the center of mass in radians/s (world-space)
+	 */
 	public Vector3f getAngularVelocity() {
 		return angularVelocity;
 	}
 
+	@ReadOnly
+	@Internal
 	public Vector3f getPseudoVelocity() {
 		return pseudoVel;
 	}
 
+	@ReadOnly
+	@Internal
 	public Vector3f getPseudoAngularVelocity() {
 		return pseudoAngVel;
 	}
 
 	/**
-	 * @return la masse inverse de l'objet. ( {@code 1.0f / mass} par d�faut)
+	 * @return The inverse of the mass of the object: {@code 1.0f / mass}
 	 */
 	public float getInvMass() {
 		return inv_mass;
 	}
 
 	/**
-	 * Modifie la masse inverse de ce rigidbody. <br>
-	 * Un rigidbody dont la masse inverse est nulle (i.e. sa masse est infinie) ne
-	 * peut pas être mis en mouvement par des collisions avec d'autres objets et sa
-	 * vitesse sera conservée. Il restera affecté par les forces extérieures mais ne
-	 * pourra pas entrer en collision avec le sol ou avec un autre objet dont la
-	 * masse inverse est nulle. <br>
-	 * Le comportement est indéfini lorsque deux objets avec une masse inverse nulle
-	 * sont reliés par une contrainte.
+	 * Sets the inverse mass. <br>
+	 * A rigid body with an inverse mass of zero (i.e. its mass is infinite) will
+	 * remain unaffected by collisions. It will still be affected by external forces
+	 * though. <br>
+	 * A constraint applied on two objects having an infinite mass is undefined
+	 * behavior.
 	 * 
-	 * @param inv_mass la masse inverse de l'objet. ( {@code 1.0f / mass} par
-	 *                 défaut)
+	 * @param inv_mass The inverse mass of the object.
 	 */
 	public void setInvMass(float inv_mass) {
 		this.inv_mass = inv_mass;
 	}
 
 	/**
-	 * @return les propriétés de l'objet lors des contacts (friction, élasticité...)
+	 * @return the contact properties of the object.
 	 */
 	public ContactProperties getContactProperties() {
 		return contactProperties;
 	}
 
 	/**
-	 * @return Le masque du rigidbody. Deux rigidbody peuvent former des contacts
-	 *         seulement si <br>
-	 *         {@code (maskA & categoryB) != 0 && (maskB & categoryA) != 0} par
-	 *         défaut.
-	 * @see DefaultCollisionFilter
+	 * Two rigid bodies A and B can collide if and only if: <br>
+	 * {@code (maskA & categoryB) != 0 && (maskB & categoryA) != 0} by default. <br>
+	 * This behavior can be modified by specifing a custom {@link CollisionFilter}.
+	 * 
+	 * @return The bitmask of this object.
 	 */
 	public int getMask() {
 		return mask;
 	}
 
 	/**
-	 * Modifie le masque du rigidbody. Deux rigidbody peuvent former des contacts
-	 * seulement si <br>
-	 * {@code (maskA & categoryB) != 0 && (maskB & categoryA) != 0} par défaut.
+	 * Sets the bitmask of this object. Two rigid bodies A and B can collide if and
+	 * only if: <br>
+	 * {@code (maskA & categoryB) != 0 && (maskB & categoryA) != 0} by default. <br>
+	 * This behavior can be modified by specifing a custom {@link CollisionFilter}.
 	 * 
-	 * @see DefaultCollisionFilter
 	 * 
-	 * @param mask
+	 * @param mask The bitmask of this object.
 	 */
 	public void setMask(int mask) {
 		this.mask = mask;
 	}
 
 	/**
+	 * Two rigid bodies A and B can collide if and only if: <br>
+	 * {@code (maskA & categoryB) != 0 && (maskB & categoryA) != 0} by default. <br>
+	 * This behavior can be modified by specifing a custom {@link CollisionFilter}.
 	 * 
-	 * @return La catégorie du rigidbody. Deux rigidbody peuvent former des contacts
-	 *         seulement si <br>
-	 *         {@code (maskA & categoryB) != 0 && (maskB & categoryA) != 0} par
-	 *         défaut.
-	 * @see DefaultCollisionFilter
+	 * @return The category of this object.
 	 */
 	public int getCategory() {
 		return category;
 	}
 
 	/**
-	 * Modifie la catégorie du rigidbody. Deux rigidbody peuvent former des contacts
-	 * seulement si <br>
-	 * {@code (maskA & categoryB) != 0 && (maskB & categoryA) != 0} par défaut.
-	 * 
-	 * @see DefaultCollisionFilter
+	 * Sets the category of this object. Two rigid bodies A and B can collide if and
+	 * only if: <br>
+	 * {@code (maskA & categoryB) != 0 && (maskB & categoryA) != 0} by default. <br>
+	 * This behavior can be modified by specifing a custom {@link CollisionFilter}.
 	 * 
 	 * @param category
 	 */
@@ -562,30 +613,36 @@ public class RigidBody extends Identifier {
 		this.category = category;
 	}
 
+	/**
+	 * @return true if the rigid body is at rest.
+	 */
 	public boolean isSleeping() {
 		return sleeping;
 	}
 
+	/**
+	 * Sets the sleeping state of a rigid body.
+	 * 
+	 * @param sleeping true if the rigid body is at rest.
+	 */
 	public void setSleeping(boolean sleeping) {
 		this.sleeping = sleeping;
 	}
 
 	/**
-	 * @return Le nombre de frames consécutives durant lesquelles le rigidbody a été
-	 *         considéré comme immobile. Lorsque le compteur dépasse
-	 *         {@link Sleep#FRAMES_SPENT_AT_REST} et que
-	 *         {@link Sleep#SLEEPING_ALLOWED} vaut true, le rigidbody est placé en
-	 *         sommeil.
+	 * @return The number of frames during which the rigid body has not moved
+	 *         significantly.The rigid body is put at rest when this counter is
+	 *         above Sleep.FRAMES_SPENT_AT_REST (if Sleep.SLEEPING_ALLOWED istrue).
+	 * 
 	 */
 	public int getSleepCounter() {
 		return sleepCounter;
 	}
 
 	/**
-	 * Modifie le nombre de frames consécutives durant lesquelles le rigidbody a été
-	 * considéré comme immobile. Lorsque le compteur dépasse
-	 * {@link Sleep#FRAMES_SPENT_AT_REST} et que {@link Sleep#SLEEPING_ALLOWED} vaut
-	 * true, le rigidbody est placé en sommeil.
+	 * Sets the number of frames during which the rigid body has not moved
+	 * significantly.The rigid body is put at rest when this counter is above
+	 * Sleep.FRAMES_SPENT_AT_REST (if Sleep.SLEEPING_ALLOWED istrue).
 	 * 
 	 * @param sleepCounter
 	 */
@@ -594,22 +651,20 @@ public class RigidBody extends Identifier {
 	}
 
 	/**
-	 * @return true si la rotation est bloquée pour ce rigidbody. Un rigidbody dont
-	 *         la rotation est bloquée aura un tenseur d'inertie infini
-	 *         (conceptuellement seulement, les moments d'inertie principaux restent
-	 *         inchangés). Cela signifie que sa vitesse angulaire sera conservée,
-	 *         peut importe les chocs qu'il subit.
+	 * A rigid body whose rotation is blocked will have an infinite inertia tensor
+	 * (the actual value remains unchanged). Its angular velocity will be conserved
+	 * even if it collides with another object.
+	 * 
+	 * @return true if this rigid body is allowed to rotate.
 	 */
 	public boolean isRotationBlocked() {
 		return SpecialFlags.ROTATION_BLOCKED.get(flags);
 	}
 
 	/**
-	 * Permet de bloquer ou de débloquer la rotation de ce rigidbody. Un rigidbody
-	 * dont la rotation est bloquée aura un tenseur d'inertie infini
-	 * (conceptuellement seulement, les moments d'inertie principaux restent
-	 * inchangés). Cela signifie que sa vitesse angulaire sera conservée, peut
-	 * importe les chocs qu'il subit.
+	 * A rigid body whose rotation is blocked will have an infinite inertia tensor
+	 * (the actual value remains unchanged). Its angular velocity will be conserved
+	 * even if it collides with another object.
 	 * 
 	 * @param rotationBlocked
 	 */
@@ -618,8 +673,8 @@ public class RigidBody extends Identifier {
 	}
 
 	/**
-	 * Indique si la vitesse doit être integrée (utilisé pour les objets contrôlés
-	 * par un enregistrement)
+	 * Indicates if the velocity should be computed as the integral of the
+	 * acceleration or if it should be read from a recording.
 	 * 
 	 * @return
 	 */
@@ -627,28 +682,38 @@ public class RigidBody extends Identifier {
 		return SpecialFlags.SKIP_INTEGRATION.get(flags);
 	}
 
+	/**
+	 * Indicates if the velocity should be computed as the integral of the
+	 * acceleration or if it should be read from a recording.
+	 * 
+	 * @param skipIntegration
+	 */
 	public void setSkipIntegration(boolean skipIntegration) {
 		SpecialFlags.SKIP_INTEGRATION.set(this, skipIntegration);
 	}
 
-	public byte getFlags() {
+	byte getFlags() {
 		return flags;
 	}
 
 	/**
-	 * @return Le tenseur d'inertie en worldSpace, inversé
+	 * @return The inverse of the inertia tensor, in world-space.
 	 */
+	@ReadOnly
+	@Internal
 	public Matrix3f getInvIws() {
 		return inv_Iws;
 	}
 
 	/**
-	 * @return Les moments d'inertie principaux du tenseur d'inertie.
+	 * @return The inertia moments of the object divided by its mass, in increasing
+	 *         order.
 	 */
 	public Vector3f getI0() {
 		return inertia;
 	}
 
+	@Internal
 	public void applyImpulse(Vector3f N, Vector3f RxN, float impulse) {
 		float effect = impulse * inv_mass;
 		velocity.x += N.x * effect;
@@ -663,6 +728,7 @@ public class RigidBody extends Identifier {
 		angularVelocity.z += dwz * effect;
 	}
 
+	@Internal
 	public void applyImpulse(Vector3f impulse, Vector3f R) {
 		float dvx = impulse.x * inv_mass;
 		float dvy = impulse.y * inv_mass;
@@ -683,12 +749,14 @@ public class RigidBody extends Identifier {
 		angularVelocity.z += dwz;
 	}
 
+	@Internal
 	public void applyImpulseLinear(Vector3f impulse) {
 		velocity.x += impulse.x * inv_mass;
 		velocity.y += impulse.y * inv_mass;
 		velocity.z += impulse.z * inv_mass;
 	}
 
+	@Internal
 	public void applyImpulseTorque(Vector3f torque) {
 		float dwx = inv_Iws.m00 * torque.x + inv_Iws.m10 * torque.y + inv_Iws.m20 * torque.z;
 		float dwy = inv_Iws.m01 * torque.x + inv_Iws.m11 * torque.y + inv_Iws.m21 * torque.z;
@@ -698,6 +766,7 @@ public class RigidBody extends Identifier {
 		angularVelocity.z += dwz * inv_mass;
 	}
 
+	@Internal
 	public void applyImpulseTorque(Vector3f axis, float torque) {
 		float effect = inv_mass * torque;
 		float dwx = inv_Iws.m00 * axis.x + inv_Iws.m10 * axis.y + inv_Iws.m20 * axis.z;
@@ -708,6 +777,7 @@ public class RigidBody extends Identifier {
 		angularVelocity.z += dwz * effect;
 	}
 
+	@Internal
 	public void applyPseudoImpulse(Vector3f N, Vector3f RxN, float impulse) {
 		float effect = impulse * inv_mass;
 		pseudoVel.x += N.x * effect;
@@ -722,6 +792,7 @@ public class RigidBody extends Identifier {
 		pseudoAngVel.z += dwz * effect;
 	}
 
+	@Internal
 	public void applyPseudoImpulse(Vector3f impulse, Vector3f R) {
 		float dvx = impulse.x * inv_mass;
 		float dvy = impulse.y * inv_mass;
@@ -742,12 +813,14 @@ public class RigidBody extends Identifier {
 		pseudoAngVel.z += dwz;
 	}
 
+	@Internal
 	public void applyPseudoImpulseLinear(Vector3f impulse) {
 		pseudoVel.x += impulse.x * inv_mass;
 		pseudoVel.y += impulse.y * inv_mass;
 		pseudoVel.z += impulse.z * inv_mass;
 	}
 
+	@Internal
 	public void applyPseudoImpulseTorque(Vector3f torque) {
 		float dwx = inv_Iws.m00 * torque.x + inv_Iws.m10 * torque.y + inv_Iws.m20 * torque.z;
 		float dwy = inv_Iws.m01 * torque.x + inv_Iws.m11 * torque.y + inv_Iws.m21 * torque.z;
@@ -757,6 +830,7 @@ public class RigidBody extends Identifier {
 		pseudoAngVel.z += dwz * inv_mass;
 	}
 
+	@Internal
 	public void applyPseudoImpulseTorque(Vector3f axis, float torque) {
 		float effect = inv_mass * torque;
 		float dwx = inv_Iws.m00 * axis.x + inv_Iws.m10 * axis.y + inv_Iws.m20 * axis.z;
@@ -768,11 +842,11 @@ public class RigidBody extends Identifier {
 	}
 
 	/**
-	 * Calcule l'énergie cinétique de l'objet, utile pour le debug.
+	 * Computes the kinetic energy of the object.
 	 * 
-	 * @return L'énergie cinétique de l'objet.
+	 * @return the kinetic energy
 	 */
-	public float computeEc() {
+	public float computeKE() {
 		return inv_mass == 0 ? Float.POSITIVE_INFINITY
 				: 0.5f / inv_mass * (velocity.lengthSquared() + Vector3f.dot(angularVelocity,
 						Matrix3f.transform(Matrix3f.invert(inv_Iws, null), angularVelocity, null)));
@@ -788,74 +862,64 @@ public class RigidBody extends Identifier {
 	}
 
 	/**
-	 * Effectue une conversion body-space ---> world-space pour un sommet.
+	 * Converts the coordinates of a vertex in body-space to a coordinate in
+	 * world-space.
 	 * 
-	 * @param msPos La coordonnée en body-space
-	 * @param wsPos La coordonnées de destination en world-space
+	 * @param pos  the body-space coordinate
+	 * @param dest the world-space coordinate
 	 */
-	public void vertexToWorldSpace(Vector3f msPos, Vector3f wsPos) {
-		bodyToWorld.transformVertex(msPos, wsPos);
+	public void vertexToWorldSpace(Vector3f pos, Vector3f dest) {
+		bodyToWorld.transformVertex(pos, dest);
 	}
 
 	/**
-	 * Effectue une conversion world-space ---> body-space pour un sommet.
+	 * Converts the coordinates of a vertex in world-space to a coordinate in
+	 * body-space.
 	 * 
-	 * @param wsPos La coordonnées en world-space
-	 * @param msPos La coordonnée de destination en body-space
+	 * @param pos  the world-space coordinate
+	 * @param dest the body-space coordinate
 	 */
-	public void vertexToBodySpace(Vector3f wsPos, Vector3f msPos) {
-		bodyToWorld.invertTransformVertex(wsPos, msPos);
+	public void vertexToBodySpace(Vector3f pos, Vector3f dest) {
+		bodyToWorld.invertTransformVertex(pos, dest);
 	}
 
 	/**
-	 * Effectue une conversion body-space ---> world-space pour un vecteur. C'est à
-	 * dire que seule la rotation est appliquée, la translation est ignorée.
+	 * Converts the coordinates of a vector in body-space to a coordinate in
+	 * world-space.
 	 * 
-	 * @param msNormal Le vecteur en body-space
-	 * @param wsNormal Le vecteur de destination en world-space
+	 * @param normal the body-space normal
+	 * @param dest   the world-space normal
 	 */
-	public void normalToWorldSpace(Vector3f msNormal, Vector3f wsNormal) {
-		bodyToWorld.transformVector(msNormal, wsNormal);
+	public void normalToWorldSpace(Vector3f normal, Vector3f dest) {
+		bodyToWorld.transformVector(normal, dest);
 	}
 
 	/**
-	 * Effectue une conversion world-space ---> body-space pour un vecteur. C'est à
-	 * dire que seule la rotation est appliquée, la translation est ignorée.
+	 * Converts the coordinates of a vector in world-space to a coordinate in
+	 * body-space.
 	 * 
-	 * @param wsNormal Le vecteur en world-space.
-	 * @param msNormal Le vecteur de destination en body-space.
+	 * @param normal the world-space normal
+	 * @param dest   the body-space normal
 	 */
-	public void normalToBodySpace(Vector3f wsNormal, Vector3f msNormal) {
-		bodyToWorld.invertTransformVector(wsNormal, msNormal);
+	public void normalToBodySpace(Vector3f normal, Vector3f dest) {
+		bodyToWorld.invertTransformVector(normal, dest);
 	}
 
 	/**
-	 * @return La liste des wrappers de ce rigidbody. Cette liste ne doit pas être
-	 *         modifiée manuellement.
+	 * @return A list of the {@link Wrapper}s of this object. The list must not be
+	 *         modified.
 	 */
+	@ReadOnly
 	public ArrayList<Wrapper> getWrappers() {
 		return wrappers;
 	}
 
-	/**
-	 * Ajoute un wrapper à ce rigidbody
-	 * 
-	 * @param builder
-	 * @param ID
-	 * @return
-	 */
 	protected Wrapper addWrapper(WrapperBuilder builder, long ID) {
 		Wrapper wrapper = builder.build(this, ID);
 		wrappers.add(wrapper);
 		return wrapper;
 	}
 
-	/**
-	 * Supprime un wrapper de ce rigidbody
-	 * 
-	 * @param ID
-	 * @return
-	 */
 	protected Wrapper removeWrapper(long ID) {
 		for (Wrapper wrapper : wrappers) {
 			if (wrapper.getID() == ID) {
@@ -875,13 +939,15 @@ public class RigidBody extends Identifier {
 	}
 
 	/**
-	 * @return La liste des points d'ancrage sur ce rigidbody. Cette liste ne doit
-	 *         pas être modifiée manuellement.
+	 * @return A list of the anchor points of the constraints attached to that
+	 *         object. The list must not be modified.
 	 */
+	@ReadOnly
 	public ArrayList<AnchorPoint> getAnchorPoints() {
 		return anchorPoints;
 	}
 
+	@Internal
 	public void fill(RigidBodyRepr b) {
 		b.ID = this.getID();
 		b.bodyToWorld.loadFrom(bodyToWorld);
@@ -931,13 +997,14 @@ public class RigidBody extends Identifier {
 		this.sleepCounter = 0;
 		this.flags = b.flags;
 
-		updateTransform(new Transform());
+		updateTransforms(new Transform());
 
 		for (Wrapper wrapper : wrappers) {
 			wrapper.placeBox(params.getPadding());
 		}
 	}
 
+	@Internal
 	public void fill(RigidBodyState state) {
 		state.ID = this.getID();
 		state.barycentricToWorld.loadFrom(barycentricToWorld);
@@ -948,7 +1015,7 @@ public class RigidBody extends Identifier {
 
 	/**
 	 * @return true if the mass of this body is infinite. A body with infinite mass
-	 *         cannot collide with meshes and ins't affected by collisions with
+	 *         cannot collide with meshes and isn't affected by collisions with
 	 *         other bodies.
 	 */
 	public boolean isKinematic() {

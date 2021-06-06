@@ -8,12 +8,16 @@ import math.vector.Matrix4f;
 import math.vector.Vector3f;
 
 /**
- * Cette classe permet d'instancier des enveloppes pour un objet.
+ * This class serves as an entry point to create {@link WrapperBuilder}s which
+ * will in turn be used to generate {@link Wrapper}s for rigid bodies.
  * 
+ * 
+ * 
+ * @see WrapperBuilder
  * @see Wrapper
  * @see RigidBody
  * 
- * @author Briac
+ * @author Briac Toussaint
  *
  */
 public class WrapperFactory {
@@ -70,7 +74,7 @@ public class WrapperFactory {
 	public WrapperBuilder newCone(float radius, float height, int sides, List<Integer> indices,
 			List<Vector3f> vertices) {
 		if (sides < 3) {
-			throw new IllegalArgumentException("Le nombre de c�t�s d'un c�ne doit �tre >= 3, valeur:" + sides);
+			throw new IllegalArgumentException("A cone should have at least 3 sides, got " + sides + " sides.");
 		}
 		Vector3f[] verticesTab = new Vector3f[sides + 1];
 
@@ -115,6 +119,14 @@ public class WrapperFactory {
 		return newHull(verticesTab, indices, vertices, verticesTab.length);
 	}
 
+	/**
+	 * Creates a WrapperBuilder that will generate {@link ConvexHullWrapper}s.
+	 * @param verticesTab
+	 * @param indices
+	 * @param vertices
+	 * @param max_points
+	 * @return
+	 */
 	public WrapperBuilder newHull(Vector3f[] verticesTab, List<Integer> indices, List<Vector3f> vertices,
 			int max_points) {
 		ConvexHull hull = qhull.buildConvexHull(verticesTab, max_points);

@@ -3,9 +3,9 @@ package cataclysm.broadphase;
 import math.vector.Vector3f;
 
 /**
- * Defines a box aligned on the axes xyz
+ * Defines an aligned-axis bounding box.
  * 
- * @author Briac
+ * @author Briac Toussaint
  *
  */
 public class AABB {
@@ -26,7 +26,7 @@ public class AABB {
 	}
 
 	/**
-	 * Builds an AABB from a center point and an extent along each axis. <br>
+	 * Builds an AABB from a center point and an half-extent along each axis. <br>
 	 * Its size will be 2*radius along each axis.
 	 * 
 	 * @param center The center position of the AABB

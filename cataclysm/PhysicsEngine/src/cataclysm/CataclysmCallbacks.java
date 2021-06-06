@@ -3,6 +3,7 @@ package cataclysm;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import cataclysm.annotations.Parallelizable;
 import cataclysm.wrappers.Wrapper;
 
 /**
