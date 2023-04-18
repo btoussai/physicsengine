@@ -325,27 +325,34 @@ public class ConvexHull {
 				e = e.getNext();
 			} while (e != e0);
 
-			int NStart = 6 * vertexCount + 7 * faceCount + 3 * f;
-			int CStart = 6 * vertexCount + 10 * faceCount + 3 * f;
+			int NBackupStart = 6 * vertexCount + 7 * faceCount + 3 * f;
+			int CBackupStart = 6 * vertexCount + 10 * faceCount + 3 * f;
+			int NStart = 3 * vertexCount + 3 * f;
+			int CStart = 3 * vertexCount + 3 * faceCount + 3 * f;
+			int PStart = 3 * vertexCount + 6 * faceCount + f;
+			
 			Vector3f N = face.getNormal();
 			Vector3f C = face.getCenter();
 
-			floatData[NStart + 0] = N.x;
-			floatData[NStart + 1] = N.y;
-			floatData[NStart + 2] = N.z;
+			floatData[NStart + 0] = floatData[NBackupStart + 0] = N.x;
+			floatData[NStart + 1] = floatData[NBackupStart + 1] = N.y;
+			floatData[NStart + 2] = floatData[NBackupStart + 2] = N.z;
 
-			floatData[CStart + 0] = C.x;
-			floatData[CStart + 1] = C.y;
-			floatData[CStart + 2] = C.z;
+			floatData[CStart + 0] = floatData[CBackupStart + 0] = C.x;
+			floatData[CStart + 1] = floatData[CBackupStart + 1] = C.y;
+			floatData[CStart + 2] = floatData[CBackupStart + 2] = C.z;
+			
+			floatData[PStart] = Vector3f.dot(N, C);
 		}
 
 		float maxRadius = 0;
 		for (int i = 0; i < vertexCount; i++) {
 			Vector3f v = vertices.get(i);
-			int vStart = 3 * vertexCount + 7 * faceCount + 3 * i;
-			floatData[vStart + 0] = v.x;
-			floatData[vStart + 1] = v.y;
-			floatData[vStart + 2] = v.z;
+			int vBackupStart = 3 * vertexCount + 7 * faceCount + 3 * i;
+			int vStart = 3 * i;
+			floatData[vStart + 0] = floatData[vBackupStart + 0] = v.x;
+			floatData[vStart + 1] = floatData[vBackupStart + 1] = v.y;
+			floatData[vStart + 2] = floatData[vBackupStart + 2] = v.z;
 			maxRadius = Math.max(maxRadius, v.lengthSquared());
 		}
 		maxRadius = (float) Math.sqrt(maxRadius);

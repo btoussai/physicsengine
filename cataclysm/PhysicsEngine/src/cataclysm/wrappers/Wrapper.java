@@ -26,7 +26,6 @@ import math.vector.Vector3f;
  * @author Briac
  *
  */
-@SuppressWarnings("preview")
 public abstract sealed class Wrapper extends Identifier
 		implements Comparable<Wrapper>permits SphereWrapper,CapsuleWrapper,ConvexHullWrapper {
 

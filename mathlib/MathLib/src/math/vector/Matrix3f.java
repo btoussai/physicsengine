@@ -503,4 +503,16 @@ public class Matrix3f extends Matrix implements Serializable {
 		m.m22 = 0.0f;
 		return m;
 	}
+
+	public void scalarMult(float f) {
+		m00 *= f;
+		m01 *= f;
+		m02 *= f;
+		m10 *= f;
+		m11 *= f;
+		m12 *= f;
+		m20 *= f;
+		m21 *= f;
+		m22 *= f;
+	}
 }
