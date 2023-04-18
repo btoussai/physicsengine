@@ -7,7 +7,7 @@ import java.util.List;
 import cataclysm.Epsilons;
 import cataclysm.contact_creation.ContactFeature.FeatureType;
 import cataclysm.wrappers.ConvexHullWrapper;
-import cataclysm.wrappers.ConvexHullWrapper.FloatLayout;
+import cataclysm.wrappers.ConvexHullWrapperData.FloatLayout;
 import math.vector.Vector3f;
 
 /**
@@ -60,7 +60,8 @@ class SAT {
 		if (faceCheckDistanceA >= 0.0f) {
 			onA.setFromHullFace(referenceFace);
 			onB.clean();
-			hullA.getNormal(refFaceInA, faceNormal);
+			hullA.getConvexHullData().getNormal(refFaceInA, faceNormal);
+			hullA.transformNormalWrapperSpaceToWorldSpace(faceNormal, faceNormal);
 			contact.rebuild(faceNormal, faceCheckDistanceA, 0, onA, onB);
 			contact.setNoCollision();
 			return;
@@ -77,9 +78,10 @@ class SAT {
 		if (faceCheckDistanceB >= 0.0f) {
 			onA.clean();
 			onB.setFromHullFace(referenceFace);
-			hullB.getNormal(refFaceInB, faceNormal);
-			normal.negate();
-			contact.rebuild(normal, faceCheckDistanceB, 0, onA, onB);
+			hullB.getConvexHullData().getNormal(refFaceInB, faceNormal);
+			hullB.transformNormalWrapperSpaceToWorldSpace(faceNormal, faceNormal);
+			faceNormal.negate();
+			contact.rebuild(faceNormal, faceCheckDistanceB, 0, onA, onB);
 			contact.setNoCollision();
 			return;
 		}
@@ -163,9 +165,9 @@ class SAT {
 
 			if (onA.getType() == FeatureType.HullFace) {
 				int face = onA.getHullFeatureIndex();
-				hullA.getNormal(face, normal);
+				hullA.getConvexHullData().getNormal(face, normal);
 				hullB.getSupport(normal, true, supportPoint);
-				float distance = hullA.signedDistance(supportPoint, face);
+				float distance = hullA.getConvexHullData().signedDistance(supportPoint, face);
 
 				if (DEBUG) {
 					System.out.println("previous collision on a side");
@@ -178,9 +180,9 @@ class SAT {
 				}
 			} else if (onB.getType() == FeatureType.HullFace) {
 				int face = onB.getHullFeatureIndex();
-				hullB.getNormal(face, normal);
+				hullB.getConvexHullData().getNormal(face, normal);
 				hullA.getSupport(normal, true, supportPoint);
-				float distance = hullB.signedDistance(supportPoint, face);
+				float distance = hullB.getConvexHullData().signedDistance(supportPoint, face);
 
 				if (DEBUG) {
 					System.out.println("previous collision on a side");
@@ -198,8 +200,8 @@ class SAT {
 				
 				int edgeA = onA.getHullFeatureIndex();
 				int edgeB = onB.getHullFeatureIndex();
-				hullA.getEdgeVec(edgeA, vecEdgeA);				
-				hullB.getEdgeVec(edgeB, vecEdgeB);
+				hullA.getConvexHullData().getEdgeVec(edgeA, vecEdgeA);				
+				hullB.getConvexHullData().getEdgeVec(edgeB, vecEdgeB);
 
 				if (!isMinkowskiFace(hullA, edgeA, vecEdgeA, hullB, edgeB, vecEdgeB)) {
 					if (DEBUG) {
@@ -249,8 +251,8 @@ class SAT {
 			incident = hullA;
 		}
 
-		reference.getNormal(referenceFace, normal);
-		int incidentFace = incident.getMostAntiParallelFace(normal);
+		reference.getConvexHullData().getNormal(referenceFace, normal);
+		int incidentFace = incident.getConvexHullData().getMostAntiParallelFace(normal);
 
 		List<Vector3f> inputList = new ArrayList<Vector3f>();
 		polygonClipping.clipIncidentFaceAgainstReferenceFace(incident, incidentFace, reference, referenceFace,
@@ -283,7 +285,7 @@ class SAT {
 		// we delete the points above the face's plane
 		for (Iterator<Vector3f> it = inputList.iterator(); it.hasNext();) {
 			Vector3f vertex = it.next();
-			float distance = reference.signedDistance(vertex, referenceFace);
+			float distance = reference.getConvexHullData().signedDistance(vertex, referenceFace);
 			if (distance > 5 * Epsilons.ALLOWED_PENETRATION) {
 				it.remove();
 			}
@@ -298,7 +300,7 @@ class SAT {
 		// On projette les points sur le plan de la face de référence
 		for (int i = 0; i < contactCount; i++) {
 			contact.getContactPoint(i, temp);
-			float distance = reference.signedDistance(temp, referenceFace);
+			float distance = reference.getConvexHullData().signedDistance(temp, referenceFace);
 			temp.translate(normal, -distance);
 			contact.setContactPointAndPenetrationDepth(i, temp.x, temp.y, temp.z, distance);
 		}
@@ -341,11 +343,11 @@ class SAT {
 			System.out.println("createFaceContact");
 		}
 
-		hullA.get(FloatLayout.Vertices, hullA.getEdgeHead(contactEdgeA), A);
-		hullA.get(FloatLayout.Vertices, hullA.getEdgeTail(contactEdgeA), B);
+		hullA.getConvexHullData().get(FloatLayout.Vertices, hullA.getConvexHullData().getEdgeHead(contactEdgeA), A);
+		hullA.getConvexHullData().get(FloatLayout.Vertices, hullA.getConvexHullData().getEdgeTail(contactEdgeA), B);
 
-		hullB.get(FloatLayout.Vertices, hullB.getEdgeHead(contactEdgeB), C);
-		hullB.get(FloatLayout.Vertices, hullB.getEdgeTail(contactEdgeB), D);
+		hullB.getConvexHullData().get(FloatLayout.Vertices, hullB.getConvexHullData().getEdgeHead(contactEdgeB), C);
+		hullB.getConvexHullData().get(FloatLayout.Vertices, hullB.getConvexHullData().getEdgeTail(contactEdgeB), D);
 
 		Vector3f.sub(B, A, AB);
 		Vector3f.sub(D, C, CD);
@@ -403,22 +405,26 @@ class SAT {
 	private void faceCheck(ConvexHullWrapper hull1, ConvexHullWrapper hull2) {
 		penetrationDepth = Float.NEGATIVE_INFINITY;
 
-		for (int face = 0; face < hull1.faceCount; face++) {
+		for (int face = 0; face < hull1.getConvexHullData().faceCount; face++) {
 
-			hull1.getNormal(face, faceNormal);
+			hull1.getConvexHullData().getNormal(face, faceNormal);
+			hull1.transformNormalWrapperSpaceToWorldSpace(faceNormal, faceNormal);
 			hull2.getSupport(faceNormal, true, supportPoint);
 
-			float distance = hull1.signedDistance(supportPoint, face);
+			hull1.transformVertexWorldSpaceToWrapperSpace(supportPoint, supportPoint);
+			float distance = hull1.getConvexHullData().signedDistance(supportPoint, face);
 
 			if (distance > penetrationDepth) {
 				penetrationDepth = distance;
 				referenceFace = face;
 				if (distance >= 0) {
-					return;
+					break;
 				}
 			}
 
 		}
+		
+		penetrationDepth *= hull1.getScale();
 	}
 
 	//
@@ -444,12 +450,16 @@ class SAT {
 		penetrationDepth = Float.NEGATIVE_INFINITY;
 		centroidA.set(hullA.getCentroid());
 
-		for (int edgeA = 0; edgeA < hullA.edgeCount; edgeA += 2) {
+		for (int edgeA = 0; edgeA < hullA.getConvexHullData().edgeCount; edgeA += 2) {
 
-			hullA.getEdgeVec(edgeA, vecEdgeA);
+			hullA.getConvexHullData().getEdgeVec(edgeA, vecEdgeA);
+			hullA.transformNormalWrapperSpaceToWorldSpace(vecEdgeA, vecEdgeA);
+			hullB.transformNormalWorldSpaceToWrapperSpace(vecEdgeA, vecEdgeA);
 
-			for (int edgeB = 0; edgeB < hullB.edgeCount; edgeB += 2) {
-				hullB.getEdgeVec(edgeB, vecEdgeB);
+			for (int edgeB = 0; edgeB < hullB.getConvexHullData().edgeCount; edgeB += 2) {
+				hullB.getConvexHullData().getEdgeVec(edgeB, vecEdgeB);
+				hullB.transformNormalWrapperSpaceToWorldSpace(vecEdgeB, vecEdgeB);
+				hullA.transformNormalWorldSpaceToWrapperSpace(vecEdgeB, vecEdgeB);
 
 				if (!isMinkowskiFace(hullA, edgeA, vecEdgeA, hullB, edgeB, vecEdgeB)) {
 					continue;
@@ -493,7 +503,7 @@ class SAT {
 		}
 		float one_over_length = 1.0f / (float) Math.sqrt(length2);
 
-		hullA.get(FloatLayout.Vertices, hullA.getEdgeTail(edgeA), temp);
+		hullA.getConvexHullData().get(FloatLayout.Vertices, hullA.getConvexHullData().getEdgeTail(edgeA), temp);
 		Vector3f.sub(temp, centroidA, temp);
 		if (Vector3f.dot(edgeAxEdgeB, temp) < 0) {
 			one_over_length = -one_over_length;
@@ -503,8 +513,8 @@ class SAT {
 		edgeAxEdgeB.y *= one_over_length;
 		edgeAxEdgeB.z *= one_over_length;
 
-		hullA.get(FloatLayout.Vertices, hullA.getEdgeTail(edgeA), temp);
-		hullB.sub(FloatLayout.Vertices, hullB.getEdgeTail(edgeB), temp, temp);
+		hullA.getConvexHullData().get(FloatLayout.Vertices, hullA.getConvexHullData().getEdgeTail(edgeA), temp);
+		hullB.getConvexHullData().sub(FloatLayout.Vertices, hullB.getConvexHullData().getEdgeTail(edgeB), temp, temp);
 		float distance = Vector3f.dot(edgeAxEdgeB, temp);
 
 		return distance;
@@ -522,10 +532,13 @@ class SAT {
 	private boolean isMinkowskiFace(ConvexHullWrapper hullA, int edgeA, Vector3f vecEdgeA,
 			ConvexHullWrapper hullB, int edgeB, Vector3f vecEdgeB) {
 
-		float CBA = hullB.dot(FloatLayout.FaceNormals, hullB.getEdgeFace(edgeB), vecEdgeA);
-		float DBA = hullB.dot(FloatLayout.FaceNormals, hullB.getEdgeAdjacentFace(edgeB), vecEdgeA);
-		float ADC = -hullA.dot(FloatLayout.FaceNormals, hullA.getEdgeFace(edgeA), vecEdgeB);
-		float BDC = -hullA.dot(FloatLayout.FaceNormals, hullA.getEdgeAdjacentFace(edgeA), vecEdgeB);
+		var dataA  = hullA.getConvexHullData();
+		var dataB = hullB.getConvexHullData();
+		
+		float CBA = dataB.dot(FloatLayout.FaceNormals, dataB.getEdgeFace(edgeB), vecEdgeA);
+		float DBA = dataB.dot(FloatLayout.FaceNormals, dataB.getEdgeAdjacentFace(edgeB), vecEdgeA);
+		float ADC = -dataA.dot(FloatLayout.FaceNormals, dataA.getEdgeFace(edgeA), vecEdgeB);
+		float BDC = -dataA.dot(FloatLayout.FaceNormals, dataA.getEdgeAdjacentFace(edgeA), vecEdgeB);
 
 		// float CBA = Vector3f.dot(edgeB.getFaceNormal(), vecEdgeA);
 		// float DBA = Vector3f.dot(edgeB.getAdjacentFaceNormal(), vecEdgeA);

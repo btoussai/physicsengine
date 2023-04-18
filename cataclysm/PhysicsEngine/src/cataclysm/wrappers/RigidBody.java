@@ -198,7 +198,7 @@ public class RigidBody extends Identifier {
 
 		computeMassProperties(poly);
 
-		updateTransforms(new Transform());
+		updateTransforms();
 
 		for (Wrapper wrapper : wrappers) {
 			wrapper.placeBox(params.getPadding());
@@ -216,14 +216,12 @@ public class RigidBody extends Identifier {
 	 * This function is called by the physics engine and must not be called
 	 * manually.
 	 * 
-	 * @param temp A temporary variable
-	 * 
 	 * @see #getOriginTransform()
 	 * @see #getBarycentricTransform()
 	 * @see #getAnchorPoints()
 	 */
 	@Internal
-	public void updateTransforms(Transform temp) {
+	public void updateTransforms() {
 		if (!isRotationBlocked()) {
 			float I1 = 1.0f / inertia.x;
 			float I2 = 1.0f / inertia.y;
@@ -236,8 +234,8 @@ public class RigidBody extends Identifier {
 
 		for (int i = 0; i < wrappers.size(); i++) {
 			Wrapper wrapper = wrappers.get(i);
-			Transform.compose(bodyToWorld, wrapper.getTransform(), temp);
-			wrapper.transform(temp);
+			Transform.compose(bodyToWorld, wrapper.getWrapperToBodyTransform(), wrapper.getWrapperToWorldTransform());
+			wrapper.transformCentroid();
 		}
 
 		for (int i = 0; i < anchorPoints.size(); i++) {
@@ -273,14 +271,15 @@ public class RigidBody extends Identifier {
 		}
 
 		inv_mass = 1.0f / mass;
-		bodyCenterOfMass.scale(-inv_mass);
-		PolyhedralMassProperties.translateInertia(bodyInertia, bodyCenterOfMass, mass);
-		bodyCenterOfMass.negate();
+		bodyCenterOfMass.scale(inv_mass);
+		PolyhedralMassProperties.translateInertiaToCenterOfMass(bodyInertia, bodyCenterOfMass, mass);
 
+		//Compute the barycentricToBody transform
 		MatrixOps.eigenValues(bodyInertia, inertia, this.barycentricToWorld.getRotation());
 		inertia.scale(inv_mass);
 		this.barycentricToWorld.getTranslation().set(bodyCenterOfMass);
-
+		
+		//Compose with bodyToWorld to obtain barcentricToWorld
 		Transform.compose(bodyToWorld, barycentricToWorld, barycentricToWorld);
 	}
 
@@ -292,7 +291,7 @@ public class RigidBody extends Identifier {
 	 * fonction.<br>
 	 * <br>
 	 * 
-	 * La fonction {@link #updateTransforms(Transform)} est automatiquement appelée
+	 * La fonction {@link #updateTransforms()} est automatiquement appelée
 	 * à la fin de la fonction pour finir la mise à jour de l'enveloppe.
 	 * 
 	 * @param scaleFactor
@@ -315,7 +314,7 @@ public class RigidBody extends Identifier {
 
 			// Puis on approche/éloigne le centre de masse de l'enveloppe en
 			// barycentric-space
-			wrapper.getTransform().getTranslation().scale(scaleFactor);
+			wrapper.getWrapperToBodyTransform().getTranslation().scale(scaleFactor);
 
 			Vector3f centroid = wrapper.getCentroidWrapperSpace();
 			float dx = centroid.x * (scaleFactor - 1.0f);
@@ -326,15 +325,15 @@ public class RigidBody extends Identifier {
 			// In case the wrapper is a hull, we have to translate everything so that the
 			// vertices stay at the same relative position with respect to the center of
 			// mass.
-			if (wrapper instanceof ConvexHullWrapper) {
-				((ConvexHullWrapper) wrapper).translate(dx, dy, dz);
-			}
+//			if (wrapper instanceof ConvexHullWrapper) {
+//				((ConvexHullWrapper) wrapper).translate(dx, dy, dz);
+//			}
 		}
 
 		setSleeping(false);
 		setSleepCounter(0);
 
-		updateTransforms(new Transform());
+		updateTransforms();
 	}
 
 	/**
@@ -997,7 +996,7 @@ public class RigidBody extends Identifier {
 		this.sleepCounter = 0;
 		this.flags = b.flags;
 
-		updateTransforms(new Transform());
+		updateTransforms();
 
 		for (Wrapper wrapper : wrappers) {
 			wrapper.placeBox(params.getPadding());

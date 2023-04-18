@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import cataclysm.wrappers.ConvexHullWrapperData;
+import cataclysm.wrappers.PolyhedralMassProperties;
 import math.vector.Vector3f;
 
 /**
@@ -27,6 +28,8 @@ public class ConvexHull {
 	 * Le nuage de point initial autour duquel l'enveloppe est construite.
 	 */
 	List<Vector3f> initialVertices;
+	
+	private final PolyhedralMassProperties massProperties = new PolyhedralMassProperties();
 
 	ConvexHull(List<Vector3f> points) {
 		initialVertices = points;
@@ -299,11 +302,11 @@ public class ConvexHull {
 
 		}
 
-		// Vertices, FaceNormals, FaceCentroids, PlaneOffsets, BackupVertices,
-		// BackupFaceNormals, BackupFaceCentroids;
 		vertexCount = vertices.size();
-		floatData = new float[3 * vertexCount + 3 * faceCount + 3 * faceCount + faceCount + 3 * vertexCount
-				+ 3 * faceCount + 3 * faceCount];
+		//	  						Vertices, 	FaceNormals, 	FaceCentroids, PlaneOffsets, 
+		floatData = new float[3 * vertexCount + 3 * faceCount + 3 * faceCount + faceCount
+              // BackupVertices, BackupFaceNormals, BackupFaceCentroids;
+		       + 3 * vertexCount + 3 * faceCount + 3 * faceCount];
 
 		for (int f = 0; f < faces.size(); f++) {
 			Face face = faces.get(f);
@@ -347,7 +350,7 @@ public class ConvexHull {
 		}
 		maxRadius = (float) Math.sqrt(maxRadius);
 
-		return new ConvexHullWrapperData(faceCount, edgeCount, vertexCount, intData, floatData, maxRadius);
+		return new ConvexHullWrapperData(faceCount, edgeCount, vertexCount, intData, floatData, maxRadius, massProperties);
 	}
 
 	@Override

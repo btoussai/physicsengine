@@ -5,7 +5,7 @@ import java.util.List;
 
 import cataclysm.Epsilons;
 import cataclysm.wrappers.ConvexHullWrapper;
-import cataclysm.wrappers.ConvexHullWrapper.FloatLayout;
+import cataclysm.wrappers.ConvexHullWrapperData.FloatLayout;
 import math.vector.Vector3f;
 
 class PolygonClipping {
@@ -36,22 +36,22 @@ class PolygonClipping {
 		outputListSize = 0;
 
 		// On remplit inputList avec les points de incidentFace
-		int edge0 = incident.getFaceEdge0(incidentFace);
+		int edge0 = incident.getConvexHullData().getFaceEdge0(incidentFace);
 		int edge = edge0;
 		do {
-			incident.get(FloatLayout.Vertices, incident.getEdgeTail(edge), edgeTail);
+			incident.getConvexHullData().get(FloatLayout.Vertices, incident.getConvexHullData().getEdgeTail(edge), edgeTail);
 			inputListSize = addVertex(inputList, inputListSize, edgeTail);
-			edge = incident.getEdgeNext(edge);
+			edge = incident.getConvexHullData().getEdgeNext(edge);
 		} while (edge != edge0);
 
-		reference.get(FloatLayout.FaceNormals, referenceFace, faceNormal);
+		reference.getConvexHullData().get(FloatLayout.FaceNormals, referenceFace, faceNormal);
 
-		edge0 = reference.getFaceEdge0(referenceFace);
+		edge0 = reference.getConvexHullData().getFaceEdge0(referenceFace);
 		edge = edge0;
 		do {
 
-			reference.get(FloatLayout.Vertices, reference.getEdgeTail(edge), edgeTail);
-			reference.sub(FloatLayout.Vertices, reference.getEdgeHead(edge), edgeTail, edgeVec);
+			reference.getConvexHullData().get(FloatLayout.Vertices, reference.getConvexHullData().getEdgeTail(edge), edgeTail);
+			reference.getConvexHullData().sub(FloatLayout.Vertices, reference.getConvexHullData().getEdgeHead(edge), edgeTail, edgeVec);
 			Vector3f.cross(faceNormal, edgeVec, clipPlaneNormal);
 
 			float clipPlaneOffset = Vector3f.dot(clipPlaneNormal, edgeTail);
@@ -103,7 +103,7 @@ class PolygonClipping {
 			inputListSize = outputListSize;
 			outputListSize = 0;
 
-			edge = reference.getEdgeNext(edge);
+			edge = reference.getConvexHullData().getEdgeNext(edge);
 		} while (edge != edge0);
 
 		clippedVertices.clear();

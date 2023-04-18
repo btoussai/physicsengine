@@ -38,18 +38,23 @@ class CollideSphereHull {
 				gjk.getClosestFeatureOnB(onB);
 
 			} else {
-
+				
+				Vector3f sphereCenter = new Vector3f(sphere.getCentroid());
+				hull.transformVertexWorldSpaceToWrapperSpace(sphereCenter, sphereCenter);
+				
 				distance = Float.NEGATIVE_INFINITY;
 				int referenceFace = 0;
-				for (int face = 0; face < hull.faceCount; face++) {
-					float d = hull.signedDistance(sphere.getCentroid(), face);
+				for (int face = 0; face < hull.getConvexHullData().faceCount; face++) {
+					float d = hull.getConvexHullData().signedDistance(sphereCenter, face);
 					if (d > distance) {
 						distance = d;
 						referenceFace = face;
 					}
 				}
 
-				hull.getNormal(referenceFace, normal);
+				distance *= hull.getScale();
+				hull.getConvexHullData().getNormal(referenceFace, normal);
+				hull.transformNormalWrapperSpaceToWorldSpace(normal, normal);
 				normal.negate();
 				onB.setFromHullFace(referenceFace);
 			}

@@ -3,7 +3,8 @@ package cataclysm.contact_creation;
 import cataclysm.Epsilons;
 import cataclysm.wrappers.CapsuleWrapper;
 import cataclysm.wrappers.ConvexHullWrapper;
-import cataclysm.wrappers.ConvexHullWrapper.FloatLayout;
+import cataclysm.wrappers.ConvexHullWrapperData;
+import cataclysm.wrappers.ConvexHullWrapperData.FloatLayout;
 import math.vector.Vector3f;
 
 /**
@@ -44,10 +45,13 @@ class CollideCapsuleHull {
 
 			onA.setFrom(capsule.getCenter1(), capsule.getCenter2());
 
-			C1.set(capsule.getCenter1());
-			C2.set(capsule.getCenter2());
+			hull.transformVertexWorldSpaceToWrapperSpace(capsule.getCenter1(), C1);
+			hull.transformVertexWorldSpaceToWrapperSpace(capsule.getCenter2(), C2);
+
 			Vector3f.sub(C2, C1, capsuleSegment);
 			capsuleSegmentLengthSquared = capsuleSegment.lengthSquared();
+
+			var data = hull.getConvexHullData();
 
 			if (distance > 0.0f) {
 				// shallow contact, capsuleSegment est � l'ext�rieur du solide.
@@ -55,45 +59,51 @@ class CollideCapsuleHull {
 
 				Vector3f.sub(closestOnHull, closestOnSegment, normal);
 				normal.scale(1.0f / distance);
+				hull.transformNormalWorldSpaceToWrapperSpace(normal, normal);
 
 				float orthoCheck = Vector3f.dot(normal, capsuleSegment);
 				if (orthoCheck * orthoCheck < Epsilons.ORTHOGONAL_LIMIT_2 * capsuleSegmentLengthSquared) {
 					// Contact sur la partie cylindrique.
 
-					if (checkCapsuleLayingOnFace(normal, hull)) {
-						stackingScenario(capsule, hull, distance, contact);
+					if (checkCapsuleLayingOnFace(normal, data)) {
+						stackingScenario(capsule, hull, data, distance, contact);
 					} else {
-						oneContactPointScenario(normal, distance, capsule, contact);
+						oneContactPointScenario(normal, distance, capsule, hull, contact);
 					}
 
 				} else {
 					// Contact sur une extr�mit�.
-					oneContactPointScenario(normal, distance, capsule, contact);
+					oneContactPointScenario(normal, distance, capsule, hull, contact);
 				}
 
 			} else {// deep contact
 
-				float distanceToBestFace = distanceToFaces(capsule, hull);
-				float distanceToBestEdge = distanceToEdges(capsule, hull);
+				float distanceToBestFace = distanceToFaces(data);
+
+				hullCentroid.set(hull.getCentroidWrapperSpace());
+				capsuleCentroid.set(C1).translate(C2).scale(0.5f);
+
+				float distanceToBestEdge = distanceToEdges(data);
 
 				if (distanceToBestFace >= distanceToBestEdge) {// deep face contact
 					onB.setFromHullFace(bestFace);
-					stackingScenario(capsule, hull, distanceToBestFace, contact);
+					stackingScenario(capsule, hull, data, distanceToBestFace, contact);
 				} else {// deep edge contact
 					onB.setFromHullEdge(bestEdge);
 
-					float depth = distanceToBestEdge - capsule.getRadius();
-					
-					hull.get(FloatLayout.Vertices, hull.getEdgeTail(bestEdge), edgeTail);
-					hull.get(FloatLayout.Vertices, hull.getEdgeHead(bestEdge), edgeHead);
-					
+					float depth = distanceToBestEdge * hull.getScale() - capsule.getRadius();
+
+					data.get(FloatLayout.Vertices, data.getEdgeTail(bestEdge), edgeTail);
+					data.get(FloatLayout.Vertices, data.getEdgeHead(bestEdge), edgeHead);
+
 					closestPointsBetweenSegments(C1, C2, edgeTail, edgeHead, C1, C2);
 
-					float x = 0.5f * (C1.x + C2.x);
-					float y = 0.5f * (C1.y + C2.y);
-					float z = 0.5f * (C1.z + C2.z);
+					C1.translate(C2).scale(0.5f);
+					hull.transformVertexWrapperSpaceToWorldSpace(C1, C1);
+					contact.setContactPointAndPenetrationDepth(0, C1.x, C1.y, C1.z, depth);
+
 					Vector3f.negate(bestEdgeNormal, normal);
-					contact.setContactPointAndPenetrationDepth(0, x, y, z, depth);
+					hull.transformNormalWrapperSpaceToWorldSpace(normal, normal);
 					contact.rebuild(normal, depth, 1, onA, onB);
 				}
 
@@ -111,13 +121,13 @@ class CollideCapsuleHull {
 	 * Teste si la capsule repose sur une des faces du solide.
 	 * 
 	 * @param contactNormal La normale du contact, unitaire.
-	 * @param hull
+	 * @param data
 	 * @return
 	 */
-	private boolean checkCapsuleLayingOnFace(Vector3f contactNormal, ConvexHullWrapper hull) {
-		bestFace = hull.getMostAntiParallelFace(contactNormal);
+	private boolean checkCapsuleLayingOnFace(Vector3f contactNormal, ConvexHullWrapperData data) {
+		bestFace = data.getMostAntiParallelFace(contactNormal);
 
-		float dotOrtho = hull.dot(FloatLayout.FaceNormals, bestFace, capsuleSegment);
+		float dotOrtho = data.dot(FloatLayout.FaceNormals, bestFace, capsuleSegment);
 		return dotOrtho * dotOrtho < Epsilons.ORTHOGONAL_LIMIT_2 * capsuleSegmentLengthSquared;
 	}
 
@@ -125,14 +135,13 @@ class CollideCapsuleHull {
 	 * Cherche la face maximisant la distance � capsuleSegment, dans le cas o�
 	 * capsuleSegment intersecte le solide. (car la distance est n�gative)
 	 * 
-	 * @param capsule
-	 * @param hull
+	 * @param data
 	 * @return une distance n�gative !
 	 */
-	private float distanceToFaces(CapsuleWrapper capsule, ConvexHullWrapper hull) {
+	private float distanceToFaces(ConvexHullWrapperData data) {
 		float distance = Float.NEGATIVE_INFINITY;
-		for(int face=0; face<hull.faceCount; face++) {
-			float d = Math.min(hull.signedDistance(C1, face), hull.signedDistance(C2, face));
+		for (int face = 0; face < data.faceCount; face++) {
+			float d = Math.min(data.signedDistance(C1, face), data.signedDistance(C2, face));
 			if (d > distance) {
 				distance = d;
 				bestFace = face;
@@ -156,22 +165,19 @@ class CollideCapsuleHull {
 	 * Cherche l'ar�te maximisant la distance � capsuleSegment, dans le cas o�
 	 * capsuleSegment intersecte le solide. (car la distance est n�gative)
 	 * 
-	 * @param capsule
-	 * @param hull
+	 * @param data
 	 * @return une distance n�gative !
 	 */
-	private float distanceToEdges(CapsuleWrapper capsule, ConvexHullWrapper hull) {
+	private float distanceToEdges(ConvexHullWrapperData data) {
 
-		hullCentroid.set(hull.getCentroid());
-		capsuleCentroid.set(capsule.getCentroid());
 		Vector3f.sub(hullCentroid, capsuleCentroid, capsuleToHull);
 
 		float distance = Float.NEGATIVE_INFINITY;
-		for (int edge = 0; edge < hull.edgeCount; edge += 2) {
+		for (int edge = 0; edge < data.edgeCount; edge += 2) {
 
-			hull.getEdgeVec(edge, edgeVec);
+			data.getEdgeVec(edge, edgeVec);
 			Vector3f.cross(capsuleSegment, edgeVec, segmentCrossEdgeVec);
-			hull.sub(FloatLayout.Vertices, hull.getEdgeHead(edge), capsuleCentroid, capsuleToEdge);
+			data.sub(FloatLayout.Vertices, data.getEdgeHead(edge), capsuleCentroid, capsuleToEdge);
 
 			float length = segmentCrossEdgeVec.length();
 			if (length < Epsilons.MIN_LENGTH) {// edge parallel to segment
@@ -202,34 +208,34 @@ class CollideCapsuleHull {
 	 * @param capsule
 	 * @param distanceToBestFace
 	 */
-	private void stackingScenario(CapsuleWrapper capsule, ConvexHullWrapper hull, float distanceToBestFace,
-			ContactZone contact) {
+	private void stackingScenario(CapsuleWrapper capsule, ConvexHullWrapper hull, ConvexHullWrapperData data,
+			float distanceToBestFace, ContactZone contact) {
 
 		// Clip segment against bestFace
-		hull.getNormal(bestFace, normal);
-		int edge0 = hull.getFaceEdge0(bestFace);
+		data.getNormal(bestFace, normal);
+		int edge0 = data.getFaceEdge0(bestFace);
 		int edge = edge0;
 		do {
-			hull.getEdgeVec(edge, edgeVec);
+			data.getEdgeVec(edge, edgeVec);
 			Vector3f.cross(normal, edgeVec, clipPlaneNormal);
-			
-			float clipPlaneOffset = hull.dot(FloatLayout.Vertices, hull.getEdgeTail(edge), clipPlaneNormal);
+
+			float clipPlaneOffset = data.dot(FloatLayout.Vertices, data.getEdgeTail(edge), clipPlaneNormal);
 
 			clipSegmentAgainstPlane(clipPlaneNormal, clipPlaneOffset);
-			edge = hull.getEdgeNext(edge);
-		}while(edge != edge0);
-		
+			edge = data.getEdgeNext(edge);
+		} while (edge != edge0);
+
 		normal.negate();
 
-		float r = capsule.getRadius();
-		float d1 = hull.signedDistance(C1, bestFace);
-		float d2 = hull.signedDistance(C2, bestFace);
+		float r = capsule.getRadius() / hull.getScale();
+		float d1 = data.signedDistance(C1, bestFace);
+		float d2 = data.signedDistance(C2, bestFace);
 
 		boolean C1_above = d1 > r;
 		boolean C2_above = d2 > r;
 
 		if (C1_above && C2_above) {
-			oneContactPointScenario(normal, distanceToBestFace, capsule, contact);
+			oneContactPointScenario(normal, distanceToBestFace, capsule, hull, contact);
 			return;
 		}
 
@@ -241,9 +247,13 @@ class CollideCapsuleHull {
 		C2.y += d2 * normal.y;
 		C2.z += d2 * normal.z;
 
-		float depth = distanceToBestFace - capsule.getRadius();
-		contact.setContactPointAndPenetrationDepth(0, C1.x, C1.y, C1.z, d1 - r);
-		contact.setContactPointAndPenetrationDepth(1, C2.x, C2.y, C2.z, d2 - r);
+		hull.transformNormalWrapperSpaceToWorldSpace(normal, normal);
+		hull.transformVertexWrapperSpaceToWorldSpace(C1, C1);
+		hull.transformVertexWrapperSpaceToWorldSpace(C2, C2);
+
+		float depth = (distanceToBestFace - capsule.getRadius()) * hull.getScale();
+		contact.setContactPointAndPenetrationDepth(0, C1.x, C1.y, C1.z, (d1 - r) * hull.getScale());
+		contact.setContactPointAndPenetrationDepth(1, C2.x, C2.y, C2.z, (d2 - r) * hull.getScale());
 		contact.rebuild(normal, depth, 2, onA, onB);
 	}
 
@@ -254,10 +264,14 @@ class CollideCapsuleHull {
 	 * @param distance
 	 * @param capsule
 	 */
-	private void oneContactPointScenario(Vector3f normal, float distance, CapsuleWrapper capsule, ContactZone contact) {
-		float depth = distance - capsule.getRadius();
+	private void oneContactPointScenario(Vector3f normal, float distance, CapsuleWrapper capsule,
+			ConvexHullWrapper hull, ContactZone contact) {
+		float depth = distance * hull.getScale() - capsule.getRadius();
 
-		float toContactPoint = distance + 0.5f * depth;
+		hull.transformNormalWrapperSpaceToWorldSpace(normal, normal);
+		hull.transformVertexWrapperSpaceToWorldSpace(closestOnSegment, closestOnSegment);
+
+		float toContactPoint = distance * hull.getScale() + 0.5f * depth;
 		float x = closestOnSegment.x + toContactPoint * normal.x;
 		float y = closestOnSegment.y + toContactPoint * normal.y;
 		float z = closestOnSegment.z + toContactPoint * normal.z;

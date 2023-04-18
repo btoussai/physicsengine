@@ -37,9 +37,16 @@ public final class MassProperties implements ReadWriteObject {
 	}
 
 	public void scale(float scaleFactor) {
-		mass *= scaleFactor;
-		surfaceArea *= scaleFactor * scaleFactor;
-		volume *= scaleFactor * scaleFactor * scaleFactor;
+		float s2 = scaleFactor * scaleFactor;
+		float s3 = s2 * scaleFactor;
+		surfaceArea *= s2;
+		volume *= s3;
+		
+		if(hollow) {
+			mass *= s2;
+		}else {
+			mass *= s3;
+		}
 	}
 
 	public float computeMass() {

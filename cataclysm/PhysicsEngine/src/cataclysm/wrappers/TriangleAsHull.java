@@ -1,6 +1,8 @@
 package cataclysm.wrappers;
 
 import cataclysm.broadphase.staticmeshes.Triangle;
+import cataclysm.wrappers.ConvexHullWrapperData.FloatLayout;
+import math.vector.Vector3f;
 
 /**
  * A triangle represented as a convex hull.
@@ -10,10 +12,8 @@ import cataclysm.broadphase.staticmeshes.Triangle;
  */
 public final class TriangleAsHull extends ConvexHullWrapper {
 
-	private static final ConvexHullWrapperData data = buildBase();
-
 	private TriangleAsHull() {
-		super(data);
+		super(buildBase());
 	}
 
 	private static ConvexHullWrapperData buildBase() {
@@ -76,7 +76,7 @@ public final class TriangleAsHull extends ConvexHullWrapper {
 		float[] floatData = new float[3 * vertexCount + 3 * faceCount + 3 * faceCount + faceCount + 3 * vertexCount
 				+ 3 * faceCount + 3 * faceCount];
 		ConvexHullWrapperData data = new ConvexHullWrapperData(faceCount, edgeCount, vertexCount, intData, floatData,
-				0);
+				0, new PolyhedralMassProperties());
 
 		return data;
 	}
@@ -87,37 +87,95 @@ public final class TriangleAsHull extends ConvexHullWrapper {
 
 	public void setFrom(Triangle triangle) {
 		// vertices
-		floatData[0] = triangle.getV0(0);
-		floatData[1] = triangle.getV0(1);
-		floatData[2] = triangle.getV0(2);
-		floatData[3] = triangle.getV1(0);
-		floatData[4] = triangle.getV1(1);
-		floatData[5] = triangle.getV1(2);
-		floatData[6] = triangle.getV2(0);
-		floatData[7] = triangle.getV2(1);
-		floatData[8] = triangle.getV2(2);
+		data.floatData[0] = triangle.getV0(0);
+		data.floatData[1] = triangle.getV0(1);
+		data.floatData[2] = triangle.getV0(2);
+		data.floatData[3] = triangle.getV1(0);
+		data.floatData[4] = triangle.getV1(1);
+		data.floatData[5] = triangle.getV1(2);
+		data.floatData[6] = triangle.getV2(0);
+		data.floatData[7] = triangle.getV2(1);
+		data.floatData[8] = triangle.getV2(2);
 
 		// normals
-		floatData[9] = triangle.getNormal(0);
-		floatData[10] = triangle.getNormal(1);
-		floatData[11] = triangle.getNormal(2);
-		floatData[12] = -floatData[9];
-		floatData[13] = -floatData[10];
-		floatData[14] = -floatData[11];
+		data.floatData[9] = triangle.getNormal(0);
+		data.floatData[10] = triangle.getNormal(1);
+		data.floatData[11] = triangle.getNormal(2);
+		data.floatData[12] = -data.floatData[9];
+		data.floatData[13] = -data.floatData[10];
+		data.floatData[14] = -data.floatData[11];
 
 		// centroids
-		float cx = (1.0f / 3.0f) * (floatData[0] + floatData[3] + floatData[6]);
-		float cy = (1.0f / 3.0f) * (floatData[1] + floatData[4] + floatData[7]);
-		float cz = (1.0f / 3.0f) * (floatData[2] + floatData[5] + floatData[8]);
-		floatData[15] = floatData[18] = cx;
-		floatData[16] = floatData[19] = cy;
-		floatData[17] = floatData[20] = cz;
+		float cx = (1.0f / 3.0f) * (data.floatData[0] + data.floatData[3] + data.floatData[6]);
+		float cy = (1.0f / 3.0f) * (data.floatData[1] + data.floatData[4] + data.floatData[7]);
+		float cz = (1.0f / 3.0f) * (data.floatData[2] + data.floatData[5] + data.floatData[8]);
+		data.floatData[15] = data.floatData[18] = cx;
+		data.floatData[16] = data.floatData[19] = cy;
+		data.floatData[17] = data.floatData[20] = cz;
 
 		// plane offsets
-		floatData[21] = triangle.getPlaneOffset();
-		floatData[22] = -triangle.getPlaneOffset();
+		data.floatData[21] = triangle.getPlaneOffset();
+		data.floatData[22] = -triangle.getPlaneOffset();
 
 		super.getCentroid().set(cx, cy, cz);
 	}
+	
+
+	@Override
+	public void getSupport(Vector3f direction, boolean negate, Vector3f dest) {
+		float bestProjection = Float.NEGATIVE_INFINITY;
+
+		dest.set(direction);
+		if (negate) {
+			dest.negate();
+		}
+
+		int start = FloatLayout.Vertices.startOf(0, data);
+		int bestIndex = 0;
+		for (int n = 0; n < data.vertexCount; n++) {
+			float x = data.floatData[start + 3 * n + 0];
+			float y = data.floatData[start + 3 * n + 1];
+			float z = data.floatData[start + 3 * n + 2];
+			float dot = x * dest.x + y * dest.y + z * dest.z;
+			float projection = dot;
+			if (projection > bestProjection) {
+				bestProjection = projection;
+				bestIndex = n;
+			}
+		}
+
+		float x = data.floatData[start + 3 * bestIndex + 0];
+		float y = data.floatData[start + 3 * bestIndex + 1];
+		float z = data.floatData[start + 3 * bestIndex + 2];
+
+		dest.set(x, y, z);
+
+	}
+
+	@Override
+	public float getScale() {
+		return 1.0f;
+	}
+
+	@Override
+	public void transformVertexWorldSpaceToWrapperSpace(Vector3f v, Vector3f dest) {
+		dest.set(v);
+	}
+
+	@Override
+	public void transformVertexWrapperSpaceToWorldSpace(Vector3f v, Vector3f dest) {
+		dest.set(v);
+	}
+
+	@Override
+	public void transformNormalWorldSpaceToWrapperSpace(Vector3f n, Vector3f dest) {
+		dest.set(n);
+	}
+
+	@Override
+	public void transformNormalWrapperSpaceToWorldSpace(Vector3f n, Vector3f dest) {
+		dest.set(n);
+	}
+
 
 }

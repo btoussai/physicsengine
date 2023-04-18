@@ -3,6 +3,8 @@ package cataclysm.wrappers;
 import java.util.ArrayList;
 
 import cataclysm.Epsilons;
+import cataclysm.annotations.Internal;
+import cataclysm.annotations.ReadOnly;
 import cataclysm.broadphase.AABB;
 import cataclysm.broadphase.BroadPhaseNode;
 import cataclysm.contact_creation.AbstractDoubleBodyContact;
@@ -48,6 +50,11 @@ public abstract sealed class Wrapper extends Identifier
 	 * The transformation from wrapper-space to body-space.
 	 */
 	protected final Transform wrapperToBody;
+	
+	/**
+	 * The transformation from wrapper-space to world-space.
+	 */
+	protected final Transform wrapperToWorld = new Transform();
 
 	/**
 	 * The center of mass of the wrapper, in wrapper-space and in world-space.
@@ -145,7 +152,8 @@ public abstract sealed class Wrapper extends Identifier
 	public RigidBody getBody() {
 		return body;
 	}
-	
+
+	@ReadOnly @Internal
 	public BroadPhaseNode<Wrapper> getNode() {
 		return node;
 	}
@@ -161,6 +169,7 @@ public abstract sealed class Wrapper extends Identifier
 	/**
 	 * @return The bounding box of this wrapper.
 	 */
+	@ReadOnly
 	public AABB getBox() {
 //		return box;
 		return node.getBox();
@@ -169,6 +178,7 @@ public abstract sealed class Wrapper extends Identifier
 	/**
 	 * @return The center of mass of the wrapper in world-space
 	 */
+	@ReadOnly
 	public Vector3f getCentroid() {
 		return centroid.getOutputSpaceCoord();
 	}
@@ -176,6 +186,7 @@ public abstract sealed class Wrapper extends Identifier
 	/**
 	 * @return The center of mass of the wrapper in wrapper-space
 	 */
+	@ReadOnly
 	public Vector3f getCentroidWrapperSpace() {
 		return centroid.getInputSpaceCoord();
 	}
@@ -202,6 +213,7 @@ public abstract sealed class Wrapper extends Identifier
 	}
 
 	@Override
+	@Internal
 	public int compareTo(Wrapper other) {
 		return this.getType().maxContacts - other.getType().maxContacts;
 	}
@@ -209,19 +221,28 @@ public abstract sealed class Wrapper extends Identifier
 	/**
 	 * Recomputes the position of the wrapper in world-space.
 	 * 
-	 * @param wrapperToWorld The transformation from wrapper-space to world-space.
 	 */
-	public void transform(Transform wrapperToWorld) {
+	@Internal
+	public void transformCentroid() {
 		this.centroid.transformAsVertex(wrapperToWorld);
 	}
 
 	/**
 	 * @return The transformation from wrapper-space to body-space.
 	 */
-	public Transform getTransform() {
+	@ReadOnly
+	public Transform getWrapperToBodyTransform() {
 		return wrapperToBody;
 	}
 
+	/**
+	 * @return The transformation from wrapper-space to world-space.
+	 */
+	@ReadOnly
+	public Transform getWrapperToWorldTransform() {
+		return wrapperToWorld;
+	}
+	
 	/**
 	 * @return the type of the wrapper
 	 */
@@ -263,6 +284,7 @@ public abstract sealed class Wrapper extends Identifier
 	/**
 	 * @return la masse, le volume, etc... de cette enveloppe.
 	 */
+	@ReadOnly
 	public MassProperties getMassProperties() {
 		return massProperties;
 	}

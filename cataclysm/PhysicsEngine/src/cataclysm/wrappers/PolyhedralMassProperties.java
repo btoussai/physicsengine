@@ -1,6 +1,7 @@
 package cataclysm.wrappers;
 
-import cataclysm.wrappers.ConvexHullWrapper.FloatLayout;
+import cataclysm.wrappers.ConvexHullWrapperData.FloatLayout;
+import math.MatrixOps;
 import math.vector.Matrix3f;
 import math.vector.Vector3f;
 
@@ -28,21 +29,21 @@ public class PolyhedralMassProperties {
 	 * The inertia tensor is computed about the origin, not about the center of mass!
 	 * The mass properties of the wrapper are also updated (mass, volume, surface area).
 	 * 
-	 * @param hull    The convex polyhedra.
-	 * @param CM      A destination vector for the center of mass.
-	 * @param inertia A destination matrix for the inertia tensor.
+	 * @param data    The convex polyhedra.
+	 * @param inertia 
+	 * @param centerOfMass 
+	 * @param massProperties 
 	 * @return the mass of the convex polyhedra
 	 */
-	public float computeProperties(ConvexHullWrapper hull, Vector3f CM, Matrix3f inertia) {
+	public float computeProperties(ConvexHullWrapperData data, MassProperties massProperties, Vector3f centerOfMass, Matrix3f inertia) {
 
-		computeVolumeIntegrals(hull);
+		computeVolumeIntegrals(data);
 
 		float rx = 0, ry = 0, rz = 0;
 
 		float volume = T1;
 		float surfaceArea = U1;
 
-		MassProperties massProperties = hull.getMassProperties();
 		massProperties.setVolume(volume);
 		massProperties.setSurfaceArea(surfaceArea);
 		float mass = massProperties.computeMass();
@@ -81,7 +82,7 @@ public class PolyhedralMassProperties {
 
 		}
 
-		CM.set(rx, ry, rz);
+		centerOfMass.set(rx, ry, rz);
 
 		// System.out.println("CM: " + CM);
 		// System.out.println("Volume: " + T1 + " Surface Area: " + U1);
@@ -103,13 +104,13 @@ public class PolyhedralMassProperties {
 	private float pi_ab, pi_a2b, pi_ab2;
 	private float a0, a1, b0, b1;
 
-	private void computeVolumeIntegrals(ConvexHullWrapper hull) {
+	private void computeVolumeIntegrals(ConvexHullWrapperData data) {
 
 		T1 = Tx = Ty = Tz = Tx2 = Ty2 = Tz2 = Txy = Tyz = Tzx = 0;
 		U1 = Ux = Uy = Uz = Ux2 = Uy2 = Uz2 = Uxy = Uyz = Uzx = 0;
 
-		for (int face = 0; face < hull.faceCount; face++) {
-			computeFaceIntegrals(hull, face);
+		for (int face = 0; face < data.faceCount; face++) {
+			computeFaceIntegrals(data, face);
 
 			U1 += F1;
 
@@ -217,19 +218,19 @@ public class PolyhedralMassProperties {
 
 	private final Vector3f normal = new Vector3f();
 
-	private void computeFaceIntegrals(ConvexHullWrapper hull, int face) {
+	private void computeFaceIntegrals(ConvexHullWrapperData data, int face) {
 
-		hull.getNormal(face, normal);
+		data.getNormal(face, normal);
 		chooseProjection(normal);
 
-		computeProjectionIntegrals(hull, face);
+		computeProjectionIntegrals(data, face);
 
 		float na2 = na * na;
 		float na3 = na2 * na;
 		float nb2 = nb * nb;
 		float nb3 = nb2 * nb;
 
-		float w = -hull.getPlaneOffset(face);
+		float w = -data.getPlaneOffset(face);
 		float w2 = w * w;
 		float w3 = w2 * w;
 		float k1 = 1.0f / nc;
@@ -262,14 +263,14 @@ public class PolyhedralMassProperties {
 				+ w2 * pi_a);
 	}
 
-	private void computeProjectionIntegrals(ConvexHullWrapper hull, int face) {
+	private void computeProjectionIntegrals(ConvexHullWrapperData data, int face) {
 		pi_1 = pi_a = pi_b = pi_a2 = pi_b2 = pi_a3 = pi_b3 = pi_ab = pi_a2b = pi_ab2 = 0;
 
-		int edge0 = hull.getFaceEdge0(face);
+		int edge0 = data.getFaceEdge0(face);
 		int edge = edge0;
 		do {
 
-			loadCoords(hull, edge);
+			loadCoords(data, edge);
 
 			float Da = a1 - a0;
 			float Db = b1 - b0;
@@ -311,7 +312,7 @@ public class PolyhedralMassProperties {
 			pi_a2b += Db * (b1 * Ca2b + b0 * Ka2b);
 			pi_ab2 += Da * (a1 * Cab2 + a0 * Kab2);
 
-			edge = hull.getEdgeNext(edge);
+			edge = data.getEdgeNext(edge);
 		} while (edge != edge0);
 
 		pi_1 /= 2f;
@@ -330,10 +331,10 @@ public class PolyhedralMassProperties {
 	private final Vector3f start = new Vector3f();
 	private final Vector3f end = new Vector3f();
 
-	private void loadCoords(ConvexHullWrapper hull, int edge) {
+	private void loadCoords(ConvexHullWrapperData data, int edge) {
 		// load a0, a1, b0, b1 from edge's end points
-		hull.get(FloatLayout.Vertices, hull.getEdgeTail(edge), start);
-		hull.get(FloatLayout.Vertices, hull.getEdgeHead(edge), end);
+		data.get(FloatLayout.Vertices, data.getEdgeTail(edge), start);
+		data.get(FloatLayout.Vertices, data.getEdgeHead(edge), end);
 		switch (projection) {
 		case XY:
 			a0 = start.x;
@@ -389,34 +390,77 @@ public class PolyhedralMassProperties {
 		}
 
 	}
+	
+	static void transformMassProperties(Matrix3f inertia, Vector3f centerOfMass, MassProperties properties, Vector3f translation, Matrix3f rotation, float scale) {
+		
+		float prevMass = properties.getMass();
+		properties.scale(scale);
+		centerOfMass.scale(scale);
+		//Normalize and scale the inertia matrix
+		inertia.scalarMult(scale*scale / prevMass);
+		
+		float mass = properties.getMass();
+		
+		Matrix3f.transform(rotation, centerOfMass, centerOfMass);
+		MatrixOps.changeOfBasis(inertia, rotation, inertia);
+		
+		float cx2 = centerOfMass.x * centerOfMass.x;
+		float cy2 = centerOfMass.y * centerOfMass.y;
+		float cz2 = centerOfMass.z * centerOfMass.z;
 
-	/**
-	 * Translates the inertia tensor.
-	 * 
-	 * @param inertia     The inertia tensor about the center of mass of the object, to be modified in-place.
-	 * @param translation The translation vector.
-	 * @param mass        The mass of the object.
-	 */
-	static void translateInertia(Matrix3f inertia, Vector3f translation, float mass) {
-		float rx2 = translation.x * translation.x;
-		float ry2 = translation.y * translation.y;
-		float rz2 = translation.z * translation.z;
+		float cx = centerOfMass.x;
+		float cy = centerOfMass.y;
+		float cz = centerOfMass.z;
+		
+		centerOfMass.translate(translation);
+		
+		float rx2 = centerOfMass.x * centerOfMass.x;
+		float ry2 = centerOfMass.y * centerOfMass.y;
+		float rz2 = centerOfMass.z * centerOfMass.z;
 
-		float rx = translation.x;
-		float ry = translation.y;
-		float rz = translation.z;
+		float rx = centerOfMass.x;
+		float ry = centerOfMass.y;
+		float rz = centerOfMass.z;
+		
+		
+		inertia.m00 -= ((cy2 + cz2) - (ry2 + rz2));
+		inertia.m11 -= ((cx2 + cz2) - (rx2 + rz2));
+		inertia.m22 -= ((cx2 + cy2) - (rx2 + ry2));
 
-		inertia.m00 += (ry2 + rz2) * mass;
-		inertia.m11 += (rx2 + rz2) * mass;
-		inertia.m22 += (rx2 + ry2) * mass;
-
-		inertia.m01 += -(rx * ry) * mass;
-		inertia.m02 += -(rz * rx) * mass;
-		inertia.m12 += -(ry * rz) * mass;
+		inertia.m01 -= (-(cx * cy) + (rx * ry));
+		inertia.m02 -= (-(cz * cx) + (rz * rx));
+		inertia.m12 -= (-(cy * cz) + (ry * rz));
 
 		inertia.m10 = inertia.m01;
 		inertia.m20 = inertia.m02;
 		inertia.m21 = inertia.m12;
+		
+		inertia.scalarMult(mass);
+	}
+	
+	static void translateInertiaToCenterOfMass(Matrix3f inertia, Vector3f centerOfMass, float mass) {
+		
+		float rx2 = centerOfMass.x * centerOfMass.x;
+		float ry2 = centerOfMass.y * centerOfMass.y;
+		float rz2 = centerOfMass.z * centerOfMass.z;
+
+		float rx = centerOfMass.x;
+		float ry = centerOfMass.y;
+		float rz = centerOfMass.z;
+		
+		inertia.m00 -= (ry2 + rz2) * mass;
+		inertia.m11 -= (rx2 + rz2) * mass;
+		inertia.m22 -= (rx2 + ry2) * mass;
+
+		inertia.m01 -= -(rx * ry) * mass;
+		inertia.m02 -= -(rz * rx) * mass;
+		inertia.m12 -= -(ry * rz) * mass;
+
+		inertia.m10 = inertia.m01;
+		inertia.m20 = inertia.m02;
+		inertia.m21 = inertia.m12;
+		
+		
 	}
 
 }

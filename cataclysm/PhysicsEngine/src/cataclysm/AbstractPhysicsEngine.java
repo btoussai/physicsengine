@@ -9,7 +9,6 @@ import cataclysm.integrators.ExternalForceIntegrator;
 import cataclysm.integrators.GyroscopicIntegrator;
 import cataclysm.wrappers.RigidBody;
 import cataclysm.wrappers.RigidBodyManager;
-import cataclysm.wrappers.Transform;
 import math.MatrixOps;
 import math.vector.Matrix3f;
 import math.vector.Vector3f;
@@ -107,11 +106,10 @@ public abstract class AbstractPhysicsEngine {
 		// some temporary variables
 		final Matrix3f rotation = new Matrix3f();
 		final Vector3f axis = new Vector3f();
-		final Transform temp = new Transform();
 		
 		for (RigidBody body : bodies) {
 			if (body.isSkipIntegration()) {
-				body.updateTransforms(temp);
+				body.updateTransforms();
 				continue;
 			}
 
@@ -172,7 +170,7 @@ public abstract class AbstractPhysicsEngine {
 				body.rotateAboutCenterOfMass(rotation);
 			}
 
-			body.updateTransforms(temp);
+			body.updateTransforms();
 
 			pseudoVel.set(0, 0, 0);
 			pseudoAngVel.set(0, 0, 0);

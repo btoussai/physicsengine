@@ -40,10 +40,10 @@ public final class CapsuleWrapper extends Wrapper {
 	}
 
 	@Override
-	public void transform(Transform wrapperToWorld) {
+	public void transformCentroid() {
 		this.center1.transformAsVertex(wrapperToWorld);
 		this.center2.transformAsVertex(wrapperToWorld);
-		super.transform(wrapperToWorld);
+		super.transformCentroid();
 	}
 
 	@Override
@@ -93,6 +93,7 @@ public final class CapsuleWrapper extends Wrapper {
 	@Override
 	public float computeInertia(Vector3f centerOfMass, Matrix3f inertia, PolyhedralMassProperties poly) {
 		inertia.setIdentity();
+		centerOfMass.set(0.0f, 0.0f, 0.0f);
 
 		float r_plus_h = radius + halfLength;
 		float r2 = radius * radius;
@@ -123,10 +124,7 @@ public final class CapsuleWrapper extends Wrapper {
 		inertia.m11 *= mass;
 		inertia.m22 *= mass;
 		
-		centerOfMass.set(wrapperToBody.getTranslation());
-		
-		MatrixOps.changeOfBasis(inertia, wrapperToBody.getRotation(), inertia);
-		PolyhedralMassProperties.translateInertia(inertia, centerOfMass, mass);
+		PolyhedralMassProperties.transformMassProperties(inertia, centerOfMass, massProperties, wrapperToBody.getTranslation(), wrapperToBody.getRotation(), 1.0f);
 		
 		return mass;
 	}

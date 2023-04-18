@@ -47,6 +47,7 @@ public final class SphereWrapper extends Wrapper {
 	@Override
 	public float computeInertia(Vector3f centerOfMass, Matrix3f inertia, PolyhedralMassProperties poly) {
 		inertia.setIdentity();
+		centerOfMass.set(0.0f, 0.0f, 0.0f);
 		
 		float surfaceArea = 4.0f * (float)Math.PI * radius * radius;
 		float volume = (1.0f / 3.0f) * surfaceArea * radius;
@@ -61,10 +62,7 @@ public final class SphereWrapper extends Wrapper {
 			inertia.m00 = inertia.m11 = inertia.m22 = (2.0f / 5.0f) * radius * radius * mass;
 		}
 		
-		centerOfMass.set(wrapperToBody.getTranslation());
-		
-		MatrixOps.changeOfBasis(inertia, wrapperToBody.getRotation(), inertia);
-		PolyhedralMassProperties.translateInertia(inertia, centerOfMass, mass);
+		PolyhedralMassProperties.transformMassProperties(inertia, centerOfMass, massProperties, wrapperToBody.getTranslation(), wrapperToBody.getRotation(), 1.0f);
 		
 		return mass;
 	}
