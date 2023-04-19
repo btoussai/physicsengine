@@ -2,8 +2,11 @@ package cataclysm.broadphase.staticmeshes;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 import cataclysm.DefaultParameters;
+import cataclysm.contact_creation.AbstractSingleBodyContact;
 import cataclysm.contact_creation.ContactProperties;
 import cataclysm.datastructures.Identifier;
 import cataclysm.record.StaticMeshRepr;
@@ -26,6 +29,11 @@ public class StaticMesh extends Identifier {
 	 * ult�rieures du maillage � d'autres position dans le monde 3D.
 	 */
 	private final StaticMeshData data;
+	
+	/**
+	 * A list of the contacts between this static mesh and rigid bodies.
+	 */
+	protected final Set<AbstractSingleBodyContact> bodyContacts = new HashSet<AbstractSingleBodyContact>(1);
 
 	/**
 	 * Les triangles constituant le maillage.
@@ -39,17 +47,17 @@ public class StaticMesh extends Identifier {
 	private final Matrix4f transform = new Matrix4f();
 
 	/**
-	 * Les coordonn�es min des triangles du maillage.
+	 * Les coordonnées min des triangles du maillage.
 	 */
 	final Vector3f min = new Vector3f();
 
 	/**
-	 * Les coordonn�es max des triangles du maillage.
+	 * Les coordonnéSes max des triangles du maillage.
 	 */
 	final Vector3f max = new Vector3f();
 
 	/**
-	 * La friction et l'�lasticit� du sol.
+	 * La friction et l'élasticitée du sol.
 	 */
 	private final ContactProperties contactProperties;
 
@@ -182,4 +190,7 @@ public class StaticMesh extends Identifier {
 
 	}
 
+	public Set<AbstractSingleBodyContact> getBodyContacts() {
+		return bodyContacts;
+	}
 }

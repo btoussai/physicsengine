@@ -207,6 +207,7 @@ class RigidBodyManagerUpdate extends BodyUpdator {
 
 		contacts.removeIf(contact -> {
 			if (!intersectedTriangles.remove(contact.getTriangle())) {
+				contact.getTriangle().mesh.getBodyContacts().remove(contact);
 				contact.refresh(null, null);
 				meshContactPool[contact.getMaxContacts()].add(contact);
 				return true;

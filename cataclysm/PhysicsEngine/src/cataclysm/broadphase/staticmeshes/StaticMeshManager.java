@@ -100,6 +100,9 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh> impleme
 		if(removed.size() > 0) {
 			long t1 = System.currentTimeMillis();
 			for (StaticMesh mesh : removed) {
+				
+				mesh.getBodyContacts().forEach(c -> c.getWrapper().getMeshContacts().remove(c));
+				
 				mapGrid.remove(mesh);
 			}
 			long t2 = System.currentTimeMillis();
@@ -113,7 +116,7 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh> impleme
 				mapGrid.add(mesh);
 			}
 			long t2 = System.currentTimeMillis();
-			System.out.println("Added meshes " + added.size() + " in " + (t2 - t1) + " ms");
+			System.out.println("Added " + added.size() + " meshes in " + (t2 - t1) + " ms");
 		}
 
 		if (world != null && world.getActiveRecord() != null) {

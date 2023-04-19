@@ -45,6 +45,7 @@ abstract class BodyUpdator implements GeometryQuery {
 
 	protected void deleteMeshContacts(Wrapper wrapper) {
 		for (AbstractSingleBodyContact contact : wrapper.getMeshContacts()) {
+			contact.getTriangle().mesh.getBodyContacts().remove(contact);
 			contact.refresh(null, null);
 			meshContactPool[contact.getMaxContacts()].add(contact);
 		}
@@ -114,6 +115,7 @@ abstract class BodyUpdator implements GeometryQuery {
 			contact.refresh(wrapper, triangle);
 		}
 		wrapper.getMeshContacts().add(contact);
+		triangle.mesh.getBodyContacts().add(contact);
 	}
 
 //	public abstract ArrayBasedBroadPhaseTree<Wrapper> getBVH();
