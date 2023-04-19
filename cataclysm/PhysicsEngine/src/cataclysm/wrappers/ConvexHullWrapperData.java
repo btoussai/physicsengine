@@ -13,7 +13,7 @@ import math.vector.Vector3f;
 
 public class ConvexHullWrapperData {
 	
-	public static class WrapperModelData {
+	public static class ModelData {
 		public int[] indices;
 		public float[] vertices;
 	}
@@ -292,8 +292,8 @@ public class ConvexHullWrapperData {
 		sub(FloatLayout.Vertices, head, FloatLayout.Vertices, tail, dest);
 	}
 	
-	public WrapperModelData asModel() {
-		WrapperModelData data = new WrapperModelData();
+	public ModelData asModel() {
+		ModelData data = new ModelData();
 		
 		List<Integer> indices = new ArrayList<>();
 		List<Vector3f> vertices = new ArrayList<>();

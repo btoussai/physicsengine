@@ -29,7 +29,7 @@ public class StaticMeshData {
 	 * Construit les triangles du maillage.
 	 * @param max Un vecteur dans lequel stocker les coordonn�es max du maillage.
 	 * @param min Un vecteur dans lequel stocker les coordonn�es min du maillage.
-	 * @param transformation Une matrice de transformation appliqu�e aux sommets.
+	 * @param transformation Une matrice de transformation appliquée aux sommets.
 	 * @return
 	 */
 	Triangle[] buildTriangles(StaticMesh mesh, Matrix4f transform, Vector3f min, Vector3f max) {

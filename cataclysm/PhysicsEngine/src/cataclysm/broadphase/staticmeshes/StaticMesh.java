@@ -1,5 +1,6 @@
 package cataclysm.broadphase.staticmeshes;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import cataclysm.DefaultParameters;
@@ -7,6 +8,7 @@ import cataclysm.contact_creation.ContactProperties;
 import cataclysm.datastructures.Identifier;
 import cataclysm.record.StaticMeshRepr;
 import cataclysm.record.TriangleRepr;
+import cataclysm.wrappers.ConvexHullWrapperData.ModelData;
 import math.vector.Matrix4f;
 import math.vector.Vector3f;
 
@@ -139,6 +141,28 @@ public class StaticMesh extends Identifier {
 			t.getV1(tRepr.v2);
 			t.getV2(tRepr.v3);
 		}
+	}
+	
+	public ModelData asModel() {
+		ModelData data = new ModelData();
+		
+		List<Integer> indices = new ArrayList<>();
+		List<Vector3f> vertices = new ArrayList<>();
+		asModel(indices, vertices);
+
+		data.indices = new int[indices.size()];
+		data.vertices = new float[vertices.size() * 3];
+		
+		for(int i=0; i<indices.size(); i++) {
+			data.indices[i] = indices.get(i);
+		}
+		for(int i=0; i<vertices.size(); i++) {
+			data.vertices[3*i+0] = vertices.get(i).x;
+			data.vertices[3*i+1] = vertices.get(i).y;
+			data.vertices[3*i+2] = vertices.get(i).z;
+		}
+		
+		return data;
 	}
 
 	public void asModel(List<Integer> indices, List<Vector3f> vertices) {

@@ -97,11 +97,23 @@ public final class StaticMeshManager extends BufferedManager<StaticMesh> impleme
 		if (callbackOnAdd != null)
 			added.forEach(callbackOnAdd);
 
-		for (StaticMesh mesh : added) {
-			mapGrid.add(mesh);
+		if(removed.size() > 0) {
+			long t1 = System.currentTimeMillis();
+			for (StaticMesh mesh : removed) {
+				mapGrid.remove(mesh);
+			}
+			long t2 = System.currentTimeMillis();
+			System.out.println("Removed " + removed.size() + " meshes in " + (t2 - t1) + " ms");
 		}
-		for (StaticMesh mesh : removed) {
-			mapGrid.remove(mesh);
+
+
+		if(added.size() > 0) {
+			long t1 = System.currentTimeMillis();
+			for (StaticMesh mesh : added) {
+				mapGrid.add(mesh);
+			}
+			long t2 = System.currentTimeMillis();
+			System.out.println("Added meshes " + added.size() + " in " + (t2 - t1) + " ms");
 		}
 
 		if (world != null && world.getActiveRecord() != null) {
